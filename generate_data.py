@@ -111,7 +111,7 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
                         src_crs=src.crs,
                         dst_transform=reference_transform,
                         dst_crs=reference_crs,
-                        resampling=Resampling.bilinear
+                        resampling=Resampling.nearest
                     )
                     band_arrays.append(resampled_data)
                 else:

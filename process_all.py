@@ -37,7 +37,7 @@ def rescale_to_32x32(data, profile, crs):
         src_crs=crs,
         dst_transform=new_transform,
         dst_crs=crs,
-        resampling=Resampling.bilinear
+        resampling=Resampling.nearest
     )
     
     profile.update({
@@ -117,12 +117,15 @@ def process_subfolder(subfolder_path, ref_dims=None, ref_crs=None, ref_transform
     
     rectangular_files = []
     almost_square_files = []
+    square_files = []
     for file in tif_files:
         with rasterio.open(file) as ds:
             if is_rectangular(ds, threshold=1.2):
                 rectangular_files.append(file)
             elif is_almost_square(ds, lower_threshold=1.0, upper_threshold=1.2):
                 almost_square_files.append(file)
+            else:
+                square_files.append(file)
     
     # Process rectangular images (concatenate with self)
     for file in rectangular_files:
@@ -167,6 +170,27 @@ def process_subfolder(subfolder_path, ref_dims=None, ref_crs=None, ref_transform
     
     # Process almost square images (crop to perfect square)
     for file in almost_square_files:
+        with rasterio.open(file) as ds:
+            if not is_reference and ref_dims and ref_crs and ref_transform:
+                ref_width, ref_height = ref_dims.get(os.path.basename(file), (ds.width, ds.height))
+                data, profile = rescale_image(ds, ref_width, ref_height, ref_transform, ref_crs)
+            else:
+                data = ds.read()
+                profile = ds.profile.copy()
+            
+            # Crop to largest square
+            cropped_data, cropped_profile = crop_to_largest_square(
+                rasterio.io.MemoryFile().open(**profile), data, profile
+            )
+            # Rescale to 32x32
+            final_data, final_profile = rescale_to_32x32(cropped_data, cropped_profile, ref_crs or ds.crs)
+
+            # Save with same name
+            with rasterio.open(file, 'w', **final_profile) as dst:
+                dst.write(final_data)
+    
+        # Process almost square images (crop to perfect square)
+    for file in square_files:
         with rasterio.open(file) as ds:
             if not is_reference and ref_dims and ref_crs and ref_transform:
                 ref_width, ref_height = ref_dims.get(os.path.basename(file), (ds.width, ds.height))

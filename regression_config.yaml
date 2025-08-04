@@ -26,6 +26,10 @@ data:
       - S2L2A
       - S1GRD
       - DEM
+      - MODIS
+      - WEATHER
+      - SOIL
+      - CDL
     rgb_modality: S2L2A
     rgb_indices:
       - 3
@@ -35,16 +39,28 @@ data:
       S2L2A: modalities2023/S2L2A
       S1GRD: modalities2023/S1GRD
       DEM: modalities2023/DEM
+      CDL: modalities2023/CDL
+      WEATHER: modalities2023/WEATHER
+      MODIS: modalities2023/MODIS
+      SOIL: modalities2023/SOIL
     train_label_data_root: modalities2023/yield_geotiffs
     val_data_root:
       S2L2A: modalities2023/S2L2A
       S1GRD: modalities2023/S1GRD
       DEM: modalities2023/DEM
+      CDL: modalities2023/CDL
+      WEATHER: modalities2023/WEATHER
+      MODIS: modalities2023/MODIS
+      SOIL: modalities2023/SOIL
     val_label_data_root: modalities2023/yield_geotiffs
     test_data_root:
       S2L2A: modalities2023/S2L2A
       S1GRD: modalities2023/S1GRD
       DEM: modalities2023/DEM
+      CDL: modalities2023/CDL
+      WEATHER: modalities2023/WEATHER
+      MODIS: modalities2023/MODIS
+      SOIL: modalities2023/SOIL
     test_label_data_root: modalities2023/yield_geotiffs
 
     train_split: modalities2023/train.txt
@@ -62,8 +78,9 @@ data:
       S1RTC: [-10.93, -17.329]
       RGB: [87.271, 80.931, 66.667]
       DEM: [670.665]
-
-
+      MODIS: [854.473, 3450.634, 455.066, 826.045, 3500.701, 2749.189, 1646.328]
+      SOIL: [164.401, 233.710, 280.134, 0.668, 0.648, 230.887, 13863.224, 14870.775, 87.595, 0.566]
+      WEATHER: [49565.363, 3.569, 372.732, 0.220, 25.605, 13.400, 1624.082]
     stds:
       S2L1C: [1624.683, 1675.806, 1557.708, 1833.702, 1823.738, 1733.977, 1732.131, 1679.732, 1727.26, 1024.687, 442.165, 1331.411, 1160.419]
       S2L2A: [2106.761, 2141.107, 2038.973, 2134.138, 2085.321, 1889.926, 1820.257, 1871.918, 1753.829, 1797.379, 1434.261, 1334.311]
@@ -71,7 +88,10 @@ data:
       S1RTC: [4.391, 4.459]
       RGB: [58.767, 47.663, 42.631]
       DEM: [951.272]
-
+      MODIS: [274.742, 532.366, 167.646, 195.329, 390.69, 464.115, 463.36]
+      SOIL: [42.146, 66.719, 91.207, 0.235, 0.240, 76.342, 12903.941, 14781.083, 14.254, 0.241]
+      WEATHER: [293.616, 2.478, 23.879, 0.407, 1.332, 1.199, 130.093]
+      
     train_transform:
       - class_path: albumentations.D4  # Random flip and rotations
       - class_path: ToTensorV2
@@ -87,6 +107,10 @@ model:
         - S2L2A
         - S1GRD
         - DEM
+        - {"CDL": 1}  # Add new modality and define number of channels
+        - {"MODIS": 7}  # Add new modality and define number of channels
+        - {"SOIL": 10}  # Add new modality and define number of channels
+        - {"WEATHER": 7}  # Add new modality and define number of channels
       backbone_merge_method: mean
 
       necks:
