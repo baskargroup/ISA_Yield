@@ -26,7 +26,7 @@ def create_geotiff_from_group(df):
         m_per_deg_lon = 111320.0 * cos(avg_lat * pi / 180)
         
         # Desired resolution in meters
-        res_m = 5.0
+        res_m = 60.0
         
         # Resolution in degrees
         res_lat = res_m / m_per_deg_lat
@@ -52,13 +52,13 @@ def create_geotiff_from_group(df):
         # Interpolate to grid (use 'nearest', 'linear', or 'cubic'; fill NaNs with 0)
         interpolated = griddata(points, values, (lon_grid, lat_grid), method='linear')
         data = np.nan_to_num(interpolated, nan=0.0)
-        os.makedirs('yield_geotiffs', exist_ok= True)
+        os.makedirs('modalities2023/yield_geotiffs', exist_ok= True)
         if len(group.Crop.unique()) == 1:
             # Write to GeoTIFF
-            output_file = f"yield_geotiffs/{layer_id}_{group['Crop'].iloc[0]}.tif"
+            output_file = f"modalities2023/yield_geotiffs/{layer_id}_{group['Crop'].iloc[0]}.tif"
         else:
             # Write to GeoTIFF
-            output_file = f'yield_geotiffs/{layer_id}_mixed.tif'
+            output_file = f'modalities2023/yield_geotiffs/{layer_id}_mixed.tif'
         with rasterio.open(
             output_file,
             'w',

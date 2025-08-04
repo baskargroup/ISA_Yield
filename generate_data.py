@@ -20,7 +20,7 @@ soil_dir = f'/work/mech-ai-scratch/aapowadi/soil_new/soil_processed_{ext}'
 weather_dir = f'/work/mech-ai-scratch/aapowadi/WEEKLY_WEATHER_{ext}'
 dem_path = f'/work/mech-ai-scratch/rtali/multimodal_fusion/terrain_merged/4326_elevation_{ext}.tif'
 output_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/modalities{year}'
-yield_path = '/work/mech-ai-scratch/aapowadi/ISA_Yield/yield_geotiffs'
+yield_path = '/work/mech-ai-scratch/aapowadi/ISA_Yield/modalities2023/yield_geotiffs'
 
 # Define bands for each modality
 s1_bands = ['vv', 'vh']
