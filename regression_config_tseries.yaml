@@ -75,6 +75,15 @@ data:
       SOIL: [1,2,3,4,5,6,7,8,9,10]
       WEATHER: [1,2,3,4,5,6,7]
       CDL: [1]
+    output_bands:
+      S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
+      S1GRD: [1,2]
+      RGB: [1,2,3]
+      DEM: [1]
+      MODIS: [1,2,3,4,5,6,7]
+      SOIL: [1,2,3,4,5,6,7,8,9,10]
+      WEATHER: [1,2,3,4,5,6,7]
+      CDL: [1]
     expand_temporal_dimension: true
     # Adjust file suffixes if required or delete them
     no_label_replace: -1

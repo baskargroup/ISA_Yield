@@ -77,6 +77,6 @@ def create_geotiff_from_group(df):
 # Call the function with your DataFrame
 # create_geotiff_from_group(df)
 
-full_data = gpd.read_parquet('Yield_2024_filtered.parquet')
+full_data = gpd.read_parquet('Yield_2014_filtered.parquet')
 
 create_geotiff_from_group(full_data)

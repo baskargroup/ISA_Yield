@@ -43,6 +43,6 @@ def combine_geoparquets(input_folder, output_file):
 
 if __name__ == "__main__":
     # Example usage
-    input_folder = "./ISA_2024_Raw_Yields_chunks"
+    input_folder = "./ISA_2014_raw_yields_chunks"
     output_file = f"./Yield_{input_folder.split('_')[1]}.parquet"
     combine_geoparquets(input_folder, output_file)

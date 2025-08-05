@@ -9,7 +9,7 @@ from tqdm import tqdm
 import csv
 
 # Step 1: Convert CSV to GeoParquet in chunks of 1000 using parallel processing
-input_file = 'ISA_2024_Raw_Yields.csv'  # Replace with your CSV file path
+input_file = 'ISA_2014_raw_yields.csv'  # Replace with your CSV file path
 chunk_size = 1000
 output_dir = f"{input_file.split('.')[0]}_chunks"
 os.makedirs(output_dir, exist_ok=True)  # Create directory for chunks
