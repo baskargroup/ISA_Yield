@@ -1,240 +1,194 @@
 import os
 import glob
-import rasterio
 import numpy as np
-from rasterio.transform import Affine
-from rasterio.warp import reproject, Resampling
+import rasterio
 
-def get_aspect_ratio(ds):
-    width = ds.width
-    height = ds.height
-    return max(width, height) / min(width, height)
+def get_aspect_ratio(H, W):
+    return max(H, W) / min(H, W)
 
-def is_rectangular(ds, threshold=1.2):
-    return get_aspect_ratio(ds) > threshold
+def is_rectangular(H, W, threshold=1.2):
+    return get_aspect_ratio(H, W) > threshold
 
-def is_almost_square(ds, lower_threshold=1.0, upper_threshold=1.2):
-    aspect = get_aspect_ratio(ds)
-    return lower_threshold < aspect <= upper_threshold and ds.width != ds.height
+def is_almost_square(H, W, lower_threshold=1.0, upper_threshold=1.2):
+    aspect = get_aspect_ratio(H, W)
+    return lower_threshold < aspect <= upper_threshold and H != W
 
-def rescale_to_32x32(data, profile, crs):
-    src_height, src_width = data.shape[1], data.shape[2]
-    dst_height, dst_width = 32, 32
-    dtype = data.dtype
-    
-    out_data = np.empty((data.shape[0], dst_height, dst_width), dtype=dtype)
-    
-    # Calculate new transform for 32x32
-    scale_x = src_width / dst_width
-    scale_y = src_height / dst_height
-    new_transform = Affine(profile['transform'].a * scale_x, profile['transform'].b, profile['transform'].c,
-                           profile['transform'].d, profile['transform'].e * scale_y, profile['transform'].f)
-    
-    reproject(
-        source=data,
-        destination=out_data,
-        src_transform=profile['transform'],
-        src_crs=crs,
-        dst_transform=new_transform,
-        dst_crs=crs,
-        resampling=Resampling.nearest
-    )
-    
-    profile.update({
-        'width': dst_width,
-        'height': dst_height,
-        'transform': new_transform
-    })
-    
-    return out_data, profile
-
-def rescale_image(src, ref_width, ref_height, ref_transform, ref_crs):
-    data = src.read()
-    src_transform = src.transform
-    src_crs = src.crs
-    
-    if len(set(src.dtypes)) > 1:
-        raise ValueError(f"Image {src.name} has bands with different dtypes: {src.dtypes}")
-    dtype = src.dtypes[0]
-    
-    out_shape = (src.count, ref_height, ref_width)
-    out_data = np.empty(out_shape, dtype=dtype)
-    
-    scale_x = src.width / ref_width
-    scale_y = src.height / ref_height
-    new_transform = Affine(ref_transform.a * scale_x, ref_transform.b, ref_transform.c,
-                           ref_transform.d, ref_transform.e * scale_y, ref_transform.f)
-    
-    reproject(
-        source=data,
-        destination=out_data,
-        src_transform=src_transform,
-        src_crs=src_crs,
-        dst_transform=new_transform,
-        dst_crs=ref_crs,
-        resampling=Resampling.nearest
-    )
-    
-    profile = src.profile.copy()
-    profile.update({
-        'width': ref_width,
-        'height': ref_height,
-        'transform': new_transform,
-        'crs': ref_crs
-    })
-    
-    return out_data, profile
-
-def crop_to_largest_square(ds, data, profile):
-    height = ds.height
-    width = ds.width
-    side = min(height, width)
-    
-    if height == side and width == side:
-        return data, profile
-    
-    transform = profile['transform']
-    
-    if height > width:
-        start_row = (height - side) // 2
-        data = data[:, start_row:start_row + side, :]
-        new_transform = Affine(transform.a, transform.b, transform.c,
-                               transform.d, transform.e, transform.f + start_row * transform.e)
-        profile['height'] = side
-        profile['transform'] = new_transform
+def resize_nearest(data, new_h, new_w, is_reference=False):
+    if not is_reference:
+        t, c, old_h, old_w = data.shape
     else:
-        start_col = (width - side) // 2
-        data = data[:, :, start_col:start_col + side]
-        new_transform = Affine(transform.a, transform.b, transform.c + start_col * transform.a,
-                               transform.d, transform.e, transform.f)
-        profile['width'] = side
-        profile['transform'] = new_transform
-    
-    return data, profile
+        c, old_h, old_w = data.shape
+    ii, jj = np.meshgrid(np.arange(new_h), np.arange(new_w), indexing='ij')
+    orig_i = np.floor(ii * old_h / new_h).astype(int)
+    orig_j = np.floor(jj * old_w / new_w).astype(int)
+    orig_i = np.clip(orig_i, 0, old_h - 1)
+    orig_j = np.clip(orig_j, 0, old_w - 1)
+    if not is_reference:
+        return data[:, :, orig_i, orig_j]
+    else:
+        return data[:, orig_i, orig_j]
+def rescale_to_32x32(data, is_reference=False):
+    return resize_nearest(data, 224, 224, is_reference)
 
-def process_subfolder(subfolder_path, ref_dims=None, ref_crs=None, ref_transform=None, is_reference=False):
-    tif_files = sorted(glob.glob(os.path.join(subfolder_path, '*.tif')) + glob.glob(os.path.join(subfolder_path, '*.tiff')))
-    
+def rescale_data(data, ref_h, ref_w):
+    return resize_nearest(data, ref_h, ref_w)
+
+def crop_to_largest_square(data, is_reference = False):
+    if is_reference == False:
+        H = data.shape[2]
+        W = data.shape[3]
+    else:
+        H = data.shape[1]
+        W = data.shape[2]
+    side = min(H, W)
+    if H == side and W == side:
+        return data
+    if H > W:
+        start_row = (H - side) // 2
+        data = data[:, :, start_row:start_row + side, :]
+    else:
+        start_col = (W - side) // 2
+        data = data[:, :, :, start_col:start_col + side]
+    return data
+
+def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_reference=False):
+    if is_reference:
+        files = sorted(glob.glob(os.path.join(subfolder_path, '*.tif')) + glob.glob(os.path.join(subfolder_path, '*.tiff')))
+    else:
+        files = sorted(glob.glob(os.path.join(subfolder_path, '*.tif.npy')) + glob.glob(os.path.join(subfolder_path, '*.npy')))
     rectangular_files = []
     almost_square_files = []
     square_files = []
-    for file in tif_files:
-        with rasterio.open(file) as ds:
-            if is_rectangular(ds, threshold=1.2):
-                rectangular_files.append(file)
-            elif is_almost_square(ds, lower_threshold=1.0, upper_threshold=1.2):
-                almost_square_files.append(file)
-            else:
-                square_files.append(file)
-    
+    for file in files:
+        if is_reference:
+            with rasterio.open(file) as ds:
+                data = ds.read()
+                data = np.expand_dims(data, 0)  # Make (1, C, H, W)
+                T, C, H, W = data.shape
+        else:
+            data = np.load(file)
+            T, C, H, W = data.shape
+            if T < 8:
+                continue
+        if is_rectangular(H, W, threshold=1.2):
+            rectangular_files.append(file)
+        elif is_almost_square(H, W, lower_threshold=1.0, upper_threshold=1.2):
+            almost_square_files.append(file)
+        else:
+            square_files.append(file)
+    # Create destination subfolder if it doesn't exist
+    os.makedirs(dest_subfolder_path, exist_ok=True)
     # Process rectangular images (concatenate with self)
     for file in rectangular_files:
-        with rasterio.open(file) as ds:
-            if not is_reference and ref_dims and ref_crs and ref_transform:
-                ref_width, ref_height = ref_dims.get(os.path.basename(file), (ds.width, ds.height))
-                data, profile = rescale_image(ds, ref_width, ref_height, ref_transform, ref_crs)
-            else:
+        if is_reference:
+            with rasterio.open(file) as ds:
                 data = ds.read()
-                profile = ds.profile.copy()
-            
-            h = profile['height']
-            w = profile['width']
-            
-            # Concatenate the same image
-            if w > h:  # Wide, concat vertically
-                new_h = 2 * h
-                new_w = w
-                new_data = np.empty((ds.count, new_h, new_w), dtype=ds.dtypes[0])
-                new_data[:, 0:h, :] = data
-                new_data[:, h:2*h, :] = data
-                profile['height'] = new_h
-            else:  # Tall, concat horizontally
-                new_h = h
-                new_w = 2 * w
-                new_data = np.empty((ds.count, new_h, new_w), dtype=ds.dtypes[0])
-                new_data[:, :, 0:w] = data
-                new_data[:, :, w:2*w] = data
-                profile['width'] = new_w
-            
-            # Crop to largest square
-            cropped_data, cropped_profile = crop_to_largest_square(
-                rasterio.io.MemoryFile().open(**profile), new_data, profile
-            )
-            
-            # Rescale to 32x32
-            final_data, final_profile = rescale_to_32x32(cropped_data, cropped_profile, ref_crs or ds.crs)
-            
-            # Save with same name
-            with rasterio.open(file, 'w', **final_profile) as dst:
-                dst.write(final_data)
-    
+        else:
+            data = np.load(file)
+            T, C, H, W = data.shape
+            if T > 8:
+                indices = np.round(np.linspace(0, T - 1, 8)).astype(int)
+                data = data[indices]
+        if not is_reference and ref_dims:
+            ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))
+            data = rescale_data(data, ref_h, ref_w)
+            H, W = ref_h, ref_w
+        # Concatenate the same image
+        if W > H:  # Wide, concat vertically
+            new_h = 2 * H
+            new_w = W
+            new_data = np.empty((data.shape[0], data.shape[1], new_h, new_w), dtype=data.dtype)
+            new_data[:, :, 0:H, :] = data
+            new_data[:, :, H:2*H, :] = data
+        else:  # Tall, concat horizontally
+            new_h = H
+            new_w = 2 * W
+            new_data = np.empty((data.shape[0], data.shape[1], new_h, new_w), dtype=data.dtype)
+            new_data[:, :, :, 0:W] = data
+            new_data[:, :, :, W:2*W] = data
+        data = new_data
+        # Crop to largest square
+        data = crop_to_largest_square(data, is_reference)
+        # Rescale to 32x32
+        data = rescale_to_32x32(data, is_reference)
+        # Save with .npy extension in destination subfolder
+        if is_reference:
+            save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
+        else:
+            save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
+        np.save(save_path, data)
     # Process almost square images (crop to perfect square)
     for file in almost_square_files:
-        with rasterio.open(file) as ds:
-            if not is_reference and ref_dims and ref_crs and ref_transform:
-                ref_width, ref_height = ref_dims.get(os.path.basename(file), (ds.width, ds.height))
-                data, profile = rescale_image(ds, ref_width, ref_height, ref_transform, ref_crs)
-            else:
+        if is_reference:
+            with rasterio.open(file) as ds:
                 data = ds.read()
-                profile = ds.profile.copy()
-            
-            # Crop to largest square
-            cropped_data, cropped_profile = crop_to_largest_square(
-                rasterio.io.MemoryFile().open(**profile), data, profile
-            )
-            # Rescale to 32x32
-            final_data, final_profile = rescale_to_32x32(cropped_data, cropped_profile, ref_crs or ds.crs)
-
-            # Save with same name
-            with rasterio.open(file, 'w', **final_profile) as dst:
-                dst.write(final_data)
-    
-        # Process almost square images (crop to perfect square)
+        else:
+            data = np.load(file)
+            T, C, H, W = data.shape
+            if T > 8:
+                indices = np.round(np.linspace(0, T - 1, 8)).astype(int)
+                data = data[indices]
+        if not is_reference and ref_dims:
+            ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))
+            data = rescale_data(data, ref_h, ref_w)
+            H, W = ref_h, ref_w
+        # Crop to largest square
+        data = crop_to_largest_square(data, is_reference)
+        # Rescale to 32x32
+        data = rescale_to_32x32(data, is_reference)
+        # Save with .npy extension in destination subfolder
+        if is_reference:
+            save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
+        else:
+            save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
+        np.save(save_path, data)
+    # Process square images
     for file in square_files:
-        with rasterio.open(file) as ds:
-            if not is_reference and ref_dims and ref_crs and ref_transform:
-                ref_width, ref_height = ref_dims.get(os.path.basename(file), (ds.width, ds.height))
-                data, profile = rescale_image(ds, ref_width, ref_height, ref_transform, ref_crs)
-            else:
+        if is_reference:
+            with rasterio.open(file) as ds:
                 data = ds.read()
-                profile = ds.profile.copy()
-            
-            # Crop to largest square
-            cropped_data, cropped_profile = crop_to_largest_square(
-                rasterio.io.MemoryFile().open(**profile), data, profile
-            )
-            # Rescale to 32x32
-            final_data, final_profile = rescale_to_32x32(cropped_data, cropped_profile, ref_crs or ds.crs)
+        else:
+            data = np.load(file)
+            T, C, H, W = data.shape
+            if T > 8:
+                indices = np.round(np.linspace(0, T - 1, 8)).astype(int)
+                data = data[indices]
+        if not is_reference and ref_dims:
+            ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))
+            data = rescale_data(data, ref_h, ref_w)
+            H, W = ref_h, ref_w
+        # Crop to largest square (noop if perfect square)
+        data = crop_to_largest_square(data, is_reference)
+        # Rescale to 32x32
+        data = rescale_to_32x32(data, is_reference)
+        # Save with .npy extension in destination subfolder
+        if is_reference:
+            save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
+        else:
+            save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
+        np.save(save_path, data)
 
-            # Save with same name
-            with rasterio.open(file, 'w', **final_profile) as dst:
-                dst.write(final_data)
-
-def process_root_folder(root_path):
+def process_root_folder(root_path, dest_root_path):
     yield_folder = os.path.join(root_path, 'yield_geotiffs')
+    dest_yield_folder = os.path.join(dest_root_path, 'yield_geotiffs')
     if not os.path.exists(yield_folder):
         print("yield_geotiffs subfolder not found!")
         return
-    
     ref_files = sorted(glob.glob(os.path.join(yield_folder, '*.tif')) + glob.glob(os.path.join(yield_folder, '*.tiff')))
     ref_dims = {}
-    ref_crs = None
-    ref_transform = None
     for ref_file in ref_files:
         with rasterio.open(ref_file) as ds:
-            ref_dims[os.path.basename(ref_file)] = (ds.width, ds.height)
-            ref_crs = ds.crs
-            ref_transform = ds.transform
-    
+            ref_dims[os.path.splitext(os.path.basename(ref_file))[0] + '.npy'] = (ds.height, ds.width)
     for subfolder in sorted(os.listdir(root_path)):
         subfolder_path = os.path.join(root_path, subfolder)
+        dest_subfolder_path = os.path.join(dest_root_path, subfolder)
         if os.path.isdir(subfolder_path):
             if subfolder == 'yield_geotiffs':
                 print(f"Processing reference folder: {subfolder}")
-                process_subfolder(subfolder_path, is_reference=True)
+                process_subfolder(subfolder_path, dest_subfolder_path, is_reference=True)
             else:
                 print(f"Processing folder: {subfolder}")
-                process_subfolder(subfolder_path, ref_dims, ref_crs, ref_transform)
+                process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=ref_dims)
 
 # Usage
-process_root_folder('./modalities2023')
+process_root_folder('./final_data', './processed_data')

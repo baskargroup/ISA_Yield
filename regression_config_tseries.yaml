@@ -20,71 +20,71 @@ data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
   init_args:
     task: 'regression'
-    batch_size: 8
+    batch_size: 50
     num_workers: 8
     modalities:
       - S2L2A
       - S1GRD
       - DEM
-      - MODIS
-      - WEATHER
-      - SOIL
-      - CDL
+      # - MODIS
+      # - WEATHER
+      # - SOIL
+      # - CDL
     rgb_modality: S2L2A
     rgb_indices:
       - 3
       - 2
       - 1
     train_data_root:
-      S2L2A: modalities2023/S2L2A
-      S1GRD: modalities2023/S1GRD
-      DEM: modalities2023/DEM
-      CDL: modalities2023/CDL
-      WEATHER: modalities2023/WEATHER
-      MODIS: modalities2023/MODIS
-      SOIL: modalities2023/SOIL
-    train_label_data_root: modalities2023/yield_geotiffs
+      S2L2A: processed_data/S2L2A
+      S1GRD: processed_data/S1GRD
+      DEM: processed_data/DEM
+      # CDL: processed_data/CDL
+      # WEATHER: processed_data/WEATHER
+      # MODIS: processed_data/MODIS
+      # SOIL: processed_data/SOIL
+    train_label_data_root: processed_data/yield_geotiffs
     val_data_root:
-      S2L2A: modalities2023/S2L2A
-      S1GRD: modalities2023/S1GRD
-      DEM: modalities2023/DEM
-      CDL: modalities2023/CDL
-      WEATHER: modalities2023/WEATHER
-      MODIS: modalities2023/MODIS
-      SOIL: modalities2023/SOIL
-    val_label_data_root: modalities2023/yield_geotiffs
+      S2L2A: processed_data/S2L2A
+      S1GRD: processed_data/S1GRD
+      DEM: processed_data/DEM
+      # CDL: processed_data/CDL
+      # WEATHER: processed_data/WEATHER
+      # MODIS: processed_data/MODIS
+      # SOIL: processed_data/SOIL
+    val_label_data_root: processed_data/yield_geotiffs
     test_data_root:
-      S2L2A: modalities2023/S2L2A
-      S1GRD: modalities2023/S1GRD
-      DEM: modalities2023/DEM
-      CDL: modalities2023/CDL
-      WEATHER: modalities2023/WEATHER
-      MODIS: modalities2023/MODIS
-      SOIL: modalities2023/SOIL
-    test_label_data_root: modalities2023/yield_geotiffs
+      S2L2A: processed_data/S2L2A
+      S1GRD: processed_data/S1GRD
+      DEM: processed_data/DEM
+      # CDL: processed_data/CDL
+      # WEATHER: processed_data/WEATHER
+      # MODIS: processed_data/MODIS
+      # SOIL: processed_data/SOIL
+    test_label_data_root: processed_data/yield_geotiffs
 
-    train_split: modalities2023/train.txt
-    val_split: modalities2023/val.txt
-    test_split: modalities2023/test.txt
-    dataset_bands:
-      S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
-      S1GRD: [1,2]
-      RGB: [1,2,3]
-      DEM: [1]
-      MODIS: [1,2,3,4,5,6,7]
-      SOIL: [1,2,3,4,5,6,7,8,9,10]
-      WEATHER: [1,2,3,4,5,6,7]
-      CDL: [1]
-    output_bands:
-      S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
-      S1GRD: [1,2]
-      RGB: [1,2,3]
-      DEM: [1]
-      MODIS: [1,2,3,4,5,6,7]
-      SOIL: [1,2,3,4,5,6,7,8,9,10]
-      WEATHER: [1,2,3,4,5,6,7]
-      CDL: [1]
-    expand_temporal_dimension: true
+    train_split: processed_data/train.txt
+    val_split: processed_data/val.txt
+    test_split: processed_data/test.txt
+    # dataset_bands:
+    #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
+    #   S1GRD: [1,2]
+    #   RGB: [1,2,3]
+    #   DEM: [1]
+    #   MODIS: [1,2,3,4,5,6,7]
+    #   SOIL: [1,2,3,4,5,6,7,8,9,10]
+    #   WEATHER: [1,2,3,4,5,6,7]
+    #   CDL: [1]
+    # output_bands:
+    #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
+    #   S1GRD: [1,2]
+    #   RGB: [1,2,3]
+    #   DEM: [1]
+    #   MODIS: [1,2,3,4,5,6,7]
+    #   SOIL: [1,2,3,4,5,6,7,8,9,10]
+    #   WEATHER: [1,2,3,4,5,6,7]
+    #   CDL: [1]
+    expand_temporal_dimension: False
     # Adjust file suffixes if required or delete them
     no_label_replace: -1
     no_data_replace: 0
@@ -125,10 +125,10 @@ model:
         - S2L2A
         - S1GRD
         - DEM
-        - {"CDL": 1}  # Add new modality and define number of channels
-        - {"MODIS": 7}  # Add new modality and define number of channels
-        - {"SOIL": 10}  # Add new modality and define number of channels
-        - {"WEATHER": 7}  # Add new modality and define number of channels
+        # - {"CDL": 1}  # Add new modality and define number of channels
+        # - {"MODIS": 7}  # Add new modality and define number of channels
+        # - {"SOIL": 10}  # Add new modality and define number of channels
+        # - {"WEATHER": 7}  # Add new modality and define number of channels
       backbone_merge_method: mean
 
       necks:

@@ -19,8 +19,8 @@ crop_dir = '/work/mech-ai-scratch/aapowadi/multimodal_fusion/remapped_cdl'
 soil_dir = f'/work/mech-ai-scratch/aapowadi/soil_new/soil_processed_{ext}'
 weather_dir = f'/work/mech-ai-scratch/aapowadi/WEEKLY_WEATHER_{ext}'
 dem_path = f'/work/mech-ai-scratch/rtali/multimodal_fusion/terrain_merged/4326_elevation_{ext}.tif'
-output_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/modalities{year}'
-yield_path = '/work/mech-ai-scratch/aapowadi/ISA_Yield/modalities2023/yield_geotiffs'
+output_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/final_data'
+yield_path = '/work/mech-ai-scratch/aapowadi/ISA_Yield/final_data/yield_geotiffs'
 
 # Define bands for each modality
 s1_bands = ['vv', 'vh']
@@ -173,8 +173,10 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
             'width': out_image.shape[2],
             'transform': out_transform
         })
-        with rasterio.open(output_path, 'w', **meta) as dest:
-            dest.write(out_image)
+        height = out_image.shape[1]
+        width = out_image.shape[2]
+        out_arr = np.reshape(out_image, (-1,len(band_list),height,width))
+        np.save(output_path, out_arr)
     except Exception as e:
         print(f"Error processing {input_dir}: {e}")
 
@@ -260,8 +262,10 @@ for yield_file in yield_files:
             'width': out_image.shape[2],
             'transform': out_transform
         })
-        with rasterio.open(output_path, 'w', **out_meta) as dest:
-            dest.write(out_image)
+        height = out_image.shape[1]
+        width = out_image.shape[2]
+        out_arr = np.reshape(out_image, (-1,1,height,width))
+        np.save(output_path,out_arr)
     # Process DEM
     output_path = os.path.join(output_dir, 'DEM', base_name)
     with rasterio.open(dem_path) as src:
@@ -276,7 +280,9 @@ for yield_file in yield_files:
             'width': out_image.shape[2],
             'transform': out_transform
         })
-        with rasterio.open(output_path, 'w', **out_meta) as dest:
-            dest.write(out_image)
+        height = out_image.shape[1]
+        width = out_image.shape[2]
+        out_arr = np.reshape(out_image, (-1,1,height,width))
+        np.save(output_path,out_arr)
 
 print("Processing complete.")

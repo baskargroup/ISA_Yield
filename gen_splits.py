@@ -14,7 +14,7 @@ def find_common_tif(root_folder):
     file_sets = []
     for sub in subfolders:
         sub_path = os.path.join(root_folder, sub)
-        tifs = {f for f in os.listdir(sub_path) if f.lower().endswith('.tif')}
+        tifs = {f for f in os.listdir(sub_path) if f.lower().endswith('.npy')}
         file_sets.append(tifs)
     
     # Find the intersection of all sets
@@ -64,7 +64,7 @@ def split_and_save(common_files, output_dir):
     print(f"Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(test)})")
 
 
-root_folder = './modalities2023'
-output_dir = './modalities2023'
+root_folder = './processed_data'
+output_dir = './processed_data'
 common_files = find_common_tif(root_folder)
 split_and_save(common_files, output_dir)
