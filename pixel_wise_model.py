@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as F  # noqa: N812
 from segmentation_models_pytorch.base import SegmentationModel
 from torch import nn
-
+import pdb
 from terratorch.models.heads import RegressionHead, SegmentationHead
 from terratorch.models.model import AuxiliaryHeadWithDecoderWithoutInstantiatedHead, Model, ModelOutput
 from terratorch.models.utils import pad_images
@@ -116,23 +116,25 @@ class PixelWiseModel(Model, SegmentationModel):
             # Only works for single image modalities
             x = pad_images(x, self.patch_size, self.padding)
         input_size = _get_size(x)
-        features_stack = []
-        for i in range(x.shape[2]): # Number of time dimensions
-            features = self.encoder(x[:, :, i, :, :], **kwargs) 
+        features_list = []
+        t_dim = next(iter(x.values())).shape[2]
+
+        for i in range(t_dim): # Number of time dimensions
+            sliced_x = {k: v[:, :, i, :, :] for k, v in x.items()}
+            o_features = self.encoder(sliced_x, **kwargs)
             # only for backwards compatibility with pre-neck times.
             if self.neck:
                 prepare = self.neck
             else:
                 # for backwards compatibility, if this is defined in the encoder, use it
                 prepare = getattr(self.encoder, "prepare_features_for_image_model", lambda x: x)
-
-            features = prepare(features)
-            
-            features_stack.append(features)
-
-        features_stack = torch.stack(features_stack, dim=1)
-
-        decoder_output = self.decoder([f.clone() for f in features_stack])
+            o_features = prepare(o_features)
+            if i == 0:
+                features = [tensor.clone() for tensor in o_features]
+            else:
+                features = [torch.cat((t1, t2), dim=1) for t1, t2 in zip(features, o_features)]
+        # pdb.set_trace()
+        decoder_output = self.decoder([f.clone() for f in features])
         mask = self.head(decoder_output)
         if self.rescale and mask.shape[-2:] != input_size:
             mask = F.interpolate(mask, size=input_size, mode="bilinear")
@@ -141,7 +143,7 @@ class PixelWiseModel(Model, SegmentationModel):
 
         aux_outputs = {}
         for name, decoder in self.aux_heads.items():
-            aux_output = decoder([f.clone() for f in features_stack])
+            aux_output = decoder([f.clone() for f in features])
             if self.rescale and aux_output.shape[-2:] != input_size:
                 aux_output = F.interpolate(aux_output, size=input_size, mode="bilinear")
             aux_output = self._check_for_single_channel_and_squeeze(aux_output)
