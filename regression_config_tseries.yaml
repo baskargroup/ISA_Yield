@@ -20,7 +20,7 @@ data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
   init_args:
     task: 'regression'
-    batch_size: 50
+    batch_size: 8
     num_workers: 8
     modalities:
       - S2L2A
@@ -110,9 +110,9 @@ data:
       SOIL: [42.146, 66.719, 91.207, 0.235, 0.240, 76.342, 12903.941, 14781.083, 14.254, 0.241]
       WEATHER: [293.616, 2.478, 23.879, 0.407, 1.332, 1.199, 130.093]
       
-    train_transform:
-      - class_path: albumentations.D4  # Random flip and rotations
-      - class_path: ToTensorV2
+    # train_transform:
+    #   - class_path: albumentations.D4  # Random flip and rotations
+    #   - class_path: ToTensorV2
 
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
