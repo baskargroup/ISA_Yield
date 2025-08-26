@@ -1,0 +1,556 @@
+2025-08-18 15:12:25,300 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 15:12:29,870 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B01_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:12:29,871 ERROR Failed to download or crop band: B01 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B01_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:12:45,192 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B02_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:12:45,194 ERROR Failed to download or crop band: B02 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B02_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:13:00,057 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B03_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:13:00,058 ERROR Failed to download or crop band: B03 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B03_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:13:16,208 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B04_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:13:16,209 ERROR Failed to download or crop band: B04 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B04_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:13:22,129 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B05_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:13:22,129 ERROR Failed to download or crop band: B05 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B05_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:13:29,802 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B06_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:13:29,802 ERROR Failed to download or crop band: B06 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B06_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:13:37,875 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B07_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:13:37,876 ERROR Failed to download or crop band: B07 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B07_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:13:55,223 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B08_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:13:55,223 ERROR Failed to download or crop band: B08 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B08_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:13:57,922 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B09_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:13:57,923 ERROR Failed to download or crop band: B09 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B09_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:14:03,986 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B11_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:14:03,987 ERROR Failed to download or crop band: B11 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B11_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:14:10,632 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B12_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:14:10,632 ERROR Failed to download or crop band: B12 for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B12_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:14:16,759 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-12/B8A_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:14:16,760 ERROR Failed to download or crop band: B8A for the scene: S2B_MSIL2A_20240518T170849_R112_T15TUF_20240518T221548. Error: Attempt to create new tiff file 'cropped/2024-05-12/B8A_2024-05-18_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:14:16,760 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 15:14:20,203 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-19/B01_2024-05-23_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:14:20,204 ERROR Failed to download or crop band: B01 for the scene: S2A_MSIL2A_20240523T170851_R112_T15TUF_20240524T012123. Error: Attempt to create new tiff file 'cropped/2024-05-19/B01_2024-05-23_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:14:48,946 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-19/B02_2024-05-23_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:14:48,946 ERROR Failed to download or crop band: B02 for the scene: S2A_MSIL2A_20240523T170851_R112_T15TUF_20240524T012123. Error: Attempt to create new tiff file 'cropped/2024-05-19/B02_2024-05-23_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:15:05,022 INFO GDAL signalled an error: err_no=4, msg="Attempt to create new tiff file `cropped/2024-05-19/B03_2024-05-23_ST2024IA0001_15TUF.tif' failed: No such file or directory"
+2025-08-18 15:15:05,023 ERROR Failed to download or crop band: B03 for the scene: S2A_MSIL2A_20240523T170851_R112_T15TUF_20240524T012123. Error: Attempt to create new tiff file 'cropped/2024-05-19/B03_2024-05-23_ST2024IA0001_15TUF.tif' failed: No such file or directory
+2025-08-18 15:15:44,430 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 15:17:46,659 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 15:19:38,353 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 15:19:39,223 INFO No Sentinel-2 images found for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 15:19:40,093 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 15:19:41,002 INFO No Sentinel-2 images found for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 15:19:41,891 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 15:19:42,803 INFO No Sentinel-2 images found for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 15:19:43,648 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 15:19:44,475 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 15:21:57,861 INFO Downloaded Sentinel-2 images for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 15:21:58,796 INFO No Sentinel-2 images found for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 15:24:23,051 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 15:24:24,011 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 15:24:24,875 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 15:24:25,719 INFO No Sentinel-2 images found for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 15:26:23,654 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 15:26:24,487 INFO No Sentinel-2 images found for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 15:26:25,426 INFO No Sentinel-2 images found for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 15:26:26,287 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 15:29:08,481 INFO Downloaded Sentinel-2 images for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 15:31:41,048 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 15:33:42,103 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 15:33:43,131 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 15:35:39,776 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 15:37:26,641 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 15:38:31,105 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 15:40:24,722 INFO Downloaded Sentinel-2 images for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 15:40:25,593 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 15:41:27,419 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 15:42:28,799 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 15:42:29,732 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 15:42:30,582 INFO No Sentinel-2 images found for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 15:42:31,467 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 15:42:32,386 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 15:44:21,584 INFO Downloaded Sentinel-2 images for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 15:45:20,263 INFO Downloaded Sentinel-2 images for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 15:47:29,105 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 15:49:14,548 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 15:50:21,640 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 15:52:19,506 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 15:53:24,605 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 15:53:25,388 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 15:53:26,304 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 15:54:30,669 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 15:56:58,608 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 15:58:08,938 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 15:59:14,005 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 15:59:14,872 INFO No Sentinel-2 images found for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 15:59:15,693 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 16:00:47,823 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0002/2024-09-22/S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315_B08.tif: No such file or directory'
+2025-08-18 16:00:47,823 ERROR Failed to download or crop band: B08 for the scene: S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315. Error: ./sentinel2/ST2024IA0002/2024-09-22/S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315_B08.tif: No such file or directory
+2025-08-18 16:00:48,311 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0002/2024-09-22/S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315_B09.tif: No such file or directory'
+2025-08-18 16:00:48,311 ERROR Failed to download or crop band: B09 for the scene: S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315. Error: ./sentinel2/ST2024IA0002/2024-09-22/S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315_B09.tif: No such file or directory
+2025-08-18 16:00:48,799 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0002/2024-09-22/S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315_B11.tif: No such file or directory'
+2025-08-18 16:00:48,799 ERROR Failed to download or crop band: B11 for the scene: S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315. Error: ./sentinel2/ST2024IA0002/2024-09-22/S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315_B11.tif: No such file or directory
+2025-08-18 16:00:49,288 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0002/2024-09-22/S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315_B12.tif: No such file or directory'
+2025-08-18 16:00:49,288 ERROR Failed to download or crop band: B12 for the scene: S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315. Error: ./sentinel2/ST2024IA0002/2024-09-22/S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315_B12.tif: No such file or directory
+2025-08-18 16:00:49,776 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0002/2024-09-22/S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315_B8A.tif: No such file or directory'
+2025-08-18 16:00:49,776 ERROR Failed to download or crop band: B8A for the scene: S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315. Error: ./sentinel2/ST2024IA0002/2024-09-22/S2B_MSIL2A_20240925T170949_R112_T15TUG_20240925T213315_B8A.tif: No such file or directory
+2025-08-18 16:00:49,776 INFO Downloaded Sentinel-2 images for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 16:02:56,971 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 16:04:04,648 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 16:06:07,028 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 16:06:07,985 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 16:06:08,863 INFO No Sentinel-2 images found for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 16:08:22,675 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 16:08:23,509 INFO No Sentinel-2 images found for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 16:08:24,411 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 16:10:14,035 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 16:12:04,743 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 16:12:05,645 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 16:14:02,659 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 16:16:39,567 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 16:16:40,425 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 16:16:41,318 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 16:16:42,140 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 16:16:43,002 INFO No Sentinel-2 images found for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 16:18:50,820 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 16:18:51,640 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 16:18:52,467 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 16:20:54,903 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 16:20:55,683 INFO No Sentinel-2 images found for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 16:23:07,454 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 16:25:42,588 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 16:25:43,489 INFO No Sentinel-2 images found for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 16:25:44,309 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 16:25:45,181 INFO No Sentinel-2 images found for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 16:27:55,021 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 16:27:56,240 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 16:30:11,715 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 16:31:35,180 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 16:33:28,133 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 16:34:59,180 INFO Downloaded Sentinel-2 images for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 16:36:57,359 INFO Downloaded Sentinel-2 images for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 16:39:25,141 INFO Downloaded Sentinel-2 images for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 16:40:49,552 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 16:42:28,534 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 16:42:29,499 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 16:44:44,475 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 16:45:52,523 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0004/2024-06-23/S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405_B09.tif: No such file or directory'
+2025-08-18 16:45:52,523 ERROR Failed to download or crop band: B09 for the scene: S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405. Error: ./sentinel2/ST2024IA0004/2024-06-23/S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405_B09.tif: No such file or directory
+2025-08-18 16:45:53,012 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0004/2024-06-23/S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405_B11.tif: No such file or directory'
+2025-08-18 16:45:53,012 ERROR Failed to download or crop band: B11 for the scene: S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405. Error: ./sentinel2/ST2024IA0004/2024-06-23/S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405_B11.tif: No such file or directory
+2025-08-18 16:45:53,509 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0004/2024-06-23/S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405_B12.tif: No such file or directory'
+2025-08-18 16:45:53,509 ERROR Failed to download or crop band: B12 for the scene: S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405. Error: ./sentinel2/ST2024IA0004/2024-06-23/S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405_B12.tif: No such file or directory
+2025-08-18 16:45:53,998 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0004/2024-06-23/S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405_B8A.tif: No such file or directory'
+2025-08-18 16:45:53,998 ERROR Failed to download or crop band: B8A for the scene: S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405. Error: ./sentinel2/ST2024IA0004/2024-06-23/S2B_MSIL2A_20240624T165849_R069_T15TXG_20240625T001405_B8A.tif: No such file or directory
+2025-08-18 16:45:53,998 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 16:46:31,335 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 16:46:32,197 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 16:46:33,051 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 16:46:33,913 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 16:48:38,412 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 16:50:17,556 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 16:50:18,329 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 16:50:19,160 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 16:52:07,362 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 16:54:32,081 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 16:56:30,532 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 16:58:48,090 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 17:00:17,685 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 17:02:52,483 INFO Downloaded Sentinel-2 images for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 17:02:53,331 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 17:02:54,169 INFO No Sentinel-2 images found for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 17:04:58,956 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 17:06:46,598 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 17:08:58,280 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 17:11:11,110 INFO Downloaded Sentinel-2 images for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 17:13:09,069 INFO Downloaded Sentinel-2 images for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 17:13:10,243 INFO No Sentinel-2 images found for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 17:15:08,928 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 17:17:20,294 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 17:17:21,168 INFO No Sentinel-2 images found for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 17:17:22,007 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 17:19:17,659 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 17:21:48,994 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 17:23:53,012 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 17:26:14,566 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 17:26:15,412 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 17:28:17,866 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 17:28:18,668 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 17:28:19,597 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 17:28:20,425 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 17:28:21,300 INFO No Sentinel-2 images found for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 17:30:49,696 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 17:33:20,873 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 17:35:29,221 INFO Downloaded Sentinel-2 images for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 17:35:30,100 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 17:37:29,868 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 17:37:30,775 INFO No Sentinel-2 images found for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 17:39:44,181 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 17:42:00,021 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 17:44:18,466 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 17:46:39,191 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 17:48:51,479 INFO Downloaded Sentinel-2 images for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 17:48:52,342 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 17:51:20,042 INFO Downloaded Sentinel-2 images for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 17:53:21,869 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 17:55:44,648 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 17:57:45,900 INFO Downloaded Sentinel-2 images for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 17:59:42,358 INFO Downloaded Sentinel-2 images for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 17:59:43,176 INFO No Sentinel-2 images found for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 18:01:35,425 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 18:01:36,219 INFO No Sentinel-2 images found for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 18:01:37,081 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 18:03:57,027 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 18:05:48,151 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 18:05:49,040 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 18:05:49,843 INFO No Sentinel-2 images found for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 18:05:50,650 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 18:05:51,501 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 18:05:52,339 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 18:05:53,158 INFO No Sentinel-2 images found for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 18:08:07,224 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 18:10:28,062 INFO Downloaded Sentinel-2 images for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 18:10:28,903 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 18:10:29,720 INFO No Sentinel-2 images found for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 18:10:30,580 INFO No Sentinel-2 images found for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 18:12:42,216 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 18:14:43,194 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 18:15:53,172 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B06.tif: No such file or directory'
+2025-08-18 18:15:53,172 ERROR Failed to download or crop band: B06 for the scene: S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404. Error: ./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B06.tif: No such file or directory
+2025-08-18 18:15:53,659 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B07.tif: No such file or directory'
+2025-08-18 18:15:53,659 ERROR Failed to download or crop band: B07 for the scene: S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404. Error: ./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B07.tif: No such file or directory
+2025-08-18 18:15:54,146 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B08.tif: No such file or directory'
+2025-08-18 18:15:54,146 ERROR Failed to download or crop band: B08 for the scene: S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404. Error: ./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B08.tif: No such file or directory
+2025-08-18 18:15:54,633 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B09.tif: No such file or directory'
+2025-08-18 18:15:54,633 ERROR Failed to download or crop band: B09 for the scene: S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404. Error: ./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B09.tif: No such file or directory
+2025-08-18 18:15:55,122 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B11.tif: No such file or directory'
+2025-08-18 18:15:55,122 ERROR Failed to download or crop band: B11 for the scene: S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404. Error: ./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B11.tif: No such file or directory
+2025-08-18 18:15:55,609 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B12.tif: No such file or directory'
+2025-08-18 18:15:55,609 ERROR Failed to download or crop band: B12 for the scene: S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404. Error: ./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B12.tif: No such file or directory
+2025-08-18 18:15:56,096 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B8A.tif: No such file or directory'
+2025-08-18 18:15:56,096 ERROR Failed to download or crop band: B8A for the scene: S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404. Error: ./sentinel2/ST2024IA0006/2024-09-08/S2B_MSIL2A_20240912T165849_R069_T15TWJ_20240912T231404_B8A.tif: No such file or directory
+2025-08-18 18:15:56,096 INFO Downloaded Sentinel-2 images for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 18:15:56,960 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 18:18:05,878 INFO Downloaded Sentinel-2 images for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 18:20:13,155 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 18:22:10,601 INFO Downloaded Sentinel-2 images for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 18:23:58,362 INFO Downloaded Sentinel-2 images for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 18:23:59,194 INFO No Sentinel-2 images found for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 18:26:04,239 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 18:27:57,932 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 18:27:58,746 INFO No Sentinel-2 images found for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 18:27:59,659 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 18:29:47,599 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 18:31:33,303 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 18:33:26,419 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 18:35:17,400 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 18:35:18,222 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 18:36:54,464 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 18:36:55,313 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 18:36:56,128 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 18:36:57,019 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 18:36:57,934 INFO No Sentinel-2 images found for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 18:39:02,653 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 18:41:21,502 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 18:43:20,267 INFO Downloaded Sentinel-2 images for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 18:43:21,145 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 18:45:23,745 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 18:45:24,584 INFO No Sentinel-2 images found for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 18:47:20,299 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 18:49:28,957 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 18:51:48,199 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 18:53:53,657 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 18:56:09,569 INFO Downloaded Sentinel-2 images for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 18:56:10,396 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 18:58:45,655 INFO Downloaded Sentinel-2 images for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 19:01:01,270 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 19:03:18,535 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 19:03:19,494 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 19:05:10,936 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 19:06:35,004 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 19:08:19,603 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 19:09:57,792 INFO Downloaded Sentinel-2 images for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 19:12:08,212 INFO Downloaded Sentinel-2 images for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 19:14:12,383 INFO Downloaded Sentinel-2 images for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 19:15:35,939 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 19:16:58,884 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 19:16:59,750 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 19:19:06,484 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 19:20:29,099 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 19:20:29,934 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 19:20:30,791 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 19:20:31,589 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 19:22:39,546 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 19:24:16,320 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 19:24:17,168 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 19:24:18,035 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 19:25:47,419 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 19:27:44,577 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 19:29:18,372 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 19:31:27,622 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 19:32:57,829 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 19:35:09,402 INFO Downloaded Sentinel-2 images for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 19:35:10,234 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 19:35:11,130 INFO No Sentinel-2 images found for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 19:37:22,599 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 19:39:00,570 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 19:41:03,620 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 19:41:04,779 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 19:43:04,218 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 19:45:12,055 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 19:47:10,102 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 19:47:10,963 INFO No Sentinel-2 images found for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 19:47:11,753 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 19:49:17,228 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 19:51:07,961 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 19:51:08,864 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 19:53:04,587 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 19:53:05,766 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 19:53:06,760 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 19:53:08,025 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 19:53:08,876 INFO No Sentinel-2 images found for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 19:53:09,767 INFO No Sentinel-2 images found for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 19:53:10,554 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 19:53:11,397 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 19:55:40,972 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 19:57:46,124 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 19:59:55,418 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 20:02:08,348 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 20:02:09,139 INFO No Sentinel-2 images found for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 20:02:09,976 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 20:02:10,810 INFO No Sentinel-2 images found for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 20:04:25,795 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 20:04:26,907 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 20:04:27,781 INFO No Sentinel-2 images found for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 20:06:10,107 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 20:07:53,514 INFO Downloaded Sentinel-2 images for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 20:07:54,353 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 20:09:41,834 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 20:11:31,531 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 20:11:32,415 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 20:13:20,563 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 20:13:57,028 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 20:13:57,856 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 20:13:58,666 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 20:13:59,511 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 20:15:55,651 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 20:17:49,804 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 20:19:55,654 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 20:19:56,474 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 20:19:57,337 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 20:21:50,699 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 20:24:21,916 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 20:26:15,031 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 20:28:20,837 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 20:30:13,649 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0015/2024-09-01/S2B_MSIL2A_20240902T165849_R069_T15TXH_20240902T212603_B8A.tif: No such file or directory'
+2025-08-18 20:30:13,649 ERROR Failed to download or crop band: B8A for the scene: S2B_MSIL2A_20240902T165849_R069_T15TXH_20240902T212603. Error: ./sentinel2/ST2024IA0015/2024-09-01/S2B_MSIL2A_20240902T165849_R069_T15TXH_20240902T212603_B8A.tif: No such file or directory
+2025-08-18 20:30:13,649 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 20:32:14,674 INFO Downloaded Sentinel-2 images for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 20:32:15,478 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 20:32:16,334 INFO No Sentinel-2 images found for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 20:34:24,744 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 20:36:28,740 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 20:38:31,286 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 20:38:32,469 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 20:38:33,262 INFO No Sentinel-2 images found for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 20:40:19,463 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 20:42:00,575 INFO Downloaded Sentinel-2 images for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 20:42:01,350 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 20:43:47,820 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 20:45:27,412 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 20:45:28,216 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 20:47:29,521 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 20:48:05,554 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 20:48:06,365 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 20:48:07,163 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 20:48:07,990 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 20:50:15,153 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 20:52:10,829 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 20:54:21,805 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 20:54:22,629 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 20:54:23,424 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 20:56:22,002 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 20:58:34,972 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 21:00:29,274 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 21:02:35,726 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 21:04:23,650 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 21:06:37,949 INFO Downloaded Sentinel-2 images for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 21:06:38,748 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 21:06:39,611 INFO No Sentinel-2 images found for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 21:08:55,806 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 21:11:10,717 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 21:13:21,944 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 21:14:46,467 INFO Downloaded Sentinel-2 images for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 21:16:38,657 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 21:17:43,782 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 21:17:44,662 INFO No Sentinel-2 images found for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 21:17:45,497 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 21:19:20,759 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 21:19:21,606 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 21:19:22,416 INFO No Sentinel-2 images found for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 21:20:46,234 INFO Downloaded Sentinel-2 images for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 21:22:13,976 INFO Downloaded Sentinel-2 images for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 21:22:14,913 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 21:24:19,832 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 21:26:09,775 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 21:26:10,681 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 21:26:11,543 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 21:26:12,395 INFO No Sentinel-2 images found for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 21:28:20,687 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 21:30:27,197 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 21:32:00,814 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 21:32:01,634 INFO No Sentinel-2 images found for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 21:34:02,628 INFO Downloaded Sentinel-2 images for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 21:35:35,449 INFO Downloaded Sentinel-2 images for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 21:37:55,912 INFO Downloaded Sentinel-2 images for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 21:40:19,304 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 21:41:52,429 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 21:43:58,544 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 21:44:00,158 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 21:45:53,276 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 21:47:50,327 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 21:49:45,599 INFO Downloaded Sentinel-2 images for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 21:49:46,673 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 21:49:47,524 INFO No Sentinel-2 images found for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 21:49:48,332 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 21:49:49,269 INFO No Sentinel-2 images found for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 21:49:50,324 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 21:49:51,183 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 21:51:48,756 INFO Downloaded Sentinel-2 images for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 21:54:17,203 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 21:56:07,489 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 21:58:12,933 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 21:58:13,803 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 21:58:14,606 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 21:58:15,446 INFO No Sentinel-2 images found for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 21:59:51,533 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0022/2024-08-25/S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753_B09.tif: No such file or directory'
+2025-08-18 21:59:51,533 ERROR Failed to download or crop band: B09 for the scene: S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753. Error: ./sentinel2/ST2024IA0022/2024-08-25/S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753_B09.tif: No such file or directory
+2025-08-18 21:59:52,021 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0022/2024-08-25/S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753_B11.tif: No such file or directory'
+2025-08-18 21:59:52,021 ERROR Failed to download or crop band: B11 for the scene: S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753. Error: ./sentinel2/ST2024IA0022/2024-08-25/S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753_B11.tif: No such file or directory
+2025-08-18 21:59:52,509 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0022/2024-08-25/S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753_B12.tif: No such file or directory'
+2025-08-18 21:59:52,510 ERROR Failed to download or crop band: B12 for the scene: S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753. Error: ./sentinel2/ST2024IA0022/2024-08-25/S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753_B12.tif: No such file or directory
+2025-08-18 21:59:52,997 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0022/2024-08-25/S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753_B8A.tif: No such file or directory'
+2025-08-18 21:59:52,997 ERROR Failed to download or crop band: B8A for the scene: S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753. Error: ./sentinel2/ST2024IA0022/2024-08-25/S2A_MSIL2A_20240831T170851_R112_T15TUG_20240901T000753_B8A.tif: No such file or directory
+2025-08-18 21:59:52,997 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 21:59:53,788 INFO No Sentinel-2 images found for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 21:59:54,570 INFO No Sentinel-2 images found for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 21:59:55,429 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 22:02:01,944 INFO Downloaded Sentinel-2 images for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 22:04:08,947 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 22:06:36,583 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 22:06:37,650 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 22:08:26,237 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 22:10:34,461 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 22:11:42,375 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 22:13:42,102 INFO Downloaded Sentinel-2 images for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 22:13:42,948 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 22:14:45,152 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 22:15:47,581 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 22:15:48,769 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 22:15:49,625 INFO No Sentinel-2 images found for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 22:15:50,420 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 22:15:51,326 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 22:17:49,406 INFO Downloaded Sentinel-2 images for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 22:18:48,134 INFO Downloaded Sentinel-2 images for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 22:20:48,847 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 22:22:39,971 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 22:23:47,154 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 22:25:46,833 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 22:26:49,355 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 22:26:50,138 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 22:26:50,991 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 22:27:53,084 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 22:29:55,146 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 22:30:58,740 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 22:32:09,565 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 22:32:10,414 INFO No Sentinel-2 images found for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 22:32:11,254 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 22:34:21,996 INFO Downloaded Sentinel-2 images for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 22:36:40,090 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 22:37:48,657 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 22:39:57,879 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 22:39:58,944 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 22:41:47,531 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 22:43:40,794 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 22:45:07,758 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0024/2024-05-19/S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307_B09.tif: No such file or directory'
+2025-08-18 22:45:07,758 ERROR Failed to download or crop band: B09 for the scene: S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307. Error: ./sentinel2/ST2024IA0024/2024-05-19/S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307_B09.tif: No such file or directory
+2025-08-18 22:45:08,246 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0024/2024-05-19/S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307_B11.tif: No such file or directory'
+2025-08-18 22:45:08,246 ERROR Failed to download or crop band: B11 for the scene: S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307. Error: ./sentinel2/ST2024IA0024/2024-05-19/S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307_B11.tif: No such file or directory
+2025-08-18 22:45:08,735 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0024/2024-05-19/S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307_B12.tif: No such file or directory'
+2025-08-18 22:45:08,736 ERROR Failed to download or crop band: B12 for the scene: S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307. Error: ./sentinel2/ST2024IA0024/2024-05-19/S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307_B12.tif: No such file or directory
+2025-08-18 22:45:09,223 INFO GDAL signalled an error: err_no=4, msg='./sentinel2/ST2024IA0024/2024-05-19/S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307_B8A.tif: No such file or directory'
+2025-08-18 22:45:09,223 ERROR Failed to download or crop band: B8A for the scene: S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307. Error: ./sentinel2/ST2024IA0024/2024-05-19/S2B_MSIL2A_20240525T165849_R069_T15TWF_20240525T221307_B8A.tif: No such file or directory
+2025-08-18 22:45:09,224 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 22:47:04,268 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 22:47:05,149 INFO No Sentinel-2 images found for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 22:47:05,981 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 22:49:01,499 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 22:51:13,204 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 22:53:04,029 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 22:54:56,786 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 22:54:57,662 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 22:57:00,105 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 22:58:48,876 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 23:00:39,900 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 23:00:40,762 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 23:00:41,593 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 23:00:42,482 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 23:00:43,348 INFO No Sentinel-2 images found for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 23:03:01,286 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 23:03:02,103 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 23:03:02,930 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 23:05:10,579 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 23:07:14,144 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 23:09:21,693 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 23:11:35,763 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 23:13:50,831 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 23:15:49,211 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 23:17:51,628 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 23:17:52,446 INFO No Sentinel-2 images found for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 23:17:53,317 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 23:17:54,183 INFO No Sentinel-2 images found for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 23:19:54,354 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 23:21:59,821 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 23:22:01,265 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 23:23:56,291 INFO Downloaded Sentinel-2 images for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 23:26:04,652 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 23:27:56,462 INFO Downloaded Sentinel-2 images for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 23:27:57,302 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 23:27:58,100 INFO No Sentinel-2 images found for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 23:27:58,916 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 23:27:59,735 INFO No Sentinel-2 images found for the date range: 2024-06-23 to 2024-06-29
+2025-08-18 23:28:00,593 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-18 23:28:01,445 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-18 23:29:55,876 INFO Downloaded Sentinel-2 images for the date range: 2024-07-14 to 2024-07-20
+2025-08-18 23:32:02,751 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 23:33:48,585 INFO Downloaded Sentinel-2 images for the date range: 2024-07-21 to 2024-07-27
+2025-08-18 23:36:06,804 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-18 23:36:07,649 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-18 23:36:08,448 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-18 23:36:09,247 INFO No Sentinel-2 images found for the date range: 2024-08-18 to 2024-08-24
+2025-08-18 23:38:15,111 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-18 23:38:15,922 INFO No Sentinel-2 images found for the date range: 2024-09-01 to 2024-09-07
+2025-08-18 23:38:16,740 INFO No Sentinel-2 images found for the date range: 2024-09-08 to 2024-09-14
+2025-08-18 23:38:17,566 INFO No Sentinel-2 images found for the date range: 2024-09-15 to 2024-09-21
+2025-08-18 23:40:45,066 INFO Downloaded Sentinel-2 images for the date range: 2024-09-22 to 2024-09-28
+2025-08-18 23:43:04,593 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 23:45:38,393 INFO Downloaded Sentinel-2 images for the date range: 2024-09-29 to 2024-10-05
+2025-08-18 23:45:39,403 INFO No Sentinel-2 images found for the date range: 2024-05-05 to 2024-05-11
+2025-08-18 23:45:40,164 INFO No Sentinel-2 images found for the date range: 2024-05-12 to 2024-05-18
+2025-08-18 23:47:43,470 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 23:49:45,313 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 23:51:42,468 INFO Downloaded Sentinel-2 images for the date range: 2024-05-19 to 2024-05-25
+2025-08-18 23:51:43,306 INFO No Sentinel-2 images found for the date range: 2024-05-26 to 2024-06-01
+2025-08-18 23:51:44,125 INFO No Sentinel-2 images found for the date range: 2024-06-02 to 2024-06-08
+2025-08-18 23:53:31,412 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 23:55:23,375 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 23:57:24,189 INFO Downloaded Sentinel-2 images for the date range: 2024-06-09 to 2024-06-15
+2025-08-18 23:57:25,024 INFO No Sentinel-2 images found for the date range: 2024-06-16 to 2024-06-22
+2025-08-18 23:59:24,989 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-19 00:01:13,805 INFO Downloaded Sentinel-2 images for the date range: 2024-06-23 to 2024-06-29
+2025-08-19 00:01:14,647 INFO No Sentinel-2 images found for the date range: 2024-06-30 to 2024-07-06
+2025-08-19 00:01:15,502 INFO No Sentinel-2 images found for the date range: 2024-07-07 to 2024-07-13
+2025-08-19 00:01:16,295 INFO No Sentinel-2 images found for the date range: 2024-07-14 to 2024-07-20
+2025-08-19 00:01:17,279 INFO No Sentinel-2 images found for the date range: 2024-07-21 to 2024-07-27
+2025-08-19 00:03:30,313 INFO Downloaded Sentinel-2 images for the date range: 2024-07-28 to 2024-08-03
+2025-08-19 00:03:31,289 INFO No Sentinel-2 images found for the date range: 2024-08-04 to 2024-08-10
+2025-08-19 00:03:32,090 INFO No Sentinel-2 images found for the date range: 2024-08-11 to 2024-08-17
+2025-08-19 00:05:43,060 INFO Downloaded Sentinel-2 images for the date range: 2024-08-18 to 2024-08-24
+2025-08-19 00:08:01,927 INFO Downloaded Sentinel-2 images for the date range: 2024-08-25 to 2024-08-31
+2025-08-19 00:10:12,560 INFO Downloaded Sentinel-2 images for the date range: 2024-09-01 to 2024-09-07
