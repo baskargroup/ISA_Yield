@@ -46,7 +46,7 @@ if __name__ == "__main__":
     logger = setup_logger("./logs/modis_merge_local.log")
 
     # Base directory
-    base_dir_pattern = "./final_modis_data/2023-*"
+    base_dir_pattern = "./final_modis_data/2024-*"
     base_dirs = glob.glob(base_dir_pattern)
 
     # Sort the directories

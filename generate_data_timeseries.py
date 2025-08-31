@@ -10,17 +10,17 @@ from datetime import datetime
 import pdb
 # Define the paths
 ext = "IA"
-year = '2023'
+year = '2024'
 modalities = ['S2L2A', 'S1GRD', 'MODIS', 'DEM', 'CDL', 'WEATHER', 'SOIL']
-sentinel1_dir = f'/work/mech-ai-scratch/rtali/gis-sentinel1/final_s1_{ext}/'
-sentinel2_dir = f'/work/mech-ai-scratch/rtali/gis-sentinel2/final_s2_v3_{ext}/'
+sentinel1_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S1/final_s1_{ext}/'
+sentinel2_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S2/final_s2_v3_{ext}/'
 modis_dir = f'/work/mech-ai-scratch/rtali/gis-modis/modis_{ext}/'
 crop_dir = '/work/mech-ai-scratch/aapowadi/multimodal_fusion/remapped_cdl'
 soil_dir = f'/work/mech-ai-scratch/aapowadi/soil_new/soil_processed_{ext}'
 weather_dir = f'/work/mech-ai-scratch/aapowadi/WEEKLY_WEATHER_{ext}'
 dem_path = f'/work/mech-ai-scratch/rtali/multimodal_fusion/terrain_merged/4326_elevation_{ext}.tif'
-output_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/final_data'
-yield_path = '/work/mech-ai-scratch/aapowadi/ISA_Yield/final_data/yield_geotiffs'
+output_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/unprocessed_data'
+yield_path = '/work/mech-ai-scratch/aapowadi/ISA_Yield/unprocessed_data/yield_geotiffs'
 
 # Define bands for each modality
 s1_bands = ['vv', 'vh']

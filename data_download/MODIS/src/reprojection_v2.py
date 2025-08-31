@@ -69,7 +69,7 @@ def clip_raster(input_tif, gdf, output_tif):
             dest.write(out_image)
             
 
-def resample_to_new_resolution(input_tif, output_tif, src_crs , target_resolution=125):
+def resample_to_new_resolution(input_tif, output_tif, src_crs , target_resolution=10):
     with rasterio.open(input_tif) as src:
         # Define the target CRS. Since we are resampling, the target CRS is the same as the source CRS
         dst_crs = src_crs
@@ -202,7 +202,7 @@ if __name__ == "__main__":
     logger = setup_logger("./logs/modis_reproject_local.log")
     
     # Base directory
-    base_dir_pattern = "../gis-stac/IA_modis_NBAR/2023-*"
+    base_dir_pattern = "./IA_modis_NBAR/2024-*"
     base_dirs = glob.glob(base_dir_pattern)
     
     #Sort the directories
@@ -289,12 +289,12 @@ if __name__ == "__main__":
                         reproject_raster(f"{output_dir}/{_folder}/CUT_32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/32615_{os.path.basename(file)}", "EPSG:32615")
                         
                         # Resample to 125m
-                        resample_to_new_resolution(f"{output_dir}/{_folder}/32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/R125_32614_{os.path.basename(file)}", "EPSG:32614")
-                        resample_to_new_resolution(f"{output_dir}/{_folder}/32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/R125_32615_{os.path.basename(file)}", "EPSG:32615")
+                        # resample_to_new_resolution(f"{output_dir}/{_folder}/32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/R125_32614_{os.path.basename(file)}", "EPSG:32614")
+                        # resample_to_new_resolution(f"{output_dir}/{_folder}/32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/R125_32615_{os.path.basename(file)}", "EPSG:32615")
                         
                         # Reproject to WGS84
-                        reproject_to_wgs84(f"{output_dir}/{_folder}/R125_32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32614_{os.path.basename(file)}", "EPSG:32614")
-                        reproject_to_wgs84(f"{output_dir}/{_folder}/R125_32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32615_{os.path.basename(file)}", "EPSG:32615")
+                        reproject_to_wgs84(f"{output_dir}/{_folder}/CUT_32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32614_{os.path.basename(file)}", "EPSG:32614")
+                        reproject_to_wgs84(f"{output_dir}/{_folder}/CUT_32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32615_{os.path.basename(file)}", "EPSG:32615")
                         
                         # Merge the reprojected files into one
                         wgs_files = [f"{output_dir}/{_folder}/WGS84_32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32615_{os.path.basename(file)}"]

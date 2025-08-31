@@ -27,7 +27,7 @@ def resize_nearest(data, new_h, new_w, is_reference=False):
         return data[:, :, orig_i, orig_j]
     else:
         return data[:, orig_i, orig_j]
-def rescale_to_32x32(data, is_reference=False):
+def rescale_to_224x224(data, is_reference=False):
     return resize_nearest(data, 224, 224, is_reference)
 
 def rescale_data(data, ref_h, ref_w):
@@ -110,7 +110,7 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
         # Crop to largest square
         data = crop_to_largest_square(data, is_reference)
         # Rescale to 32x32
-        data = rescale_to_32x32(data, is_reference)
+        data = rescale_to_224x224(data, is_reference)
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
@@ -135,7 +135,7 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
         # Crop to largest square
         data = crop_to_largest_square(data, is_reference)
         # Rescale to 32x32
-        data = rescale_to_32x32(data, is_reference)
+        data = rescale_to_224x224(data, is_reference)
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
@@ -160,7 +160,7 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
         # Crop to largest square (noop if perfect square)
         data = crop_to_largest_square(data, is_reference)
         # Rescale to 32x32
-        data = rescale_to_32x32(data, is_reference)
+        data = rescale_to_224x224(data, is_reference)
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
@@ -191,4 +191,4 @@ def process_root_folder(root_path, dest_root_path):
                 process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=ref_dims)
 
 # Usage
-process_root_folder('./final_data', './processed_data')
+process_root_folder('./unprocessed_data', './processed_data')
