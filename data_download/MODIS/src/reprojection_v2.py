@@ -33,9 +33,7 @@ def check_date(file_name, dt):
     _date = file_name.split(".")[1]
     _date = _date.split("A")[1]
     _date = julian_to_date(_date)
-    
-    print(f"Date: {_date}")
-    
+
     #Convert to datetime. _date is a string in the format YYYY-MM-DD
     _date = pd.to_datetime(_date, format="%Y-%m-%d")
     
@@ -44,8 +42,10 @@ def check_date(file_name, dt):
     
     #Check if the _date is within 7 days of the dt
     if np.abs((_date - dt).days) <= 7:
+        print(f"Date: {_date} is within 7 days of the dt")
         return True
     else:
+        print(f"Date: {_date} is not within 7 days of the dt")
         return False
 
 
@@ -204,7 +204,6 @@ if __name__ == "__main__":
     # Base directory
     base_dir_pattern = "./IA_modis_NBAR/2024-*"
     base_dirs = glob.glob(base_dir_pattern)
-    
     #Sort the directories
     base_dirs.sort()
     
@@ -251,7 +250,6 @@ if __name__ == "__main__":
             # Check that dates from the file names are between _folder and _folder + 7 days
             # If not, remove the file from the list
             band_files = [file for file in band_files if check_date(file, _folder)]
-            
             if not band_files:
                 print(f"No files found for band: {band}")
                 logger.info(f"No files found for band: {band}")
@@ -260,49 +258,49 @@ if __name__ == "__main__":
             else:
                 for file in band_files:
                     with rasterio.open(file) as src:
-                       # Step - 1 : Reprohect the file to WGS84 
+                       # Step - 1 : Reproject the file to WGS84 
                        reproject_to_wgs84(file, f"{output_dir}/{_folder}/{os.path.basename(file)}", src.crs)
                        
                     
-                    # Step - 2 : Split the file into UTM zones
-                    with rasterio.open(f"{output_dir}/{_folder}/{os.path.basename(file)}") as src:
+                    # # Step - 2 : Split the file into UTM zones
+                    # with rasterio.open(f"{output_dir}/{_folder}/{os.path.basename(file)}") as src:
                         
-                        bounds = src.bounds  # (left, bottom, right, top)
-                        crs = src.crs
-                        print(f"Original CRS: {crs}, Bounds: {bounds}")
+                    #     bounds = src.bounds  # (left, bottom, right, top)
+                    #     crs = src.crs
+                    #     print(f"Original CRS: {crs}, Bounds: {bounds}")
                         
-                        # Define bounding boxes for each UTM zone
-                        zone14_bbox = box(-96.6395, 40.3754, -96, 43.5014)
-                        zone15_bbox = box(-96, 40.3754, -90.1401, 43.5014)
+                    #     # Define bounding boxes for each UTM zone
+                    #     zone14_bbox = box(-96.6395, 40.3754, -96, 43.5014)
+                    #     zone15_bbox = box(-96, 40.3754, -90.1401, 43.5014)
 
-                        # Create GeoDataFrames
-                        gdf_zone14 = gpd.GeoDataFrame({"geometry": [zone14_bbox]}, crs="EPSG:4326")
-                        gdf_zone15 = gpd.GeoDataFrame({"geometry": [zone15_bbox]}, crs="EPSG:4326")
+                    #     # Create GeoDataFrames
+                    #     gdf_zone14 = gpd.GeoDataFrame({"geometry": [zone14_bbox]}, crs="EPSG:4326")
+                    #     gdf_zone15 = gpd.GeoDataFrame({"geometry": [zone15_bbox]}, crs="EPSG:4326")
                         
-                        # Clip into two parts
-                        clip_raster(f"{output_dir}/{_folder}/{os.path.basename(file)}", gdf_zone14, f"{output_dir}/{_folder}/CUT_32614_{os.path.basename(file)}")
-                        clip_raster(f"{output_dir}/{_folder}/{os.path.basename(file)}", gdf_zone15, f"{output_dir}/{_folder}/CUT_32615_{os.path.basename(file)}")
+                    #     # Clip into two parts
+                    #     clip_raster(f"{output_dir}/{_folder}/{os.path.basename(file)}", gdf_zone14, f"{output_dir}/{_folder}/CUT_32614_{os.path.basename(file)}")
+                    #     clip_raster(f"{output_dir}/{_folder}/{os.path.basename(file)}", gdf_zone15, f"{output_dir}/{_folder}/CUT_32615_{os.path.basename(file)}")
                         
-                        # Reproject to UTM zones
-                        # Reproject to UTM zones
-                        reproject_raster(f"{output_dir}/{_folder}/CUT_32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/32614_{os.path.basename(file)}", "EPSG:32614")
-                        reproject_raster(f"{output_dir}/{_folder}/CUT_32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/32615_{os.path.basename(file)}", "EPSG:32615")
+                    #     # Reproject to UTM zones
+                    #     # Reproject to UTM zones
+                    #     reproject_raster(f"{output_dir}/{_folder}/CUT_32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/32614_{os.path.basename(file)}", "EPSG:32614")
+                    #     reproject_raster(f"{output_dir}/{_folder}/CUT_32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/32615_{os.path.basename(file)}", "EPSG:32615")
                         
-                        # Resample to 125m
-                        # resample_to_new_resolution(f"{output_dir}/{_folder}/32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/R125_32614_{os.path.basename(file)}", "EPSG:32614")
-                        # resample_to_new_resolution(f"{output_dir}/{_folder}/32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/R125_32615_{os.path.basename(file)}", "EPSG:32615")
+                    #     # Resample to 125m
+                    #     # resample_to_new_resolution(f"{output_dir}/{_folder}/32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/R125_32614_{os.path.basename(file)}", "EPSG:32614")
+                    #     # resample_to_new_resolution(f"{output_dir}/{_folder}/32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/R125_32615_{os.path.basename(file)}", "EPSG:32615")
                         
-                        # Reproject to WGS84
-                        reproject_to_wgs84(f"{output_dir}/{_folder}/CUT_32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32614_{os.path.basename(file)}", "EPSG:32614")
-                        reproject_to_wgs84(f"{output_dir}/{_folder}/CUT_32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32615_{os.path.basename(file)}", "EPSG:32615")
+                    #     # Reproject to WGS84
+                    #     reproject_to_wgs84(f"{output_dir}/{_folder}/CUT_32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32614_{os.path.basename(file)}", "EPSG:32614")
+                    #     reproject_to_wgs84(f"{output_dir}/{_folder}/CUT_32615_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32615_{os.path.basename(file)}", "EPSG:32615")
                         
-                        # Merge the reprojected files into one
-                        wgs_files = [f"{output_dir}/{_folder}/WGS84_32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32615_{os.path.basename(file)}"]
+                    #     # Merge the reprojected files into one
+                    #     wgs_files = [f"{output_dir}/{_folder}/WGS84_32614_{os.path.basename(file)}", f"{output_dir}/{_folder}/WGS84_32615_{os.path.basename(file)}"]
                         
-                        #Create a folder for the band
-                        os.makedirs(f"./final_modis_data/{_folder}", exist_ok=True)
-                        write_file_name = os.path.basename(file).replace(".tif", "").strip()
-                        merge_files(wgs_files, f"4326_{write_file_name}", band, f"./final_modis_data/{_folder}")
+                    #     #Create a folder for the band
+                    #     os.makedirs(f"./final_modis_data/{_folder}", exist_ok=True)
+                    #     write_file_name = os.path.basename(file).replace(".tif", "").strip()
+                    #     merge_files(wgs_files, f"4326_{write_file_name}", band, f"./final_modis_data/{_folder}")
                         
             print(f"Processing time for band {band}: {time.time() - band_processing_time}")
                          

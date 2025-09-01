@@ -159,7 +159,7 @@ if __name__ == "__main__":
     base_dirs.sort()
     
     # Specify processing start date
-    start_dt = "2024-05-01"
+    start_dt = "2024-05-05"
     start = datetime.strptime(start_dt, "%Y-%m-%d")
     
     # Remove directories that are less than the start date
