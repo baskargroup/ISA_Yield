@@ -2,18 +2,20 @@ import os
 import rasterio
 from rasterio.mask import mask
 from rasterio.warp import reproject, Resampling
+from rasterio.windows import from_bounds
 import geopandas as gpd
 from shapely.geometry import box
 import glob
 import numpy as np
 from datetime import datetime
+import gc
 
 # Define the paths
 ext = "IA"
-year = '2023'
+year = '2024'
 modalities = ['S2L2A', 'S1GRD', 'MODIS', 'DEM', 'CDL', 'WEATHER', 'SOIL']
-sentinel1_dir = f'/work/mech-ai-scratch/rtali/gis-sentinel1/final_s1_{ext}/'
-sentinel2_dir = f'/work/mech-ai-scratch/rtali/gis-sentinel2/final_s2_v3_{ext}/'
+sentinel1_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S1/final_s1_{ext}/'
+sentinel2_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S2/final_s2_v3_{ext}/'
 modis_dir = f'/work/mech-ai-scratch/rtali/gis-modis/modis_{ext}/'
 crop_dir = '/work/mech-ai-scratch/aapowadi/multimodal_fusion/remapped_cdl'
 soil_dir = f'/work/mech-ai-scratch/aapowadi/soil_new/soil_processed_{ext}'
@@ -42,10 +44,39 @@ def get_bbox_from_geotiff(file_path):
     with rasterio.open(file_path) as src:
         bounds = src.bounds
         bbox = box(bounds.left, bounds.bottom, bounds.right, bounds.top)
-    return gpd.GeoDataFrame({'geometry': [bbox]}, crs=src.crs)
+        crs = src.crs
+    return gpd.GeoDataFrame({'geometry': [bbox]}, crs=crs)
+
+def load_band(band_file, bbox_gdf, ref_shape=None, ref_transform=None, ref_crs=None):
+    """Load a single band using geospatial windowed reading."""
+    with rasterio.open(band_file) as src:
+        # Reproject bbox to source CRS
+        bbox_gdf_reprojected = bbox_gdf.to_crs(src.crs)
+        bounds = bbox_gdf_reprojected.geometry.iloc[0].bounds  # (left, bottom, right, top)
+        # Define window using geospatial coordinates
+        window = from_bounds(*bounds, transform=src.transform)
+        window = window.round_offsets().round_lengths()
+        if window.width <= 0 or window.height <= 0:
+            raise ValueError(f"Invalid window for {band_file}: {window}")
+        data = src.read(1, window=window)
+        window_transform = src.window_transform(window)
+        if ref_shape is None:
+            return data, (int(window.height), int(window.width)), window_transform, src.crs, src.meta.copy()
+        else:
+            resampled_data = np.empty(ref_shape, dtype=data.dtype)
+            reproject(
+                source=data,
+                destination=resampled_data,
+                src_transform=window_transform,
+                src_crs=src.crs,
+                dst_transform=ref_transform,
+                dst_crs=ref_crs,
+                resampling=Resampling.nearest
+            )
+            return resampled_data
 
 def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, modality, is_dated=False):
-    """Combine single-band GeoTIFFs into a multi-band GeoTIFF and clip to the bounding box."""
+    """Combine single-band GeoTIFFs into a multi-band GeoTIFF and clip to the bounding box using windowed reading."""
     try:
         if is_dated:
             dates = [d for d in os.listdir(input_dir) if os.path.isdir(os.path.join(input_dir, d))]
@@ -62,17 +93,16 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
                 return
         else:
             selected_dir = input_dir
-
-        if modality == 'WEATHER':
-            # Extract unique dates from weather files by removing band suffix
-            files = os.listdir(input_dir)
-            dates = sorted(set(f.split('_')[0] for f in files if f.startswith(year)))
-            dates = [d for d in dates if 4 <= int(d.split('-')[1]) <= 9]
-            if not dates:
-                print(f"No valid weather dates found for {input_dir}")
-                return
-            sorted_dates = sorted(dates, key=lambda x: datetime.strptime(x, '%Y-%m-%d'))
-            selected_date = sorted_dates[0]
+            if modality == 'WEATHER':
+                # Extract unique dates from weather files by removing band suffix
+                files = os.listdir(input_dir)
+                dates = sorted(set(f.split('_')[0] for f in files if f.startswith(year)))
+                dates = [d for d in dates if 4 <= int(d.split('-')[1]) <= 9]
+                if not dates:
+                    print(f"No valid weather dates found for {input_dir}")
+                    return
+                sorted_dates = sorted(dates, key=lambda x: datetime.strptime(x, '%Y-%m-%d'))
+                selected_date = sorted_dates[0]
 
         band_arrays = []
         meta = None
@@ -87,35 +117,17 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
                 band_file = os.path.join(input_dir, f'{selected_date}_{band}.tif')
             elif modality == 'SOIL':
                 band_file = os.path.join(input_dir, f'{band}.tif')
-            
             if not os.path.exists(band_file):
                 print(f"Band file not found: {band_file}")
                 return
-            
-            with rasterio.open(band_file) as src:
-                if meta is None:
-                    meta = src.meta.copy()
-                    reference_shape = (src.height, src.width)
-                    reference_transform = src.transform
-                    reference_crs = src.crs
-                
-                # Read and resample band to match reference shape
-                data = src.read(1)
-                if (src.height, src.width) != reference_shape:
-                    # Create output array with reference shape
-                    resampled_data = np.empty(reference_shape, dtype=data.dtype)
-                    reproject(
-                        source=data,
-                        destination=resampled_data,
-                        src_transform=src.transform,
-                        src_crs=src.crs,
-                        dst_transform=reference_transform,
-                        dst_crs=reference_crs,
-                        resampling=Resampling.nearest
-                    )
-                    band_arrays.append(resampled_data)
-                else:
-                    band_arrays.append(data)
+            if reference_shape is None:
+                data, reference_shape, reference_transform, reference_crs, meta = load_band(band_file, bbox_gdf)
+                band_arrays.append(data)
+            else:
+                data = load_band(band_file, bbox_gdf, reference_shape, reference_transform, reference_crs)
+                band_arrays.append(data)
+            del data
+            gc.collect()
 
         if not band_arrays:
             print(f"No bands found for {input_dir}")
@@ -123,14 +135,15 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
 
         # Stack bands into a single array
         stacked_array = np.stack(band_arrays, axis=0)
-
-        # Update metadata
         meta.update({
-            'count': len(band_arrays)
+            'count': len(band_arrays),
+            'height': reference_shape[0],
+            'width': reference_shape[1],
+            'transform': reference_transform
         })
 
         # Reproject the bounding box to match the source CRS
-        bbox_gdf_reprojected = bbox_gdf.to_crs(meta['crs'])
+        bbox_gdf_reprojected = bbox_gdf.to_crs(reference_crs)
 
         # Clip the stacked image using MemoryFile
         with rasterio.io.MemoryFile() as memfile:
@@ -153,6 +166,9 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
         with rasterio.open(output_path, 'w', **meta) as dest:
             dest.write(out_image)
 
+        del stacked_array, out_image, band_arrays
+        gc.collect()
+
     except Exception as e:
         print(f"Error processing {input_dir}: {e}")
 
@@ -160,24 +176,32 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
 for yield_file in yield_files:
     base_name = os.path.basename(yield_file)
     bbox_gdf = get_bbox_from_geotiff(yield_file)
-    
+
     # Process Sentinel-1 images
     output_path = os.path.join(output_dir, 'S1GRD', base_name)
     combine_and_clip_geotiff(sentinel1_dir, output_path, bbox_gdf, s1_bands, year, 'S1GRD', is_dated=True)
-    
+
     # Process Sentinel-2 images
     output_path = os.path.join(output_dir, 'S2L2A', base_name)
     combine_and_clip_geotiff(sentinel2_dir, output_path, bbox_gdf, s2_bands, year, 'S2L2A', is_dated=True)
-    
+
     # Process MODIS images
     output_path = os.path.join(output_dir, 'MODIS', base_name)
     combine_and_clip_geotiff(modis_dir, output_path, bbox_gdf, modis_bands, year, 'MODIS', is_dated=True)
-    
+
     # Process crop images
     crop_path = os.path.join(crop_dir, f'{year}_{ext}_CDL.tif')
     output_path = os.path.join(output_dir, 'CDL', base_name)
     with rasterio.open(crop_path) as src:
-        out_image, out_transform = mask(src, bbox_gdf.to_crs(src.crs).geometry, crop=True)
+        bbox_gdf_reprojected = bbox_gdf.to_crs(src.crs)
+        bounds = bbox_gdf_reprojected.geometry.iloc[0].bounds
+        window = from_bounds(*bounds, transform=src.transform)
+        window = window.round_offsets().round_lengths()
+        if window.width <= 0 or window.height <= 0:
+            print(f"Invalid window for {crop_path}: {window}")
+            continue
+        out_image = src.read(window=window)
+        out_transform = src.window_transform(window)
         out_meta = src.meta.copy()
         out_meta.update({
             'height': out_image.shape[1],
@@ -186,19 +210,29 @@ for yield_file in yield_files:
         })
         with rasterio.open(output_path, 'w', **out_meta) as dest:
             dest.write(out_image)
-    
+        del out_image
+        gc.collect()
+
     # Process soil images
     output_path = os.path.join(output_dir, 'SOIL', base_name)
     combine_and_clip_geotiff(soil_dir, output_path, bbox_gdf, soil_bands, year, "SOIL", is_dated=False)
-    
+
     # Process weather images
     output_path = os.path.join(output_dir, 'WEATHER', base_name)
     combine_and_clip_geotiff(weather_dir, output_path, bbox_gdf, weather_bands, year, 'WEATHER', is_dated=False)
-    
+
     # Process DEM image
     output_path = os.path.join(output_dir, 'DEM', base_name)
     with rasterio.open(dem_path) as src:
-        out_image, out_transform = mask(src, bbox_gdf.to_crs(src.crs).geometry, crop=True)
+        bbox_gdf_reprojected = bbox_gdf.to_crs(src.crs)
+        bounds = bbox_gdf_reprojected.geometry.iloc[0].bounds
+        window = from_bounds(*bounds, transform=src.transform)
+        window = window.round_offsets().round_lengths()
+        if window.width <= 0 or window.height <= 0:
+            print(f"Invalid window for {dem_path}: {window}")
+            continue
+        out_image = src.read(window=window)
+        out_transform = src.window_transform(window)
         out_meta = src.meta.copy()
         out_meta.update({
             'height': out_image.shape[1],
@@ -207,5 +241,7 @@ for yield_file in yield_files:
         })
         with rasterio.open(output_path, 'w', **out_meta) as dest:
             dest.write(out_image)
+        del out_image
+        gc.collect()
 
 print("Processing complete.")
