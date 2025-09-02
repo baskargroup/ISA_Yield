@@ -26,15 +26,15 @@ def create_geotiff_from_group(df):
         m_per_deg_lon = 111320.0 * cos(avg_lat * pi / 180)
         
         # Desired resolution in meters
-        res_m = 10.0
+        res_m = 5.0
         
         # Resolution in degrees
         res_lat = res_m / m_per_deg_lat
         res_lon = res_m / m_per_deg_lon
         
         # Calculate grid dimensions (add buffer to cover bounds)
-        nrows = ceil((max_lat - min_lat) / res_lat) + 1
-        ncols = ceil((max_lon - min_lon) / res_lon) + 1
+        nrows = ceil((max_lat - min_lat) / res_lat)
+        ncols = ceil((max_lon - min_lon) / res_lon)
         
         # Create affine transform (top-left origin)
         transform = from_bounds(min_lon, min_lat, max_lon, max_lat, ncols, nrows)

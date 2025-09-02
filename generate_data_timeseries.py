@@ -2,12 +2,14 @@ import os
 import rasterio
 from rasterio.mask import mask
 from rasterio.warp import reproject, Resampling
+from rasterio.windows import from_bounds
 import geopandas as gpd
 from shapely.geometry import box
 import glob
 import numpy as np
 from datetime import datetime
-import pdb
+import gc
+
 # Define the paths
 ext = "IA"
 year = '2024'
@@ -28,7 +30,7 @@ s2_bands = ['B01', 'B02', 'B03', 'B04', 'B05', 'B06', 'B07', 'B08', 'B8A', 'B09'
 modis_bands = ['Band1', 'Band2', 'Band3', 'Band4', 'Band5', 'Band6', 'Band7']
 weather_bands = ['dayl', 'prcp', 'srad', 'swe', 'tmax', 'tmin', 'vp']
 soil_bands = ['aws100', 'aws150', 'aws999', 'nccpi3all', 'nccpi3corn', 'rootznaws', 'soc150', 'soc999', 'pctearthmc', 'nccpi3soy']
-
+dem_band = ['band_data']
 # Ensure output directories exist
 for m in modalities:
     os.makedirs(os.path.join(output_dir, m), exist_ok=True)
@@ -41,19 +43,30 @@ def get_bbox_from_geotiff(file_path):
     with rasterio.open(file_path) as src:
         bounds = src.bounds
         bbox = box(bounds.left, bounds.bottom, bounds.right, bounds.top)
-    return gpd.GeoDataFrame({'geometry': [bbox]}, crs=src.crs)
+        crs = src.crs
+    return gpd.GeoDataFrame({'geometry': [bbox]}, crs=crs)
 
-def load_band(band_file, ref_shape=None, ref_transform=None, ref_crs=None):
+def load_band(band_file, bbox_gdf, ref_shape=None, ref_transform=None, ref_crs=None):
+    """Load a single band using geospatial coordinates for windowed reading."""
     with rasterio.open(band_file) as src:
-        data = src.read(1)
+        # Reproject bbox to source CRS
+        bbox_gdf_reprojected = bbox_gdf.to_crs(src.crs)
+        bounds = bbox_gdf_reprojected.geometry.iloc[0].bounds  # (left, bottom, right, top)
+        # Define window using geospatial coordinates
+        window = from_bounds(*bounds, transform=src.transform)
+        window = window.round_offsets().round_lengths()
+        if window.width <= 0 or window.height <= 0:
+            raise ValueError(f"Invalid window for {band_file}: {window}")
+        data = src.read(1, window=window)
+        window_transform = src.window_transform(window)
         if ref_shape is None:
-            return data, src.shape, src.transform, src.crs, src.meta.copy()
+            return data, (int(window.height), int(window.width)), window_transform, src.crs, src.meta.copy()
         else:
             resampled_data = np.empty(ref_shape, dtype=data.dtype)
             reproject(
                 source=data,
                 destination=resampled_data,
-                src_transform=src.transform,
+                src_transform=window_transform,
                 src_crs=src.crs,
                 dst_transform=ref_transform,
                 dst_crs=ref_crs,
@@ -62,6 +75,7 @@ def load_band(band_file, ref_shape=None, ref_transform=None, ref_crs=None):
             return resampled_data
 
 def get_stacked_for_date(input_dir, bbox_gdf, band_list, date, modality):
+    """Stack bands for a specific date using geospatial windowed reading."""
     try:
         ref_shape = None
         ref_transform = None
@@ -77,16 +91,18 @@ def get_stacked_for_date(input_dir, bbox_gdf, band_list, date, modality):
             if not os.path.exists(band_file):
                 return None
             if ref_shape is None:
-                data, ref_shape, ref_transform, ref_crs, meta = load_band(band_file)
+                data, ref_shape, ref_transform, ref_crs, meta = load_band(band_file, bbox_gdf)
                 band_arrays.append(data)
             else:
-                data = load_band(band_file, ref_shape, ref_transform, ref_crs)
+                data = load_band(band_file, bbox_gdf, ref_shape, ref_transform, ref_crs)
                 band_arrays.append(data)
+            del data
+            gc.collect()
         if len(band_arrays) < len(band_list):
             return None
         stacked_array = np.stack(band_arrays, axis=0)
-        meta.update({'count': stacked_array.shape[0]})
-        bbox_gdf_reprojected = bbox_gdf.to_crs(meta['crs'])
+        meta.update({'count': stacked_array.shape[0], 'height': ref_shape[0], 'width': ref_shape[1], 'transform': ref_transform})
+        bbox_gdf_reprojected = bbox_gdf.to_crs(ref_crs)
         with rasterio.io.MemoryFile() as memfile:
             with memfile.open(**meta) as dataset:
                 dataset.write(stacked_array)
@@ -95,12 +111,15 @@ def get_stacked_for_date(input_dir, bbox_gdf, band_list, date, modality):
                     bbox_gdf_reprojected.geometry,
                     crop=True
                 )
+        del stacked_array, band_arrays
+        gc.collect()
         return out_image
     except Exception as e:
         print(f"Error getting stacked for date {date} in {modality}: {e}")
         return None
 
 def is_valid_date(input_dir, bbox_gdf, band_list, date, modality):
+    """Check if a date is valid based on data availability and quality."""
     out_image = get_stacked_for_date(input_dir, bbox_gdf, band_list, date, modality)
     if out_image is None:
         return False
@@ -110,9 +129,12 @@ def is_valid_date(input_dir, bbox_gdf, band_list, date, modality):
         valid_per_band = ~np.isnan(out_image)
     all_valid = np.all(valid_per_band, axis=0)
     frac_valid = np.mean(all_valid)
+    del out_image, valid_per_band, all_valid
+    gc.collect()
     return frac_valid > 0.7
 
 def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, modality, is_dated=False, selected_dates=None, repeat_times=1):
+    """Combine and clip geotiff bands using geospatial windowed reading."""
     try:
         if selected_dates is None:
             selected_dates = []
@@ -133,33 +155,39 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
                     if not os.path.exists(band_file):
                         continue
                     if ref_shape is None:
-                        data, ref_shape, ref_transform, ref_crs, meta = load_band(band_file)
+                        data, ref_shape, ref_transform, ref_crs, meta = load_band(band_file, bbox_gdf)
                         band_arrays.append(data)
                     else:
-                        data = load_band(band_file, ref_shape, ref_transform, ref_crs)
+                        data = load_band(band_file, bbox_gdf, ref_shape, ref_transform, ref_crs)
                         band_arrays.append(data)
+                    del data
+                    gc.collect()
         else:
             for band in band_list:
                 if modality == 'SOIL':
                     band_file = os.path.join(input_dir, f'{band}.tif')
+                elif modality == 'CDL':
+                    band_file = os.path.join(input_dir, f'{year}_{ext}_CDL.tif')
+                else:
+                    band_file = input_dir
                 if not os.path.exists(band_file):
                     continue
                 if ref_shape is None:
-                    data, ref_shape, ref_transform, ref_crs, meta = load_band(band_file)
+                    data, ref_shape, ref_transform, ref_crs, meta = load_band(band_file, bbox_gdf)
                     band_arrays.append(data)
                 else:
-                    data = load_band(band_file, ref_shape, ref_transform, ref_crs)
+                    data = load_band(band_file, bbox_gdf, ref_shape, ref_transform, ref_crs)
                     band_arrays.append(data)
+                del data
+                gc.collect()
         if not band_arrays:
             print(f"No bands found for {input_dir}")
             return
         stacked_array = np.stack(band_arrays, axis=0)
         if not is_dated and repeat_times > 1:
             stacked_array = np.tile(stacked_array, (repeat_times, 1, 1))
-        meta.update({
-            'count': stacked_array.shape[0]
-        })
-        bbox_gdf_reprojected = bbox_gdf.to_crs(meta['crs'])
+        meta.update({'count': stacked_array.shape[0], 'height': ref_shape[0], 'width': ref_shape[1], 'transform': ref_transform})
+        bbox_gdf_reprojected = bbox_gdf.to_crs(ref_crs)
         with rasterio.io.MemoryFile() as memfile:
             with memfile.open(**meta) as dataset:
                 dataset.write(stacked_array)
@@ -175,8 +203,10 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
         })
         height = out_image.shape[1]
         width = out_image.shape[2]
-        out_arr = np.reshape(out_image, (-1,len(band_list),height,width))
-        np.save(output_path, out_arr)
+        out_arr = np.reshape(out_image, (-1, len(band_list), height, width))
+        np.save(output_path, out_arr, allow_pickle=False)
+        del stacked_array, out_image, out_arr, band_arrays
+        gc.collect()
     except Exception as e:
         print(f"Error processing {input_dir}: {e}")
 
@@ -187,14 +217,18 @@ mod_to_dir = {
     'S2L2A': sentinel2_dir,
     'MODIS': modis_dir,
     'WEATHER': weather_dir,
-    'SOIL': soil_dir
+    'SOIL': soil_dir,
+    'CDL': crop_dir,
+    'DEM': dem_path
 }
 mod_to_bands = {
     'S1GRD': s1_bands,
     'S2L2A': s2_bands,
     'MODIS': modis_bands,
     'WEATHER': weather_bands,
-    'SOIL': soil_bands
+    'SOIL': soil_bands,
+    'CDL': ['CDL'],
+    'DEM': dem_band
 }
 
 # Process each yield file
@@ -242,47 +276,12 @@ for yield_file in yield_files:
     for mod in dynamic_mods:
         if mod not in selected_dates:
             continue
-        output_path = os.path.join(output_dir, mod, base_name)
+        output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
         combine_and_clip_geotiff(mod_to_dir[mod], output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=True, selected_dates=selected_dates[mod])
-    # Process SOIL
-    output_path = os.path.join(output_dir, 'SOIL', base_name)
-    combine_and_clip_geotiff(soil_dir, output_path, bbox_gdf, soil_bands, year, 'SOIL', is_dated=False, repeat_times=num_times)
-    # Process CDL
-    crop_path = os.path.join(crop_dir, f'{year}_{ext}_CDL.tif')
-    output_path = os.path.join(output_dir, 'CDL', base_name)
-    with rasterio.open(crop_path) as src:
-        bbox_rep = bbox_gdf.to_crs(src.crs)
-        out_image, out_transform = mask(src, bbox_rep.geometry, crop=True)
-        out_meta = src.meta.copy()
-        if num_times > 1:
-            out_image = np.tile(out_image, (num_times, 1, 1))
-            out_meta['count'] = num_times * out_meta.get('count', 1)
-        out_meta.update({
-            'height': out_image.shape[1],
-            'width': out_image.shape[2],
-            'transform': out_transform
-        })
-        height = out_image.shape[1]
-        width = out_image.shape[2]
-        out_arr = np.reshape(out_image, (-1,1,height,width))
-        np.save(output_path,out_arr)
-    # Process DEM
-    output_path = os.path.join(output_dir, 'DEM', base_name)
-    with rasterio.open(dem_path) as src:
-        bbox_rep = bbox_gdf.to_crs(src.crs)
-        out_image, out_transform = mask(src, bbox_rep.geometry, crop=True)
-        out_meta = src.meta.copy()
-        if num_times > 1:
-            out_image = np.tile(out_image, (num_times, 1, 1))
-            out_meta['count'] = num_times * out_meta.get('count', 1)
-        out_meta.update({
-            'height': out_image.shape[1],
-            'width': out_image.shape[2],
-            'transform': out_transform
-        })
-        height = out_image.shape[1]
-        width = out_image.shape[2]
-        out_arr = np.reshape(out_image, (-1,1,height,width))
-        np.save(output_path,out_arr)
-
+    # Process static modalities (SOIL, CDL, DEM)
+    for mod in ['SOIL', 'CDL', 'DEM']:
+        output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
+        input_path = mod_to_dir[mod] if mod != 'DEM' else dem_path
+        combine_and_clip_geotiff(input_path, output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=False, repeat_times=num_times)
+    gc.collect()
 print("Processing complete.")
