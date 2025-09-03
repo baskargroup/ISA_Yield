@@ -12,15 +12,15 @@ trainer:
     - class_path: LearningRateMonitor
       init_args:
         logging_interval: epoch
-  max_epochs: 100
-  log_every_n_steps: 5
+  max_epochs: 1000
+  log_every_n_steps: 15
   default_root_dir: output/yield_regression/
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
   init_args:
     task: 'regression'
-    batch_size: 8
+    batch_size: 4
     num_workers: 8
     modalities:
       - S2L2A
@@ -28,8 +28,8 @@ data:
       - DEM
       # - MODIS
       # - WEATHER
-      # - SOIL
-      # - CDL
+      - SOIL
+      - CDL
     rgb_modality: S2L2A
     rgb_indices:
       - 3
@@ -39,28 +39,28 @@ data:
       S2L2A: processed_data/S2L2A
       S1GRD: processed_data/S1GRD
       DEM: processed_data/DEM
-      # CDL: processed_data/CDL
+      CDL: processed_data/CDL
       # WEATHER: processed_data/WEATHER
       # MODIS: processed_data/MODIS
-      # SOIL: processed_data/SOIL
+      SOIL: processed_data/SOIL
     train_label_data_root: processed_data/yield_geotiffs
     val_data_root:
       S2L2A: processed_data/S2L2A
       S1GRD: processed_data/S1GRD
       DEM: processed_data/DEM
-      # CDL: processed_data/CDL
+      CDL: processed_data/CDL
       # WEATHER: processed_data/WEATHER
       # MODIS: processed_data/MODIS
-      # SOIL: processed_data/SOIL
+      SOIL: processed_data/SOIL
     val_label_data_root: processed_data/yield_geotiffs
     test_data_root:
       S2L2A: processed_data/S2L2A
       S1GRD: processed_data/S1GRD
       DEM: processed_data/DEM
-      # CDL: processed_data/CDL
+      CDL: processed_data/CDL
       # WEATHER: processed_data/WEATHER
       # MODIS: processed_data/MODIS
-      # SOIL: processed_data/SOIL
+      SOIL: processed_data/SOIL
     test_label_data_root: processed_data/yield_geotiffs
 
     train_split: processed_data/train.txt
@@ -125,9 +125,9 @@ model:
         - S2L2A
         - S1GRD
         - DEM
-        # - {"CDL": 1}  # Add new modality and define number of channels
+        - {"CDL": 1}  # Add new modality and define number of channels
         # - {"MODIS": 7}  # Add new modality and define number of channels
-        # - {"SOIL": 10}  # Add new modality and define number of channels
+        - {"SOIL": 10}  # Add new modality and define number of channels
         # - {"WEATHER": 7}  # Add new modality and define number of channels
       backbone_merge_method: mean
 
@@ -151,10 +151,10 @@ model:
 optimizer:
   class_path: torch.optim.AdamW
   init_args:
-    lr: 2.e-5
+    lr: 1.e-5
 lr_scheduler:
-  class_path: ReduceLROnPlateau
+  class_path: CosineAnnealingLR
   init_args:
-    monitor: val/loss
-    factor: 0.5
-    patience: 5
+    T_max: 10
+    # factor: 0.5
+    # patience: 5
