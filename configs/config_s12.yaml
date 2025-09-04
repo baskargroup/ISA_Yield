@@ -23,7 +23,7 @@ data:
     batch_size: 4
     num_workers: 8
     modalities:
-      # - S2L2A
+      - S2L2A
       - S1GRD
       # - DEM
       # - MODIS
@@ -38,29 +38,29 @@ data:
     train_data_root:
       S2L2A: processed_data/S2L2A
       S1GRD: processed_data/S1GRD
-      DEM: processed_data/DEM
-      CDL: processed_data/CDL
+      # DEM: processed_data/DEM
+      # CDL: processed_data/CDL
       # WEATHER: processed_data/WEATHER
       # MODIS: processed_data/MODIS
-      SOIL: processed_data/SOIL
+      # SOIL: processed_data/SOIL
     train_label_data_root: processed_data/yield_geotiffs
     val_data_root:
       S2L2A: processed_data/S2L2A
       S1GRD: processed_data/S1GRD
-      DEM: processed_data/DEM
-      CDL: processed_data/CDL
+      # DEM: processed_data/DEM
+      # CDL: processed_data/CDL
       # WEATHER: processed_data/WEATHER
       # MODIS: processed_data/MODIS
-      SOIL: processed_data/SOIL
+      # SOIL: processed_data/SOIL
     val_label_data_root: processed_data/yield_geotiffs
     test_data_root:
       S2L2A: processed_data/S2L2A
       S1GRD: processed_data/S1GRD
-      DEM: processed_data/DEM
-      CDL: processed_data/CDL
+      # DEM: processed_data/DEM
+      # CDL: processed_data/CDL
       # WEATHER: processed_data/WEATHER
       # MODIS: processed_data/MODIS
-      SOIL: processed_data/SOIL
+      # SOIL: processed_data/SOIL
     test_label_data_root: processed_data/yield_geotiffs
 
     train_split: processed_data/train.txt
@@ -122,7 +122,7 @@ model:
       backbone: terramind_v1_base  # large version: terramind_v1_large
       backbone_pretrained: true
       backbone_modalities:
-        # - S2L2A
+        - S2L2A
         - S1GRD
         # - DEM
         # - {"CDL": 1}  # Add new modality and define number of channels

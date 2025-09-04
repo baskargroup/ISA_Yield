@@ -14,7 +14,7 @@ trainer:
         logging_interval: epoch
   max_epochs: 1000
   log_every_n_steps: 15
-  default_root_dir: output/S1_only
+  default_root_dir: output/S12ds
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
@@ -23,12 +23,12 @@ data:
     batch_size: 4
     num_workers: 8
     modalities:
-      # - S2L2A
+      - S2L2A
       - S1GRD
-      # - DEM
+      - DEM
       # - MODIS
       # - WEATHER
-      # - SOIL
+      - SOIL
       # - CDL
     rgb_modality: S2L2A
     rgb_indices:
@@ -39,7 +39,7 @@ data:
       S2L2A: processed_data/S2L2A
       S1GRD: processed_data/S1GRD
       DEM: processed_data/DEM
-      CDL: processed_data/CDL
+      # CDL: processed_data/CDL
       # WEATHER: processed_data/WEATHER
       # MODIS: processed_data/MODIS
       SOIL: processed_data/SOIL
@@ -48,7 +48,7 @@ data:
       S2L2A: processed_data/S2L2A
       S1GRD: processed_data/S1GRD
       DEM: processed_data/DEM
-      CDL: processed_data/CDL
+      # CDL: processed_data/CDL
       # WEATHER: processed_data/WEATHER
       # MODIS: processed_data/MODIS
       SOIL: processed_data/SOIL
@@ -57,7 +57,7 @@ data:
       S2L2A: processed_data/S2L2A
       S1GRD: processed_data/S1GRD
       DEM: processed_data/DEM
-      CDL: processed_data/CDL
+      # CDL: processed_data/CDL
       # WEATHER: processed_data/WEATHER
       # MODIS: processed_data/MODIS
       SOIL: processed_data/SOIL
@@ -122,12 +122,12 @@ model:
       backbone: terramind_v1_base  # large version: terramind_v1_large
       backbone_pretrained: true
       backbone_modalities:
-        # - S2L2A
+        - S2L2A
         - S1GRD
-        # - DEM
+        - DEM
         # - {"CDL": 1}  # Add new modality and define number of channels
         # - {"MODIS": 7}  # Add new modality and define number of channels
-        # - {"SOIL": 10}  # Add new modality and define number of channels
+        - {"SOIL": 10}  # Add new modality and define number of channels
         # - {"WEATHER": 7}  # Add new modality and define number of channels
       backbone_merge_method: mean
 
