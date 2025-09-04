@@ -11,7 +11,7 @@
 #SBATCH --account=bepk-delta-gpu   # <- match to a "Project" returned by the "accounts" command
 #SBATCH --exclusive  # dedicated node for this job
 #SBATCH --no-requeue 
-#SBATCH -t 08:00:00
+#SBATCH -t 04:00:00
 #SBATCH -e Finetune-%j.err
 #SBATCH -o Finetune-%j.out
 
@@ -31,12 +31,14 @@ module load nccl # loads the nccl built with the AWS nccl plugin for Slingshot11
 module list
 echo "Job is starting on `hostname`"
 
-terratorch fit -c configs/config_s2.yaml 
-terratorch fit -c configs/config_s12.yaml 
-terratorch fit -c configs/config_s12c.yaml 
-terratorch fit -c configs/config_s12cs.yaml
-terratorch fit -c configs/config_s1cd.yaml
-# terratorch fit -c configs/config_s1csd.yaml 
-# terratorch fit -c configs/config_s12s.yaml 
-terratorch fit -c configs/config_s1sd.yaml 
-terratorch fit -c configs/config_s1d.yaml 
+terratorch test -c configs/config_s1.yaml --ckpt_path 
+terratorch test -c configs/config_s2.yaml --ckpt_path 
+terratorch test -c configs/config_s12.yaml --ckpt_path 
+terratorch test -c configs/config_s12c.yaml --ckpt_path 
+terratorch test -c configs/config_s12cs.yaml --ckpt_path 
+# terratorch test -c configs/config_s1cw.yaml --ckpt_path 
+# terratorch test -c configs/config_s1csw.yaml --ckpt_path 
+terratorch test -c configs/config_s1s.yaml --ckpt_path 
+# terratorch test -c configs/config_s1sw.yaml --ckpt_path 
+# terratorch test -c configs/config_s1w.yaml --ckpt_path 
+
