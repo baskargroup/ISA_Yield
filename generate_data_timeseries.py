@@ -9,6 +9,7 @@ import glob
 import numpy as np
 from datetime import datetime
 import gc
+import xarray as xr
 
 # Define the paths
 ext = "IA"
@@ -31,6 +32,7 @@ modis_bands = ['Band1', 'Band2', 'Band3', 'Band4', 'Band5', 'Band6', 'Band7']
 weather_bands = ['dayl', 'prcp', 'srad', 'swe', 'tmax', 'tmin', 'vp']
 soil_bands = ['aws100', 'aws150', 'aws999', 'nccpi3all', 'nccpi3corn', 'rootznaws', 'soc150', 'soc999', 'pctearthmc', 'nccpi3soy']
 dem_band = ['band_data']
+
 # Ensure output directories exist
 for m in modalities:
     os.makedirs(os.path.join(output_dir, m), exist_ok=True)
@@ -134,7 +136,7 @@ def is_valid_date(input_dir, bbox_gdf, band_list, date, modality):
     return frac_valid > 0.7
 
 def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, modality, is_dated=False, selected_dates=None, repeat_times=1):
-    """Combine and clip geotiff bands using geospatial windowed reading."""
+    """Combine and clip geotiff bands using geospatial windowed reading, save as .npy and xarray dataset."""
     try:
         if selected_dates is None:
             selected_dates = []
@@ -143,6 +145,9 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
         ref_crs = None
         meta = None
         band_arrays = []
+        band_names = []
+        time_coords = []
+
         if is_dated:
             dates_to_use = selected_dates
             for date in dates_to_use:
@@ -157,9 +162,13 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
                     if ref_shape is None:
                         data, ref_shape, ref_transform, ref_crs, meta = load_band(band_file, bbox_gdf)
                         band_arrays.append(data)
+                        band_names.append(f"{band}_{date}")
+                        if date not in time_coords:
+                            time_coords.append(date)
                     else:
                         data = load_band(band_file, bbox_gdf, ref_shape, ref_transform, ref_crs)
                         band_arrays.append(data)
+                        band_names.append(f"{band}_{date}")
                     del data
                     gc.collect()
         else:
@@ -175,19 +184,26 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
                 if ref_shape is None:
                     data, ref_shape, ref_transform, ref_crs, meta = load_band(band_file, bbox_gdf)
                     band_arrays.append(data)
+                    band_names.append(band)
                 else:
                     data = load_band(band_file, bbox_gdf, ref_shape, ref_transform, ref_crs)
                     band_arrays.append(data)
+                    band_names.append(band)
                 del data
                 gc.collect()
+
         if not band_arrays:
             print(f"No bands found for {input_dir}")
             return
+
         stacked_array = np.stack(band_arrays, axis=0)
         if not is_dated and repeat_times > 1:
             stacked_array = np.tile(stacked_array, (repeat_times, 1, 1))
+            band_names = [name for name in band_names for _ in range(repeat_times)]
+
         meta.update({'count': stacked_array.shape[0], 'height': ref_shape[0], 'width': ref_shape[1], 'transform': ref_transform})
         bbox_gdf_reprojected = bbox_gdf.to_crs(ref_crs)
+
         with rasterio.io.MemoryFile() as memfile:
             with memfile.open(**meta) as dataset:
                 dataset.write(stacked_array)
@@ -196,17 +212,61 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
                     bbox_gdf_reprojected.geometry,
                     crop=True
                 )
-        meta.update({
-            'height': out_image.shape[1],
-            'width': out_image.shape[2],
-            'transform': out_transform
-        })
+
         height = out_image.shape[1]
         width = out_image.shape[2]
-        out_arr = np.reshape(out_image, (-1, len(band_list), height, width))
+        out_arr = np.reshape(out_image, (-1, len(band_names), height, width))
+
+        # Save as .npy
         np.save(output_path, out_arr, allow_pickle=False)
-        del stacked_array, out_image, out_arr, band_arrays
+
+        # Create xarray dataset
+        # Calculate coordinates
+        x_coords = np.linspace(out_transform.c, out_transform.c + out_transform.a * width, width)
+        y_coords = np.linspace(out_transform.f, out_transform.f + out_transform.e * height, height)
+        
+        if is_dated:
+            time_coords = [datetime.strptime(date, '%Y-%m-%d') for date in sorted(set(time_coords))]
+            ds = xr.Dataset(
+                {
+                    "data": (["time", "band", "y", "x"], out_arr),
+                },
+                coords={
+                    "time": time_coords,
+                    "band": band_names,
+                    "y": y_coords,
+                    "x": x_coords,
+                },
+                attrs={
+                    "crs": str(ref_crs),
+                    "transform": out_transform.to_gdal(),
+                    "modality": modality,
+                }
+            )
+        else:
+            ds = xr.Dataset(
+                {
+                    "data": (["band", "y", "x"], out_arr[0]),
+                },
+                coords={
+                    "band": band_names,
+                    "y": y_coords,
+                    "x": x_coords,
+                },
+                attrs={
+                    "crs": str(ref_crs),
+                    "transform": out_transform.to_gdal(),
+                    "modality": modality,
+                }
+            )
+
+        # Save as NetCDF
+        nc_output_path = output_path.replace('.npy', '.nc')
+        ds.to_netcdf(nc_output_path, format='NETCDF4', engine='netcdf4')
+
+        del stacked_array, out_image, out_arr, band_arrays, ds
         gc.collect()
+
     except Exception as e:
         print(f"Error processing {input_dir}: {e}")
 
@@ -284,4 +344,5 @@ for yield_file in yield_files:
         input_path = mod_to_dir[mod] if mod != 'DEM' else dem_path
         combine_and_clip_geotiff(input_path, output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=False, repeat_times=num_times)
     gc.collect()
+
 print("Processing complete.")

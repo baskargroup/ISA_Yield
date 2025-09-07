@@ -6,15 +6,27 @@ trainer:
   devices: auto
   num_nodes: 1
   precision: 16-mixed
-  logger: true
+  logger:
+    - class_path: WandbLogger
+      init_args:
+        project: regr_mean
+        name: S12
   callbacks:
+    - class_path: EarlyStopping
+      init_args:
+          monitor: val/loss 
+          patience: 25
+          min_delta: 0.0001
+          mode: min
+          verbose: true
     - class_path: RichProgressBar
     - class_path: LearningRateMonitor
       init_args:
         logging_interval: epoch
   max_epochs: 1000
   log_every_n_steps: 15
-  default_root_dir: output/S1_only
+  accumulate_grad_batches: 4
+  default_root_dir: output/S12
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
@@ -86,7 +98,7 @@ data:
     #   CDL: [1]
     expand_temporal_dimension: False
     # Adjust file suffixes if required or delete them
-    no_label_replace: -1
+    no_label_replace: -99
     no_data_replace: 0
     # TerraMind standardization values
     means:
@@ -144,17 +156,23 @@ model:
 
       head_dropout: 0.1
     loss: mse
-    ignore_index: -1
+    ignore_index: 0.0
     freeze_backbone: false
     freeze_decoder: false
 
 optimizer:
   class_path: torch.optim.AdamW
   init_args:
-    lr: 1.e-5
+    lr: 1.e-4
 lr_scheduler:
+#   class_path: ReduceLROnPlateau
+#   init_args:
+#     monitor: val/loss
+#     factor: 0.1
+#     patience: 5
+#     min_lr: 0.000001
+  
   class_path: CosineAnnealingLR
   init_args:
-    T_max: 10
-    # factor: 0.5
-    # patience: 5
+    T_max: 5
+    eta_min: 0.000001
