@@ -215,56 +215,56 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
 
         height = out_image.shape[1]
         width = out_image.shape[2]
-        out_arr = np.reshape(out_image, (-1, len(band_list), height, width))
+        out_arr = np.reshape(out_image, (-1, len(band_names), height, width))
         # pdb.set_trace()
         # Save as .npy
-        np.save(output_path, out_arr, allow_pickle=False)
+        # np.save(output_path, out_arr, allow_pickle=False)
 
-        # # Create xarray dataset
-        # # Calculate coordinates
-        # x_coords = np.linspace(out_transform.c, out_transform.c + out_transform.a * width, width)
-        # y_coords = np.linspace(out_transform.f, out_transform.f + out_transform.e * height, height)
+        # Create xarray dataset
+        # Calculate coordinates
+        x_coords = np.linspace(out_transform.c, out_transform.c + out_transform.a * width, width)
+        y_coords = np.linspace(out_transform.f, out_transform.f + out_transform.e * height, height)
         
-        # if is_dated:
-        #     time_coords = [datetime.strptime(date, '%Y-%m-%d') for date in sorted(set(time_coords))]
-        #     ds = xr.Dataset(
-        #         {
-        #             "data": (["time", "band", "y", "x"], out_arr),
-        #         },
-        #         coords={
-        #             "time": time_coords,
-        #             "band": band_names,
-        #             "y": y_coords,
-        #             "x": x_coords,
-        #         },
-        #         attrs={
-        #             "crs": str(ref_crs),
-        #             "transform": out_transform.to_gdal(),
-        #             "modality": modality,
-        #         }
-        #     )
-        # else:
-        #     ds = xr.Dataset(
-        #         {
-        #             "data": (["band", "y", "x"], out_arr[0]),
-        #         },
-        #         coords={
-        #             "band": band_names,
-        #             "y": y_coords,
-        #             "x": x_coords,
-        #         },
-        #         attrs={
-        #             "crs": str(ref_crs),
-        #             "transform": out_transform.to_gdal(),
-        #             "modality": modality,
-        #         }
-        #     )
+        if is_dated:
+            time_coords = [datetime.strptime(date, '%Y-%m-%d') for date in sorted(set(time_coords))]
+            ds = xr.Dataset(
+                {
+                    "data": (["time", "band", "y", "x"], out_arr),
+                },
+                coords={
+                    "time": time_coords,
+                    "band": band_names,
+                    "y": y_coords,
+                    "x": x_coords,
+                },
+                attrs={
+                    "crs": str(ref_crs),
+                    "transform": out_transform.to_gdal(),
+                    "modality": modality,
+                }
+            )
+        else:
+            ds = xr.Dataset(
+                {
+                    "data": (["band", "y", "x"], out_arr[0]),
+                },
+                coords={
+                    "band": band_names,
+                    "y": y_coords,
+                    "x": x_coords,
+                },
+                attrs={
+                    "crs": str(ref_crs),
+                    "transform": out_transform.to_gdal(),
+                    "modality": modality,
+                }
+            )
 
-        # # Save as NetCDF
-        # nc_output_path = output_path.replace('.npy', '.nc')
-        # ds.to_netcdf(nc_output_path, format='NETCDF4', engine='netcdf4')
+        # Save as NetCDF
+        nc_output_path = output_path.replace('.npy', '.nc')
+        ds.to_netcdf(nc_output_path, format='NETCDF4', engine='netcdf4')
 
-        del stacked_array, out_image, out_arr, band_arrays #, ds
+        del stacked_array, out_image, out_arr, band_arrays, ds
         gc.collect()
 
     except Exception as e:

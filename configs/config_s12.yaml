@@ -10,7 +10,7 @@ trainer:
     - class_path: WandbLogger
       init_args:
         project: regr_mean
-        name: S12
+        name: S12-0.1(lr-factor)
   callbacks:
     - class_path: EarlyStopping
       init_args:
@@ -98,7 +98,7 @@ data:
     #   CDL: [1]
     expand_temporal_dimension: False
     # Adjust file suffixes if required or delete them
-    no_label_replace: -99
+    no_label_replace: 0.0
     no_data_replace: 0
     # TerraMind standardization values
     means:
@@ -156,7 +156,7 @@ model:
 
       head_dropout: 0.1
     loss: mse
-    ignore_index: 0.0
+    ignore_index: 0
     freeze_backbone: false
     freeze_decoder: false
 
@@ -165,14 +165,14 @@ optimizer:
   init_args:
     lr: 1.e-4
 lr_scheduler:
-#   class_path: ReduceLROnPlateau
-#   init_args:
-#     monitor: val/loss
-#     factor: 0.1
-#     patience: 5
-#     min_lr: 0.000001
-  
-  class_path: CosineAnnealingLR
+  class_path: ReduceLROnPlateau
   init_args:
-    T_max: 5
-    eta_min: 0.000001
+    monitor: val/loss
+    factor: 0.5
+    patience: 10
+    min_lr: 0.000001
+  
+  # class_path: CosineAnnealingLR
+  # init_args:
+  #   T_max: 5
+  #   eta_min: 0.000001
