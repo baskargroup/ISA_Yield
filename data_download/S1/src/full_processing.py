@@ -158,7 +158,7 @@ if __name__ == "__main__":
     base_dirs.sort()
 
     # Specify processing start date
-    start = "2024-05-01"
+    start = "2019-04-01"
 
     # Remove directories that are less than the start date
     base_dirs = [dir for dir in base_dirs if dir.split("/")[-1] >= start]

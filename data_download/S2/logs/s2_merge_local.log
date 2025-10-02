@@ -1,2 +1,99 @@
 2025-08-31 00:05:44,397 INFO Processing complete! Total time taken: 0.0016322135925292969 seconds
 2025-08-31 22:25:38,897 INFO Processing complete! Total time taken: 80332.94495010376 seconds
+2025-09-25 10:21:02,542 INFO No files found for band: B01
+2025-09-25 10:21:02,542 INFO No files found for band: B02
+2025-09-25 10:21:02,542 INFO No files found for band: B03
+2025-09-25 10:21:02,542 INFO No files found for band: B04
+2025-09-25 10:21:02,542 INFO No files found for band: B05
+2025-09-25 10:21:02,543 INFO No files found for band: B06
+2025-09-25 10:21:02,543 INFO No files found for band: B07
+2025-09-25 10:21:02,543 INFO No files found for band: B08
+2025-09-25 10:21:02,543 INFO No files found for band: B8A
+2025-09-25 10:21:02,543 INFO No files found for band: B09
+2025-09-25 10:21:02,543 INFO No files found for band: B11
+2025-09-25 10:21:02,543 INFO No files found for band: B12
+2025-09-25 10:43:32,025 INFO No files found for band: B01
+2025-09-25 10:43:32,025 INFO No files found for band: B02
+2025-09-25 10:43:32,025 INFO No files found for band: B03
+2025-09-25 10:43:32,025 INFO No files found for band: B04
+2025-09-25 10:43:32,025 INFO No files found for band: B05
+2025-09-25 10:43:32,025 INFO No files found for band: B06
+2025-09-25 10:43:32,025 INFO No files found for band: B07
+2025-09-25 10:43:32,025 INFO No files found for band: B08
+2025-09-25 10:43:32,026 INFO No files found for band: B8A
+2025-09-25 10:43:32,026 INFO No files found for band: B09
+2025-09-25 10:43:32,026 INFO No files found for band: B11
+2025-09-25 10:43:32,026 INFO No files found for band: B12
+2025-09-25 13:59:10,329 INFO GDAL signalled an error: err_no=1, msg='TIFFFillTile:Read error at row 512, col 512, tile 90; got 159511 bytes, expected 435605'
+2025-09-25 13:59:10,330 INFO GDAL signalled an error: err_no=1, msg='TIFFReadEncodedTile() failed.'
+2025-09-25 13:59:10,330 INFO GDAL signalled an error: err_no=1, msg='S2B_MSIL2A_20190820T165849_R069_T15TVH_20201005T025208_B07.tif, band 1: IReadBlock failed at X offset 2, Y offset 8: TIFFReadEncodedTile() failed.'
+2025-09-25 13:59:10,330 ERROR Error merging bands: Read failed. See previous exception for details.
+2025-09-25 14:02:28,293 INFO Processing complete! Total time taken: 26725.59309530258 seconds
+2025-09-25 19:59:04,104 INFO No files found for band: B01
+2025-09-25 19:59:04,104 INFO No files found for band: B02
+2025-09-25 19:59:04,104 INFO No files found for band: B03
+2025-09-25 19:59:04,104 INFO No files found for band: B04
+2025-09-25 19:59:04,104 INFO No files found for band: B05
+2025-09-25 19:59:04,104 INFO No files found for band: B06
+2025-09-25 19:59:04,104 INFO No files found for band: B07
+2025-09-25 19:59:04,105 INFO No files found for band: B08
+2025-09-25 19:59:04,105 INFO No files found for band: B8A
+2025-09-25 19:59:04,105 INFO No files found for band: B09
+2025-09-25 19:59:04,105 INFO No files found for band: B11
+2025-09-25 19:59:04,105 INFO No files found for band: B12
+2025-09-26 05:19:21,870 INFO No files found for band: B01
+2025-09-26 05:19:21,871 INFO No files found for band: B02
+2025-09-26 05:19:21,871 INFO No files found for band: B03
+2025-09-26 05:19:21,871 INFO No files found for band: B04
+2025-09-26 05:19:21,871 INFO No files found for band: B05
+2025-09-26 05:19:21,871 INFO No files found for band: B06
+2025-09-26 05:19:21,871 INFO No files found for band: B07
+2025-09-26 05:19:21,871 INFO No files found for band: B08
+2025-09-26 05:19:21,871 INFO No files found for band: B8A
+2025-09-26 05:19:21,871 INFO No files found for band: B09
+2025-09-26 05:19:21,872 INFO No files found for band: B11
+2025-09-26 05:19:21,872 INFO No files found for band: B12
+2025-09-26 05:54:01,389 INFO Processing complete! Total time taken: 44121.83441543579 seconds
+2025-09-26 11:27:53,950 INFO No files found for band: B01
+2025-09-26 11:27:53,950 INFO No files found for band: B02
+2025-09-26 11:27:53,950 INFO No files found for band: B03
+2025-09-26 11:27:53,951 INFO No files found for band: B04
+2025-09-26 11:27:53,951 INFO No files found for band: B05
+2025-09-26 11:27:53,951 INFO No files found for band: B06
+2025-09-26 11:27:53,951 INFO No files found for band: B07
+2025-09-26 11:27:53,951 INFO No files found for band: B08
+2025-09-26 11:27:53,951 INFO No files found for band: B8A
+2025-09-26 11:27:53,951 INFO No files found for band: B09
+2025-09-26 11:27:53,951 INFO No files found for band: B11
+2025-09-26 11:27:53,951 INFO No files found for band: B12
+2025-09-27 03:45:35,874 INFO No files found for band: B01
+2025-09-27 03:45:35,874 INFO No files found for band: B02
+2025-09-27 03:45:35,875 INFO No files found for band: B03
+2025-09-27 03:45:35,875 INFO No files found for band: B04
+2025-09-27 03:45:35,875 INFO No files found for band: B05
+2025-09-27 03:45:35,875 INFO No files found for band: B06
+2025-09-27 03:45:35,875 INFO No files found for band: B07
+2025-09-27 03:45:35,875 INFO No files found for band: B08
+2025-09-27 03:45:35,875 INFO No files found for band: B8A
+2025-09-27 03:45:35,875 INFO No files found for band: B09
+2025-09-27 03:45:35,875 INFO No files found for band: B11
+2025-09-27 03:45:35,876 INFO No files found for band: B12
+2025-09-27 03:45:35,885 INFO No files found for band: B01
+2025-09-27 03:45:35,886 INFO No files found for band: B02
+2025-09-27 03:45:35,886 INFO No files found for band: B03
+2025-09-27 03:45:35,886 INFO No files found for band: B04
+2025-09-27 03:45:35,886 INFO No files found for band: B05
+2025-09-27 03:45:35,886 INFO No files found for band: B06
+2025-09-27 03:45:35,886 INFO No files found for band: B07
+2025-09-27 03:45:35,886 INFO No files found for band: B08
+2025-09-27 03:45:35,886 INFO No files found for band: B8A
+2025-09-27 03:45:35,887 INFO No files found for band: B09
+2025-09-27 03:45:35,887 INFO No files found for band: B11
+2025-09-27 03:45:35,887 INFO No files found for band: B12
+2025-09-27 03:50:10,497 INFO Processing complete! Total time taken: 69034.87088394165 seconds
+2025-09-28 01:04:51,494 INFO Processing complete! Total time taken: 59091.68704891205 seconds
+2025-09-29 03:00:48,161 INFO GDAL signalled an error: err_no=1, msg='ZIPDecode:Decoding error at scanline 3072, unknown compression method'
+2025-09-29 03:00:48,162 INFO GDAL signalled an error: err_no=1, msg='TIFFReadEncodedTile() failed.'
+2025-09-29 03:00:48,162 INFO GDAL signalled an error: err_no=1, msg='S2B_MSIL2A_20230613T170859_R112_T14TPL_20230614T004353_B11.tif, band 1: IReadBlock failed at X offset 6, Y offset 1: TIFFReadEncodedTile() failed.'
+2025-09-29 03:00:48,162 ERROR Error merging bands: Read failed. See previous exception for details.
+2025-09-29 17:00:21,146 INFO Processing complete! Total time taken: 78207.86790776253 seconds

@@ -202,7 +202,7 @@ if __name__ == "__main__":
     logger = setup_logger("./logs/modis_reproject_local.log")
     
     # Base directory
-    base_dir_pattern = "./IA_modis_NBAR/2024-*"
+    base_dir_pattern = "./IA_modis_NBAR/2023-*"
     base_dirs = glob.glob(base_dir_pattern)
     #Sort the directories
     base_dirs.sort()

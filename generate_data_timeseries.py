@@ -13,7 +13,7 @@ import xarray as xr
 import pdb
 # Define the paths
 ext = "IA"
-year = '2024'
+years = [2020, 2021, 2022, 2023, 2024]
 modalities = ['S2L2A', 'S1GRD', 'MODIS', 'DEM', 'CDL', 'WEATHER', 'SOIL']
 sentinel1_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S1/final_s1_{ext}/'
 sentinel2_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S2/final_s2_v3_{ext}/'
@@ -37,9 +37,10 @@ dem_band = ['band_data']
 for m in modalities:
     os.makedirs(os.path.join(output_dir, m), exist_ok=True)
 
-# Get list of yield geotiff files
-yield_files = glob.glob(os.path.join(yield_path, '*.tif'))
-
+# Get list of yield geotiff files for all selected years using the naming convention STYYYYIA*_*.npy
+yield_files = []
+for year in years:
+    yield_files.extend(glob.glob(os.path.join(yield_path, f'ST{year}IA*_*.tif')))
 def get_bbox_from_geotiff(file_path):
     """Extract the bounding box from a geotiff file."""
     with rasterio.open(file_path) as src:
@@ -294,6 +295,9 @@ mod_to_bands = {
 # Process each yield file
 for yield_file in yield_files:
     base_name = os.path.basename(yield_file)
+    # Extract year from filename (expects format: <something>_<year>_<something>.tif)
+    year = base_name.split('IA')[0][-4:]
+    print(f"Processing yield file: {base_name} for year {year}")
     bbox_gdf = get_bbox_from_geotiff(yield_file)
     valid_dates = {}
     for mod in dynamic_mods:
@@ -301,10 +305,10 @@ for yield_file in yield_files:
         band_list = mod_to_bands[mod]
         if mod == 'WEATHER':
             files = os.listdir(input_dir)
-            possible_dates = sorted(set(f.split('_')[0] for f in files if f.startswith(year)))
+            possible_dates = sorted(set(f.split('_')[0] for f in files if f.startswith(str(year))))
             possible_dates = [d for d in possible_dates if 4 <= int(d.split('-')[1]) <= 9]
         else:
-            possible_dates = [d for d in os.listdir(input_dir) if os.path.isdir(os.path.join(input_dir, d)) and d.startswith(year + '-')]
+            possible_dates = [d for d in os.listdir(input_dir) if os.path.isdir(os.path.join(input_dir, d)) and d.startswith(str(year) + '-')]
             possible_dates = sorted(possible_dates)
         valids = []
         for date in possible_dates:

@@ -151,7 +151,7 @@ if __name__ == "__main__":
     logger = setup_logger("./logs/s2_merge_local.log")
     
     # Base directory
-    base_dir_pattern = "./IA_sentinel2/2024-*"
+    base_dir_pattern = "./IA_sentinel2/IA_sentinel2/2023-*"
     #base_dir_pattern = "./IA_sentinel2/2019-*"
     base_dirs = glob.glob(base_dir_pattern)
     
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     base_dirs.sort()
     
     # Specify processing start date
-    start_dt = "2024-05-05"
+    start_dt = "2023-04-01"
     start = datetime.strptime(start_dt, "%Y-%m-%d")
     
     # Remove directories that are less than the start date
