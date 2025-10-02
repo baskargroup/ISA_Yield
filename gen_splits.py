@@ -1,6 +1,6 @@
 import os
 import random
-
+import sys
 def find_common_tif(root_folder):
     """
     Finds all .tif files that are present (by filename) in every subfolder of the root folder.
@@ -63,8 +63,16 @@ def split_and_save(common_files, output_dir):
     
     print(f"Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(test)})")
 
-
-root_folder = './processed_data'
-output_dir = './processed_data'
-common_files = find_common_tif(root_folder)
-split_and_save(common_files, output_dir)
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        try:
+            t = int(sys.argv[1])
+        except Exception:
+            print("Invalid argument for t, using default t=1")
+            t = 1
+    else:
+        t = 1
+    root_folder = f'./processed_data_{t}'
+    output_dir = root_folder
+    common_files = find_common_tif(root_folder)
+    split_and_save(common_files, output_dir)

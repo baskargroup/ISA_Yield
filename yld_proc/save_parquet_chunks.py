@@ -12,7 +12,6 @@ import glob
 # Directory containing all ISA_YYYY_raw_yields.csv files
 input_dir = 'raw_yield'
 csv_files = glob.glob(os.path.join(input_dir, 'ISA_*_raw_yields.csv'))
-
 chunk_size = 1000
 
 def process_csv_file(input_file):
@@ -55,14 +54,14 @@ def process_csv_file(input_file):
         w.join()
 
     # Optional: Combine and visualize for each year
-    parquet_files = [os.path.join(output_dir, f) for f in sorted(os.listdir(output_dir)) if f.endswith('.parquet')]
-    with ProcessPoolExecutor() as executor:
-        future_to_file = {executor.submit(gpd.read_parquet, file): file for file in parquet_files}
-        gdf_list = []
-        for future in tqdm(as_completed(future_to_file), total=len(future_to_file), desc=f"Loading chunks {year}"):
-            gdf_list.append(future.result())
-    full_gdf = gpd.GeoDataFrame(pd.concat(gdf_list, ignore_index=True), crs="EPSG:4326")
-    print(f"[{year}] Reconstructed dataset with {len(full_gdf)} rows")
+    # parquet_files = [os.path.join(output_dir, f) for f in sorted(os.listdir(output_dir)) if f.endswith('.parquet')]
+    # with ProcessPoolExecutor() as executor:
+    #     future_to_file = {executor.submit(gpd.read_parquet, file): file for file in parquet_files}
+    #     gdf_list = []
+    #     for future in tqdm(as_completed(future_to_file), total=len(future_to_file), desc=f"Loading chunks {year}"):
+    #         gdf_list.append(future.result())
+    # full_gdf = gpd.GeoDataFrame(pd.concat(gdf_list, ignore_index=True), crs="EPSG:4326")
+    # print(f"[{year}] Reconstructed dataset with {len(full_gdf)} rows")
 
     # # Visualize with heatmap
     # map_center = [full_gdf['geometry'].y.mean(), full_gdf['geometry'].x.mean()]

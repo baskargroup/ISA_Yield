@@ -151,7 +151,7 @@ if __name__ == "__main__":
     logger = setup_logger("./logs/s2_merge_local.log")
     
     # Base directory
-    base_dir_pattern = "./IA_sentinel2/IA_sentinel2/2023-*"
+    base_dir_pattern = "./IA_sentinel2/IA_sentinel2/2024-*"
     #base_dir_pattern = "./IA_sentinel2/2019-*"
     base_dirs = glob.glob(base_dir_pattern)
     
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     base_dirs.sort()
     
     # Specify processing start date
-    start_dt = "2023-04-01"
+    start_dt = "2024-04-01"
     start = datetime.strptime(start_dt, "%Y-%m-%d")
     
     # Remove directories that are less than the start date
@@ -303,7 +303,7 @@ if __name__ == "__main__":
                 
                 #Store the files to merge
                 #Create folder if it does not exist
-                os.makedirs(f"./final_s2_v3/{_folder}", exist_ok=True)
+                os.makedirs(f"./final_s2_v3_IA/{_folder}", exist_ok=True)
                 
                 files_to_merge = []
                 
@@ -321,7 +321,7 @@ if __name__ == "__main__":
                 
                 # Merge both UTMs in WGS84
                 if len(files_to_merge) > 0:
-                    merge_files(files_to_merge, "4326", band, f"./final_s2_v3/{_folder}")
+                    merge_files(files_to_merge, "4326", band, f"./final_s2_v3_IA/{_folder}")
                     
                     print(f"Grand merge complete! Time taken: {time.time() - grand_merge_time} seconds")
                 

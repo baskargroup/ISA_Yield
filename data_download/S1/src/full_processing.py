@@ -313,7 +313,7 @@ if __name__ == "__main__":
 
                 # Store the files to merge
                 # Create folder if it does not exist
-                os.makedirs(f"./final_s1/{_folder}", exist_ok=True)
+                os.makedirs(f"./final_s1_IA/{_folder}", exist_ok=True)
 
                 files_to_merge = []
 
@@ -334,7 +334,7 @@ if __name__ == "__main__":
                 # Merge both UTMs in WGS84
                 if len(files_to_merge) > 0:
                     merge_files(files_to_merge, "4326", band,
-                                f"./final_s1/{_folder}")
+                                f"./final_s1_IA/{_folder}")
 
                     print(
                         f"Grand merge complete! Time taken: {time.time() - grand_merge_time} seconds")

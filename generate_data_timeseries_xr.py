@@ -37,8 +37,11 @@ dem_band = ['band_data']
 for m in modalities:
     os.makedirs(os.path.join(output_dir, m), exist_ok=True)
 
-# Get list of yield geotiff files
-yield_files = glob.glob(os.path.join(yield_path, '*.tif'))
+# Get list of yield geotiff files for all selected years
+years = [2020, 2021, 2022, 2023, 2024]
+yield_files = []
+for year in years:
+    yield_files.extend(glob.glob(os.path.join(yield_path, f'*{year}*.tif')))
 
 def get_bbox_from_geotiff(file_path):
     """Extract the bounding box from a geotiff file."""
@@ -294,6 +297,16 @@ mod_to_bands = {
 # Process each yield file
 for yield_file in yield_files:
     base_name = os.path.basename(yield_file)
+    # Extract year from filename (expects format: *YYYY*.tif)
+    year = None
+    for y in years:
+        if str(y) in base_name:
+            year = str(y)
+            break
+    if year is None:
+        print(f"Could not determine year for {base_name}, skipping.")
+        continue
+
     bbox_gdf = get_bbox_from_geotiff(yield_file)
     valid_dates = {}
     for mod in dynamic_mods:
