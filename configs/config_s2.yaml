@@ -10,7 +10,7 @@ trainer:
     - class_path: WandbLogger
       init_args:
         project: regr_mean
-        name: S2-0.1(lr-factor)
+        name: S2-0.5(lr-factor)
   callbacks:
     - class_path: EarlyStopping
       init_args:
@@ -168,7 +168,7 @@ lr_scheduler:
   class_path: ReduceLROnPlateau
   init_args:
     monitor: val/loss
-    factor: 0.1
+    factor: 0.5
     patience: 10
     min_lr: 0.000001
   

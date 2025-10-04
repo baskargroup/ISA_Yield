@@ -10,7 +10,7 @@ trainer:
     - class_path: WandbLogger
       init_args:
         project: regr_mean
-        name: S12-0.1(lr-factor)
+        name: S12-0.5(lr-factor)
   callbacks:
     - class_path: EarlyStopping
       init_args:
@@ -48,36 +48,36 @@ data:
       - 2
       - 1
     train_data_root:
-      S2L2A: processed_data/S2L2A
-      S1GRD: processed_data/S1GRD
-      # DEM: processed_data/DEM
-      # CDL: processed_data/CDL
-      # WEATHER: processed_data/WEATHER
-      # MODIS: processed_data/MODIS
-      # SOIL: processed_data/SOIL
-    train_label_data_root: processed_data/yield_geotiffs
+      S2L2A: processed_data_monthly/S2L2A
+      S1GRD: processed_data_monthly/S1GRD
+      # DEM: processed_data_monthly/DEM
+      # CDL: processed_data_monthly/CDL
+      # WEATHER: processed_data_monthly/WEATHER
+      # MODIS: processed_data_monthly/MODIS
+      # SOIL: processed_data_monthly/SOIL
+    train_label_data_root: processed_data_monthly/yield_geotiffs
     val_data_root:
-      S2L2A: processed_data/S2L2A
-      S1GRD: processed_data/S1GRD
-      # DEM: processed_data/DEM
-      # CDL: processed_data/CDL
-      # WEATHER: processed_data/WEATHER
-      # MODIS: processed_data/MODIS
-      # SOIL: processed_data/SOIL
-    val_label_data_root: processed_data/yield_geotiffs
+      S2L2A: processed_data_monthly/S2L2A
+      S1GRD: processed_data_monthly/S1GRD
+      # DEM: processed_data_monthly/DEM
+      # CDL: processed_data_monthly/CDL
+      # WEATHER: processed_data_monthly/WEATHER
+      # MODIS: processed_data_monthly/MODIS
+      # SOIL: processed_data_monthly/SOIL
+    val_label_data_root: processed_data_monthly/yield_geotiffs
     test_data_root:
-      S2L2A: processed_data/S2L2A
-      S1GRD: processed_data/S1GRD
-      # DEM: processed_data/DEM
-      # CDL: processed_data/CDL
-      # WEATHER: processed_data/WEATHER
-      # MODIS: processed_data/MODIS
-      # SOIL: processed_data/SOIL
-    test_label_data_root: processed_data/yield_geotiffs
+      S2L2A: processed_data_monthly/S2L2A
+      S1GRD: processed_data_monthly/S1GRD
+      # DEM: processed_data_monthly/DEM
+      # CDL: processed_data_monthly/CDL
+      # WEATHER: processed_data_monthly/WEATHER
+      # MODIS: processed_data_monthly/MODIS
+      # SOIL: processed_data_monthly/SOIL
+    test_label_data_root: processed_data_monthly/yield_geotiffs
 
-    train_split: processed_data/train.txt
-    val_split: processed_data/val.txt
-    test_split: processed_data/test.txt
+    train_split: processed_data_monthly/train.txt
+    val_split: processed_data_monthly/val.txt
+    test_split: processed_data_monthly/test.txt
     # dataset_bands:
     #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
     #   S1GRD: [1,2]
@@ -168,7 +168,7 @@ lr_scheduler:
   class_path: ReduceLROnPlateau
   init_args:
     monitor: val/loss
-    factor: 0.1
+    factor: 0.5
     patience: 10
     min_lr: 0.000001
   
