@@ -13,11 +13,11 @@ import xarray as xr
 import pdb
 # Define the paths
 ext = "IA"
-years = [2020, 2021, 2022, 2023, 2024]
+years = [2019, 2020, 2021, 2022, 2023, 2024]
 modalities = ['S2L2A', 'S1GRD', 'MODIS', 'DEM', 'CDL', 'WEATHER', 'SOIL']
 sentinel1_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S1/final_s1_{ext}/'
 sentinel2_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S2/final_s2_v3_{ext}/'
-modis_dir = f'/work/mech-ai-scratch/rtali/gis-modis/modis_{ext}/'
+modis_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/MODIS/modis_{ext}/'
 crop_dir = '/work/mech-ai-scratch/aapowadi/multimodal_fusion/remapped_cdl'
 soil_dir = f'/work/mech-ai-scratch/aapowadi/soil_new/soil_processed_{ext}'
 weather_dir = f'/work/mech-ai-scratch/aapowadi/WEEKLY_WEATHER_{ext}'
@@ -221,50 +221,6 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
         # Save as .npy
         np.save(output_path, out_arr, allow_pickle=False)
 
-        # # Create xarray dataset
-        # # Calculate coordinates
-        # x_coords = np.linspace(out_transform.c, out_transform.c + out_transform.a * width, width)
-        # y_coords = np.linspace(out_transform.f, out_transform.f + out_transform.e * height, height)
-        
-        # if is_dated:
-        #     time_coords = [datetime.strptime(date, '%Y-%m-%d') for date in sorted(set(time_coords))]
-        #     ds = xr.Dataset(
-        #         {
-        #             "data": (["time", "band", "y", "x"], out_arr),
-        #         },
-        #         coords={
-        #             "time": time_coords,
-        #             "band": band_names,
-        #             "y": y_coords,
-        #             "x": x_coords,
-        #         },
-        #         attrs={
-        #             "crs": str(ref_crs),
-        #             "transform": out_transform.to_gdal(),
-        #             "modality": modality,
-        #         }
-        #     )
-        # else:
-        #     ds = xr.Dataset(
-        #         {
-        #             "data": (["band", "y", "x"], out_arr[0]),
-        #         },
-        #         coords={
-        #             "band": band_names,
-        #             "y": y_coords,
-        #             "x": x_coords,
-        #         },
-        #         attrs={
-        #             "crs": str(ref_crs),
-        #             "transform": out_transform.to_gdal(),
-        #             "modality": modality,
-        #         }
-        #     )
-
-        # # Save as NetCDF
-        # nc_output_path = output_path.replace('.npy', '.nc')
-        # ds.to_netcdf(nc_output_path, format='NETCDF4', engine='netcdf4')
-
         del stacked_array, out_image, out_arr, band_arrays #, ds
         gc.collect()
 
@@ -292,61 +248,59 @@ mod_to_bands = {
     'DEM': dem_band
 }
 
-# Process each yield file
-for yield_file in yield_files:
-    base_name = os.path.basename(yield_file)
-    # Extract year from filename (expects format: <something>_<year>_<something>.tif)
-    year = base_name.split('IA')[0][-4:]
-    print(f"Processing yield file: {base_name} for year {year}")
-    bbox_gdf = get_bbox_from_geotiff(yield_file)
-    valid_dates = {}
-    for mod in dynamic_mods:
-        input_dir = mod_to_dir[mod]
-        band_list = mod_to_bands[mod]
-        if mod == 'WEATHER':
-            files = os.listdir(input_dir)
-            possible_dates = sorted(set(f.split('_')[0] for f in files if f.startswith(str(year))))
-            possible_dates = [d for d in possible_dates if 4 <= int(d.split('-')[1]) <= 9]
-        else:
-            possible_dates = [d for d in os.listdir(input_dir) if os.path.isdir(os.path.join(input_dir, d)) and d.startswith(str(year) + '-')]
-            possible_dates = sorted(possible_dates)
-        valids = []
-        for date in possible_dates:
-            if is_valid_date(input_dir, bbox_gdf, band_list, date, mod):
-                valids.append(date)
-        valid_dates[mod] = valids
-        print(f"Number of valid dates for {mod} is {len(valid_dates[mod])}")
-    if all(len(valid_dates[mod]) == 0 for mod in dynamic_mods):
-        print(f"No valid dates for any modality for {base_name}, skipping.")
-        continue
-    min_len = min(len(valid_dates[mod]) for mod in dynamic_mods if len(valid_dates[mod]) > 0)
-    ref_mod = min((m for m in dynamic_mods if len(valid_dates[m]) > 0), key=lambda m: len(valid_dates[m]))
-    ref_dates = sorted(valid_dates[ref_mod])
-    num_times = len(ref_dates)
-    selected_dates = {}
-    for mod in dynamic_mods:
-        if len(valid_dates[mod]) == 0:
-            print(f"No valid dates for {mod} in {base_name}, skipping modality.")
+log_file = os.path.join(output_dir, "used_dates_log.txt")
+with open(log_file, "w") as logf:
+    # Process each yield file
+    for yield_file in yield_files:
+        base_name = os.path.basename(yield_file)
+        # Extract year from filename (expects format: <something>_<year>_<something>.tif)
+        year = base_name.split('IA')[0][-4:]
+        print(f"Processing yield file: {base_name} for year {year}")
+        bbox_gdf = get_bbox_from_geotiff(yield_file)
+        valid_dates = {}
+        for mod in dynamic_mods:
+            input_dir = mod_to_dir[mod]
+            band_list = mod_to_bands[mod]
+            if mod == 'WEATHER':
+                files = os.listdir(input_dir)
+                possible_dates = sorted(set(f.split('_')[0] for f in files if f.startswith(str(year))))
+                possible_dates = [d for d in possible_dates if 4 <= int(d.split('-')[1]) <= 9]
+            else:
+                possible_dates = [d for d in os.listdir(input_dir) if os.path.isdir(os.path.join(input_dir, d)) and d.startswith(str(year) + '-')]
+                possible_dates = sorted(possible_dates)
+            valids = []
+            for date in possible_dates:
+                if is_valid_date(input_dir, bbox_gdf, band_list, date, mod):
+                    valids.append(date)
+            valid_dates[mod] = valids
+            print(f"Number of valid dates for {mod} is {len(valid_dates[mod])}")
+        if all(len(valid_dates[mod]) == 0 for mod in dynamic_mods):
+            print(f"No valid dates for any modality for {base_name}, skipping.")
             continue
-        mod_val_dates = sorted(valid_dates[mod])
-        mod_val_dt = [datetime.strptime(d, '%Y-%m-%d') for d in mod_val_dates]
-        sel = []
-        for rd in ref_dates:
-            rd_dt = datetime.strptime(rd, '%Y-%m-%d')
-            i_closest = np.argmin([abs(dt - rd_dt) for dt in mod_val_dt])
-            sel.append(mod_val_dates[i_closest])
-        selected_dates[mod] = sel
-    # Process dynamic modalities
-    for mod in dynamic_mods:
-        if mod not in selected_dates:
+        # Find intersection of valid dates across all dynamic modalities
+        sets_of_dates = [set(valid_dates[mod]) for mod in dynamic_mods if len(valid_dates[mod]) > 0]
+        if not sets_of_dates or len(sets_of_dates) < len(dynamic_mods):
+            print(f"Not all modalities have valid dates for {base_name}, skipping.")
             continue
-        output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
-        combine_and_clip_geotiff(mod_to_dir[mod], output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=True, selected_dates=selected_dates[mod])
-    # Process static modalities (SOIL, CDL, DEM)
-    for mod in ['SOIL', 'CDL', 'DEM']:
-        output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
-        input_path = mod_to_dir[mod] if mod != 'DEM' else dem_path
-        combine_and_clip_geotiff(input_path, output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=False, repeat_times=num_times)
-    gc.collect()
+        common_dates = sorted(set.intersection(*sets_of_dates))
+        if not common_dates:
+            print(f"No common dates across all modalities for {base_name}, skipping.")
+            continue
+        num_times = len(common_dates)
+        selected_dates = {mod: common_dates for mod in dynamic_mods}
+        # --- LOG THE DATES USED ---
+        logf.write(f"{base_name}: {','.join(common_dates)}\n")
+        # Process dynamic modalities
+        for mod in dynamic_mods:
+            if mod not in selected_dates:
+                continue
+            output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
+            combine_and_clip_geotiff(mod_to_dir[mod], output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=True, selected_dates=selected_dates[mod])
+        # Process static modalities (SOIL, CDL, DEM)
+        for mod in ['SOIL', 'CDL', 'DEM']:
+            output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
+            input_path = mod_to_dir[mod] if mod != 'DEM' else dem_path
+            combine_and_clip_geotiff(input_path, output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=False, repeat_times=num_times)
+        gc.collect()
 
 print("Processing complete.")

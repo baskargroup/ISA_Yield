@@ -64,15 +64,7 @@ def split_and_save(common_files, output_dir):
     print(f"Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(test)})")
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        try:
-            t = int(sys.argv[1])
-        except Exception:
-            print("Invalid argument for t, using default t=1")
-            t = 1
-    else:
-        t = 1
-    root_folder = f'./processed_data_{t}'
+    root_folder = f'./processed_data_monthly'
     output_dir = root_folder
     common_files = find_common_tif(root_folder)
     split_and_save(common_files, output_dir)
