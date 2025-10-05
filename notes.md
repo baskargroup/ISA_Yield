@@ -10,4 +10,6 @@
 
 # Downstream Training - Terramind
 
-1. 
+1. Use ```terratorch fit -c configs/config_s1.yaml``` or other configs as needed to train.
+2. Use ```terratorch test -c configs/config_s12c.yaml --ckpt output/S12c/lightning_logs/version_0/checkpoints/epoch\=329-step\=4950.ckpt ``` or other configs and ckpts as needed.
+3. The experiment statistics will be logged to wandb
