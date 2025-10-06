@@ -70,10 +70,7 @@ def get_monthly_indices(file, used_dates_dict):
     """
     base = os.path.basename(file)
     # Remove .npy or .tif.npy extension for matching
-    if base.endswith('.tif.npy'):
-        base = base[:-8] + '.tif'
-    elif base.endswith('.npy'):
-        base = base[:-4] + '.tif'
+    base = base.split('.')[0] + '.tif' 
     # Get available dates for this file
     dates = used_dates_dict.get(base, [])
     # Group indices by month (April=4, ..., September=9)
@@ -111,12 +108,10 @@ def get_biweekly_indices(file, used_dates_dict):
     """
     base = os.path.basename(file)
     # Remove .npy or .tif.npy extension for matching
-    if base.endswith('.tif.npy'):
-        base = base[:-8] + '.tif'
-    elif base.endswith('.npy'):
-        base = base[:-4] + '.tif'
+    base = base.split('.')[0] + '.tif'
     # Get available dates for this file
     dates = used_dates_dict.get(base, [])
+
     # Group indices by biweek (April 1 to Sept 30, 2 per month)
     biweek_to_indices = defaultdict(list)
     for idx, d in enumerate(dates):
@@ -139,17 +134,27 @@ def aggregate_biweekly(data, biweekly_indices):
     Given data of shape (T, C, H, W) and biweekly_indices (list of lists of indices),
     return (12, C, H, W) where each timepoint is the average of that biweek's available data.
     If no data for a biweek, fill with zeros.
+    Ignores data slices that are all zeros when aggregating.
     """
     T, C, H, W = data.shape
     biweekly_data = []
     for inds in biweekly_indices:
         if inds:
-            biweekly_data.append(np.mean(data[inds], axis=0, keepdims=True))
+            # Select only non-all-zero slices
+            valid_slices = []
+            for idx in inds:
+                if not np.all(data[idx] == 0):
+                    valid_slices.append(data[idx])
+            if valid_slices:
+                stacked = np.stack(valid_slices, axis=0)
+                biweekly_data.append(np.mean(stacked, axis=0, keepdims=True))
+            else:
+                biweekly_data.append(np.zeros((1, C, H, W), dtype=data.dtype))
         else:
             biweekly_data.append(np.zeros((1, C, H, W), dtype=data.dtype))
     return np.concatenate(biweekly_data, axis=0)
 
-def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_reference=False, used_dates_dict=None):
+def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_reference=False, used_dates_dict=None, tsave=12):
     if is_reference:
         files = sorted(glob.glob(os.path.join(subfolder_path, '*.tif')) + glob.glob(os.path.join(subfolder_path, '*.tiff')))
     else:
@@ -165,12 +170,15 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
         else:
             data = np.load(file)
             T, C, H, W = data.shape
-            # Aggregate biweekly before filtering by T
+            # Always aggregate to 12 biweeks
             if used_dates_dict is not None:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
                 data = aggregate_biweekly(data, biweekly_indices)
-                T = data.shape[0]
-            if T < 12:
+            else:
+                print("used_dates_dict is None, cannot aggregate to biweekly! Exiting.")
+                sys.exit(1)
+            T = data.shape[0]
+            if T < tsave:
                 continue
         if is_rectangular(H, W, threshold=1.2):
             rectangular_files.append(file)
@@ -228,11 +236,16 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
             print(f"Warning: {file} has very small dimensions after cropping: {data.shape} Skipping.")
             continue
         data = rescale_to_224x224(data, is_reference)
+        # Only keep the first tsave timepoints (for non-reference)
+        if not is_reference:
+            data = data[:tsave]
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
         else:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
+        # Ensure float32 before saving
+        data = data.astype(np.float32)
         np.save(save_path, data)
     # Process almost square images (crop to perfect square)
     for file in almost_square_files:
@@ -257,11 +270,16 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
             print(f"Warning: {file} has very small dimensions after cropping: {data.shape} Skipping.")
             continue        
         data = rescale_to_224x224(data, is_reference)
+        # Only keep the first tsave timepoints (for non-reference)
+        if not is_reference and data.shape[0] > tsave:
+            data = data[:tsave]
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
         else:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
+        # Ensure float32 before saving
+        data = data.astype(np.float32)
         np.save(save_path, data)
     # Process square images
     for file in square_files:
@@ -286,11 +304,16 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
             print(f"Warning: {file} has very small dimensions after cropping: {data.shape} Skipping.")
             continue
         data = rescale_to_224x224(data, is_reference)
+        # Only keep the first tsave timepoints (for non-reference)
+        if not is_reference:
+            data = data[:tsave]
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
         else:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
+        # Ensure float32 before saving
+        data = data.astype(np.float32)
         np.save(save_path, data)
 
 def parse_used_dates_log(log_path):
@@ -307,7 +330,7 @@ def parse_used_dates_log(log_path):
             used_dates_dict[fname] = dates
     return used_dates_dict
 
-def process_root_folder(root_path, dest_root_path, used_dates_dict=None):
+def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=12):
     yield_folder = os.path.join(root_path, 'yield_geotiffs')
     if not os.path.exists(yield_folder):
         print("yield_geotiffs subfolder not found!")
@@ -323,14 +346,19 @@ def process_root_folder(root_path, dest_root_path, used_dates_dict=None):
         if os.path.isdir(subfolder_path):
             if subfolder == 'yield_geotiffs':
                 print(f"Processing reference folder: {subfolder}")
-                process_subfolder(subfolder_path, dest_subfolder_path, is_reference=True, used_dates_dict=used_dates_dict)
+                process_subfolder(subfolder_path, dest_subfolder_path, is_reference=True, used_dates_dict=used_dates_dict, tsave=tsave)
             else:
                 print(f"Processing folder: {subfolder}")
-                process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=ref_dims, used_dates_dict=used_dates_dict)
+                process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=ref_dims, used_dates_dict=used_dates_dict, tsave=tsave)
 
 if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ts', type=int, default=12, help='Number of timepoints to save (default: 12)')
+    args = parser.parse_args()
+
     log_path = './unprocessed_data/used_dates_log.txt'
     used_dates_dict = parse_used_dates_log(log_path)
-    dst_folder = f'processed_data_biweekly'
+    dst_folder = f'processed_data_biweekly_{args.ts}'
     os.makedirs(dst_folder, exist_ok=True)
-    process_root_folder('./unprocessed_data', dst_folder, used_dates_dict=used_dates_dict)
+    process_root_folder('./unprocessed_data', dst_folder, used_dates_dict=used_dates_dict, tsave=args.ts)

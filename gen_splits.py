@@ -1,16 +1,17 @@
 import os
 import random
 import sys
+
 def find_common_tif(root_folder):
     """
-    Finds all .tif files that are present (by filename) in every subfolder of the root folder.
+    Finds all .npy files that are present (by filename) in every subfolder of the root folder.
     """
     subfolders = [f for f in os.listdir(root_folder) if os.path.isdir(os.path.join(root_folder, f))]
     if not subfolders:
-        print("No subfolders found.")
+        print(f"No subfolders found in {root_folder}.")
         return []
     
-    # Collect sets of .tif filenames from each subfolder
+    # Collect sets of .npy filenames from each subfolder
     file_sets = []
     for sub in subfolders:
         sub_path = os.path.join(root_folder, sub)
@@ -26,14 +27,14 @@ def find_common_tif(root_folder):
 
 def split_and_save(common_files, output_dir):
     """
-    Strips the .tif extension from common files, shuffles them, splits into train/val/test (0.7/0.2/0.1),
+    Strips the .npy extension from common files, shuffles them, splits into train/val/test (0.7/0.2/0.1),
     and saves each list to a line-separated text file in the output directory.
     """
     if not common_files:
         print("No common files to split.")
         return
     
-    # Strip .tif extensions to get stems
+    # Strip .npy extensions to get stems
     stems = [os.path.splitext(f)[0] for f in common_files]
     
     # Shuffle the list for random splitting
@@ -61,10 +62,22 @@ def split_and_save(common_files, output_dir):
     save_list(val, 'val.txt')
     save_list(test, 'test.txt')
     
-    print(f"Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(test)})")
+    print(f"{output_dir}: Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(test)})")
 
 if __name__ == "__main__":
-    root_folder = f'./processed_data_monthly'
-    output_dir = root_folder
-    common_files = find_common_tif(root_folder)
-    split_and_save(common_files, output_dir)
+    random.seed(42)  # For reproducibility
+
+    # Find all processed_data_biweekly_* folders in the current directory
+    base_dir = '.'
+    biweekly_folders = [f for f in os.listdir(base_dir) if f.startswith('processed_data_biweekly') and os.path.isdir(os.path.join(base_dir, f))]
+
+    if not biweekly_folders:
+        print("No processed_data_biweekly* folders found.")
+        sys.exit(1)
+
+    for folder in sorted(biweekly_folders):
+        root_folder = os.path.join(base_dir, folder)
+        output_dir = root_folder
+        print(f"Processing {root_folder} ...")
+        common_files = find_common_tif(root_folder)
+        split_and_save(common_files, output_dir)
