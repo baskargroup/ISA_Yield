@@ -48,3 +48,33 @@ terratorch test -c conf_ts/s12cdw_9.yaml
 terratorch test -c conf_ts/s12cdw_10.yaml
 terratorch test -c conf_ts/s12cdw_11.yaml
 terratorch test -c conf_ts/s12cdw_12.yaml
+
+echo "Job finished for s12cdw"
+
+echo "Job is starting on `hostname` for s12cd"
+
+terratorch fit -c conf_ts/s12cd_1.yaml
+terratorch fit -c conf_ts/s12cd_2.yaml
+terratorch fit -c conf_ts/s12cd_3.yaml
+terratorch fit -c conf_ts/s12cd_4.yaml
+terratorch fit -c conf_ts/s12cd_5.yaml
+terratorch fit -c conf_ts/s12cd_6.yaml
+terratorch fit -c conf_ts/s12cd_7.yaml
+terratorch fit -c conf_ts/s12cd_8.yaml
+terratorch fit -c conf_ts/s12cd_9.yaml
+terratorch fit -c conf_ts/s12cd_10.yaml
+terratorch fit -c conf_ts/s12cd_11.yaml
+terratorch fit -c conf_ts/s12cd_12.yaml
+
+terratorch test -c conf_ts/s12cd_1.yaml
+terratorch test -c conf_ts/s12cd_2.yaml
+terratorch test -c conf_ts/s12cd_3.yaml
+terratorch test -c conf_ts/s12cd_4.yaml
+terratorch test -c conf_ts/s12cd_5.yaml
+terratorch test -c conf_ts/s12cd_6.yaml
+terratorch test -c conf_ts/s12cd_7.yaml
+terratorch test -c conf_ts/s12cd_8.yaml
+terratorch test -c conf_ts/s12cd_9.yaml
+terratorch test -c conf_ts/s12cd_10.yaml
+terratorch test -c conf_ts/s12cd_11.yaml
+terratorch test -c conf_ts/s12cd_12.yaml
