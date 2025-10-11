@@ -22,13 +22,13 @@ trainer:
   max_epochs: 1000
   log_every_n_steps: 15
   accumulate_grad_batches: 4
-  default_root_dir: output/S12cd_1
+  default_root_dir: output/S12cd_5  # Updated for biweek 5
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
   init_args:
     task: 'regression'
-    batch_size: 5
+    batch_size: 4
     num_workers: 8
     modalities:
       - S2L2A
@@ -45,36 +45,36 @@ data:
       - 2
       - 1
     train_data_root:
-      S2L2A: processed_data_biweekly_1/S2L2A
-      S1GRD: processed_data_biweekly_1/S1GRD
-      DEM: processed_data_biweekly_1/DEM
-      CDL: processed_data_biweekly_1/CDL
-      # WEATHER: processed_data_biweekly_1/WEATHER
-      # MODIS: processed_data_biweekly_1/MODIS
-      # SOIL: processed_data_biweekly_1/SOIL
-    train_label_data_root: processed_data_biweekly_1/yield_geotiffs
+      S2L2A: processed_data_biweekly_5/S2L2A
+      S1GRD: processed_data_biweekly_5/S1GRD
+      DEM: processed_data_biweekly_5/DEM
+      CDL: processed_data_biweekly_5/CDL
+      # WEATHER: processed_data_biweekly_5/WEATHER
+      # MODIS: processed_data_biweekly_5/MODIS
+      # SOIL: processed_data_biweekly_5/SOIL
+    train_label_data_root: processed_data_biweekly_5/yield_geotiffs
     val_data_root:
-      S2L2A: processed_data_biweekly_1/S2L2A
-      S1GRD: processed_data_biweekly_1/S1GRD
-      DEM: processed_data_biweekly_1/DEM
-      CDL: processed_data_biweekly_1/CDL
-      # WEATHER: processed_data_biweekly_1/WEATHER
-      # MODIS: processed_data_biweekly_1/MODIS
-      # SOIL: processed_data_biweekly_1/SOIL
-    val_label_data_root: processed_data_biweekly_1/yield_geotiffs
+      S2L2A: processed_data_biweekly_5/S2L2A
+      S1GRD: processed_data_biweekly_5/S1GRD
+      DEM: processed_data_biweekly_5/DEM
+      CDL: processed_data_biweekly_5/CDL
+      # WEATHER: processed_data_biweekly_5/WEATHER
+      # MODIS: processed_data_biweekly_5/MODIS
+      # SOIL: processed_data_biweekly_5/SOIL
+    val_label_data_root: processed_data_biweekly_5/yield_geotiffs
     test_data_root:
-      S2L2A: processed_data_biweekly_1/S2L2A
-      S1GRD: processed_data_biweekly_1/S1GRD
-      DEM: processed_data_biweekly_1/DEM
-      CDL: processed_data_biweekly_1/CDL
-      # WEATHER: processed_data_biweekly_1/WEATHER
-      # MODIS: processed_data_biweekly_1/MODIS
-      # SOIL: processed_data_biweekly_1/SOIL
-    test_label_data_root: processed_data_biweekly_1/yield_geotiffs
+      S2L2A: processed_data_biweekly_5/S2L2A
+      S1GRD: processed_data_biweekly_5/S1GRD
+      DEM: processed_data_biweekly_5/DEM
+      CDL: processed_data_biweekly_5/CDL
+      # WEATHER: processed_data_biweekly_5/WEATHER
+      # MODIS: processed_data_biweekly_5/MODIS
+      # SOIL: processed_data_biweekly_5/SOIL
+    test_label_data_root: processed_data_biweekly_5/yield_geotiffs
 
-    train_split: processed_data_biweekly_1/train.txt
-    val_split: processed_data_biweekly_1/val.txt
-    test_split: processed_data_biweekly_1/test.txt
+    train_split: processed_data_biweekly_5/train.txt
+    val_split: processed_data_biweekly_5/val.txt
+    test_split: processed_data_biweekly_5/test.txt
     # dataset_bands:
     #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
     #   S1GRD: [1,2]

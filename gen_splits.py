@@ -43,13 +43,12 @@ def split_and_save(common_files, output_dir):
     # Calculate split sizes
     total = len(stems)
     train_size = int(0.7 * total)
-    val_size = int(0.2 * total)
-    test_size = total - train_size - val_size  # Ensures exact split, handling rounding
+    val_size = int(0.3 * total)
     
     # Split the lists
     train = stems[:train_size]
     val = stems[train_size:train_size + val_size]
-    test = stems[train_size + val_size:]
+    test = stems[train_size:train_size + val_size]
     
     # Function to save list to file
     def save_list(lst, filename):
