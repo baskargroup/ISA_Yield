@@ -133,28 +133,52 @@ def aggregate_biweekly(data, biweekly_indices):
     """
     Given data of shape (T, C, H, W) and biweekly_indices (list of lists of indices),
     return (12, C, H, W) where each timepoint is the average of that biweek's available data.
-    If no data for a biweek, fill with zeros.
+    If no data for a biweek, fill with mean of previous and next valid biweek (if available), else zeros.
     Ignores data slices that are all zeros when aggregating.
     """
     T, C, H, W = data.shape
     biweekly_data = []
-    for inds in biweekly_indices:
+    valid_means = [None] * len(biweekly_indices)
+    # First, compute means for valid biweeks
+    for i, inds in enumerate(biweekly_indices):
         if inds:
-            # Select only non-all-zero slices
-            valid_slices = []
-            for idx in inds:
-                if not np.all(data[idx] == 0):
-                    valid_slices.append(data[idx])
+            valid_slices = [data[idx] for idx in inds if not np.all(data[idx] == 0)]
             if valid_slices:
                 stacked = np.stack(valid_slices, axis=0)
-                biweekly_data.append(np.mean(stacked, axis=0, keepdims=True))
-            else:
-                biweekly_data.append(np.zeros((1, C, H, W), dtype=data.dtype))
+                valid_means[i] = np.mean(stacked, axis=0)
+    # Now, fill missing biweeks with mean of previous and next valid biweek
+    for i in range(len(biweekly_indices)):
+        if valid_means[i] is not None:
+            biweekly_data.append(valid_means[i][None])
         else:
-            biweekly_data.append(np.zeros((1, C, H, W), dtype=data.dtype))
+            print(f"Biweek {i} has no valid data, filling...")
+            # Find previous valid
+            prev = None
+            for j in range(i-1, i-2, -1):
+                if valid_means[j] is not None:
+                    prev = valid_means[j]
+                    break
+            # Find next valid
+            next_ = None
+            if i < len(biweekly_indices) - 1:
+                for j in range(i+1, i+2):
+                    if valid_means[j] is not None:
+                        next_ = valid_means[j]
+                        break
+            if prev is not None and next_ is not None:
+                fill = ((prev + next_) / 2)[None]
+            elif prev is not None:
+                fill = prev[None]
+            elif next_ is not None:
+                fill = next_[None]
+            else:
+                fill = np.zeros((1, C, H, W), dtype=data.dtype)
+            biweekly_data.append(fill)
     return np.concatenate(biweekly_data, axis=0)
 
 def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_reference=False, used_dates_dict=None, tsave=12):
+    static_modalities = {"CDL", "DEM", "SOIL"}
+    modality_name = os.path.basename(subfolder_path)
     if is_reference:
         files = sorted(glob.glob(os.path.join(subfolder_path, '*.tif')) + glob.glob(os.path.join(subfolder_path, '*.tiff')))
     else:
@@ -170,13 +194,6 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
         else:
             data = np.load(file)
             T, C, H, W = data.shape
-            # Always aggregate to 12 biweeks
-            if used_dates_dict is not None:
-                biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices)
-            else:
-                print("used_dates_dict is None, cannot aggregate to biweekly! Exiting.")
-                sys.exit(1)
             T = data.shape[0]
             if T < tsave:
                 continue
@@ -196,10 +213,10 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
                 C, H, W = data.shape
         else:
             data = np.load(file)
-            # Aggregate biweekly
-            if used_dates_dict is not None:
+            # Only aggregate if not static modality
+            if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices)
+                data = aggregate_biweekly(data, biweekly_indices[:tsave+1])
                 T = data.shape[0]
         if not is_reference and ref_dims:
             ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))
@@ -255,9 +272,10 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
                 C, H, W = data.shape
         else:
             data = np.load(file)
-            if used_dates_dict is not None:
+            # Only aggregate if not static modality
+            if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices)
+                data = aggregate_biweekly(data, biweekly_indices[:tsave+1])
                 T = data.shape[0]
         if not is_reference and ref_dims:
             ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))
@@ -289,9 +307,10 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
                 C, H, W = data.shape
         else:
             data = np.load(file)
-            if used_dates_dict is not None:
+            # Only aggregate if not static modality
+            if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices)
+                data = aggregate_biweekly(data, biweekly_indices[:tsave+1])
                 T = data.shape[0]
         if not is_reference and ref_dims:
             ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))
@@ -330,35 +349,58 @@ def parse_used_dates_log(log_path):
             used_dates_dict[fname] = dates
     return used_dates_dict
 
-def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=12):
-    yield_folder = os.path.join(root_path, 'yield_geotiffs')
-    if not os.path.exists(yield_folder):
-        print("yield_geotiffs subfolder not found!")
-        return
-    ref_files = sorted(glob.glob(os.path.join(yield_folder, '*.tif')) + glob.glob(os.path.join(yield_folder, '*.tiff')))
-    ref_dims = {}
-    for ref_file in ref_files:
-        with rasterio.open(ref_file) as ds:
-            ref_dims[os.path.splitext(os.path.basename(ref_file))[0] + '.npy'] = (ds.height, ds.width)
-    for subfolder in sorted(os.listdir(root_path)):
-        subfolder_path = os.path.join(root_path, subfolder)
-        dest_subfolder_path = os.path.join(dest_root_path, subfolder)
-        if os.path.isdir(subfolder_path):
-            if subfolder == 'yield_geotiffs':
-                print(f"Processing reference folder: {subfolder}")
-                process_subfolder(subfolder_path, dest_subfolder_path, is_reference=True, used_dates_dict=used_dates_dict, tsave=tsave)
-            else:
-                print(f"Processing folder: {subfolder}")
-                process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=ref_dims, used_dates_dict=used_dates_dict, tsave=tsave)
+def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=12, all=True):
+    if all:
+        for i in range(1, 13):
+            yield_folder = os.path.join(root_path, 'yield_geotiffs')
+            if not os.path.exists(yield_folder):
+                print("yield_geotiffs subfolder not found!")
+                return
+            ref_files = sorted(glob.glob(os.path.join(yield_folder, '*.tif')) + glob.glob(os.path.join(yield_folder, '*.tiff')))
+            ref_dims = {}
+            for ref_file in ref_files:
+                with rasterio.open(ref_file) as ds:
+                    ref_dims[os.path.splitext(os.path.basename(ref_file))[0] + '.npy'] = (ds.height, ds.width)
+            for subfolder in sorted(os.listdir(root_path)):
+                subfolder_path = os.path.join(root_path, subfolder)
+                dest_subfolder_path = os.path.join(dest_root_path, subfolder)
+                if os.path.isdir(subfolder_path):
+                    if subfolder == 'yield_geotiffs':
+                        print(f"Processing reference folder: {subfolder}")
+                        process_subfolder(subfolder_path, dest_subfolder_path, is_reference=True, used_dates_dict=used_dates_dict, tsave=i)
+                    else:
+                        print(f"Processing folder: {subfolder}")
+                        process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=ref_dims, used_dates_dict=used_dates_dict, tsave=i)
+    else:
+        yield_folder = os.path.join(root_path, 'yield_geotiffs')
+        if not os.path.exists(yield_folder):
+            print("yield_geotiffs subfolder not found!")
+            return
+        ref_files = sorted(glob.glob(os.path.join(yield_folder, '*.tif')) + glob.glob(os.path.join(yield_folder, '*.tiff')))
+        ref_dims = {}
+        for ref_file in ref_files:
+            with rasterio.open(ref_file) as ds:
+                ref_dims[os.path.splitext(os.path.basename(ref_file))[0] + '.npy'] = (ds.height, ds.width)
+        for subfolder in sorted(os.listdir(root_path)):
+            subfolder_path = os.path.join(root_path, subfolder)
+            dest_subfolder_path = os.path.join(dest_root_path, subfolder)
+            if os.path.isdir(subfolder_path):
+                if subfolder == 'yield_geotiffs':
+                    print(f"Processing reference folder: {subfolder}")
+                    process_subfolder(subfolder_path, dest_subfolder_path, is_reference=True, used_dates_dict=used_dates_dict, tsave=tsave)
+                else:
+                    print(f"Processing folder: {subfolder}")
+                    process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=ref_dims, used_dates_dict=used_dates_dict, tsave=tsave)
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--ts', type=int, default=12, help='Number of timepoints to save (default: 12)')
+    parser.add_argument('--all', type=bool, default=True, help='Process all timepoints (default: True)')
     args = parser.parse_args()
 
     log_path = './unprocessed_data/used_dates_log.txt'
     used_dates_dict = parse_used_dates_log(log_path)
     dst_folder = f'processed_data_biweekly_{args.ts}'
     os.makedirs(dst_folder, exist_ok=True)
-    process_root_folder('./unprocessed_data', dst_folder, used_dates_dict=used_dates_dict, tsave=args.ts)
+    process_root_folder('./unprocessed_data', dst_folder, used_dates_dict=used_dates_dict, tsave=args.ts, all=args.all)
