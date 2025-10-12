@@ -352,6 +352,8 @@ def parse_used_dates_log(log_path):
 def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=12, all=True):
     if all:
         for i in range(1, 13):
+            dest_root_path = f'processed_data_biweekly_{i}'
+            os.makedirs(dest_root_path, exist_ok=True)
             yield_folder = os.path.join(root_path, 'yield_geotiffs')
             if not os.path.exists(yield_folder):
                 print("yield_geotiffs subfolder not found!")
