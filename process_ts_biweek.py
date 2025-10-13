@@ -216,7 +216,7 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
             # Only aggregate if not static modality
             if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices[:tsave+1])
+                data = aggregate_biweekly(data, biweekly_indices)
                 T = data.shape[0]
         if not is_reference and ref_dims:
             ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))
@@ -275,7 +275,7 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
             # Only aggregate if not static modality
             if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices[:tsave+1])
+                data = aggregate_biweekly(data, biweekly_indices)
                 T = data.shape[0]
         if not is_reference and ref_dims:
             ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))
@@ -310,7 +310,7 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
             # Only aggregate if not static modality
             if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices[:tsave+1])
+                data = aggregate_biweekly(data, biweekly_indices)
                 T = data.shape[0]
         if not is_reference and ref_dims:
             ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))

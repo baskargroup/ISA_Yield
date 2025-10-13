@@ -14,10 +14,17 @@ import pdb
 # Define the paths
 ext = "IA"
 years = [2019, 2020, 2021, 2022, 2023, 2024]
-modalities = ['S2L2A', 'S1GRD', 'MODIS', 'DEM', 'CDL', 'WEATHER', 'SOIL']
+modalities = ['S2L2A', 
+              'S1GRD',
+            #   'MODIS',
+              'DEM',
+              'CDL',
+              'WEATHER',
+              'SOIL',
+              ]
 sentinel1_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S1/final_s1_{ext}/'
 sentinel2_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S2/final_s2_v3_{ext}/'
-modis_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/MODIS/modis_{ext}/'
+# modis_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/MODIS/modis_{ext}/'
 crop_dir = '/work/mech-ai-scratch/aapowadi/multimodal_fusion/remapped_cdl'
 soil_dir = f'/work/mech-ai-scratch/aapowadi/soil_new/soil_processed_{ext}'
 weather_dir = f'/work/mech-ai-scratch/aapowadi/WEEKLY_WEATHER_{ext}'
@@ -28,7 +35,7 @@ yield_path = '/work/mech-ai-scratch/aapowadi/ISA_Yield/unprocessed_data/yield_ge
 # Define bands for each modality
 s1_bands = ['vv', 'vh']
 s2_bands = ['B01', 'B02', 'B03', 'B04', 'B05', 'B06', 'B07', 'B08', 'B8A', 'B09', 'B11', 'B12']
-modis_bands = ['Band1', 'Band2', 'Band3', 'Band4', 'Band5', 'Band6', 'Band7']
+# modis_bands = ['Band1', 'Band2', 'Band3', 'Band4', 'Band5', 'Band6', 'Band7']
 weather_bands = ['dayl', 'prcp', 'srad', 'swe', 'tmax', 'tmin', 'vp']
 soil_bands = ['aws100', 'aws150', 'aws999', 'nccpi3all', 'nccpi3corn', 'rootznaws', 'soc150', 'soc999', 'pctearthmc', 'nccpi3soy']
 dem_band = ['band_data']
@@ -228,11 +235,15 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
         print(f"Error processing {input_dir}: {e}")
 
 # Define dynamic and static modalities
-dynamic_mods = ['S1GRD', 'S2L2A', 'MODIS', 'WEATHER']
+dynamic_mods = ['S1GRD', 
+                'S2L2A',
+                # 'MODIS',
+                'WEATHER',
+                ]
 mod_to_dir = {
     'S1GRD': sentinel1_dir,
     'S2L2A': sentinel2_dir,
-    'MODIS': modis_dir,
+    # 'MODIS': modis_dir,
     'WEATHER': weather_dir,
     'SOIL': soil_dir,
     'CDL': crop_dir,
@@ -241,7 +252,7 @@ mod_to_dir = {
 mod_to_bands = {
     'S1GRD': s1_bands,
     'S2L2A': s2_bands,
-    'MODIS': modis_bands,
+    # 'MODIS': modis_bands,
     'WEATHER': weather_bands,
     'SOIL': soil_bands,
     'CDL': ['CDL'],
