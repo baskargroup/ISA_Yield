@@ -10,8 +10,8 @@ trainer:
     - class_path: WandbLogger
       init_args:
         project: regr_mean
-        name: S12cdw_3         # <-- updated for biweek 3
-        id: S12cdw_3           # <-- updated for biweek 3
+        name: S12wd_8         # <-- updated for biweek 8
+        id: S12wd_8           # <-- updated for biweek 8
   callbacks:
     - class_path: EarlyStopping
       init_args:
@@ -27,7 +27,7 @@ trainer:
   max_epochs: 1000
   log_every_n_steps: 15
   accumulate_grad_batches: 4
-  default_root_dir: output/S12cdw_3   # <-- updated for biweek 3
+  default_root_dir: output/S12wd_8   # <-- updated for biweek 8
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
@@ -38,7 +38,6 @@ data:
     modalities:
       - S2L2A
       - S1GRD
-      - CDL
       - DEM
       # - MODIS
       - WEATHER
@@ -50,36 +49,33 @@ data:
       - 2
       - 1
     train_data_root:
-      S2L2A: processed_data_biweekly_3/S2L2A     # <-- updated for biweek 3
-      S1GRD: processed_data_biweekly_3/S1GRD     # <-- updated for biweek 3
-      DEM: processed_data_biweekly_3/DEM         # <-- updated for biweek 3
-      CDL: processed_data_biweekly_3/CDL         # <-- updated for biweek 3
-      WEATHER: processed_data_biweekly_3/WEATHER # <-- updated for biweek 3
-      # MODIS: processed_data_biweekly_3/MODIS
-      # SOIL: processed_data_biweekly_3/SOIL
-    train_label_data_root: processed_data_biweekly_3/yield_geotiffs   # <-- updated for biweek 3
+      S2L2A: processed_data_biweekly_8/S2L2A     # <-- updated for biweek 8
+      S1GRD: processed_data_biweekly_8/S1GRD     # <-- updated for biweek 8
+      DEM: processed_data_biweekly_8/DEM         # <-- updated for biweek 8
+      WEATHER: processed_data_biweekly_8/WEATHER # <-- updated for biweek 8
+      # MODIS: processed_data_biweekly_8/MODIS
+      # SOIL: processed_data_biweekly_8/SOIL
+    train_label_data_root: processed_data_biweekly_8/yield_geotiffs   # <-- updated for biweek 8
     val_data_root:
-      S2L2A: processed_data_biweekly_3/S2L2A     # <-- updated for biweek 3
-      S1GRD: processed_data_biweekly_3/S1GRD     # <-- updated for biweek 3
-      DEM: processed_data_biweekly_3/DEM         # <-- updated for biweek 3
-      CDL: processed_data_biweekly_3/CDL         # <-- updated for biweek 3
-      WEATHER: processed_data_biweekly_3/WEATHER # <-- updated for biweek 3
-      # MODIS: processed_data_biweekly_3/MODIS
-      # SOIL: processed_data_biweekly_3/SOIL
-    val_label_data_root: processed_data_biweekly_3/yield_geotiffs     # <-- updated for biweek 3
+      S2L2A: processed_data_biweekly_8/S2L2A     # <-- updated for biweek 8
+      S1GRD: processed_data_biweekly_8/S1GRD     # <-- updated for biweek 8
+      DEM: processed_data_biweekly_8/DEM         # <-- updated for biweek 8
+      WEATHER: processed_data_biweekly_8/WEATHER # <-- updated for biweek 8
+      # MODIS: processed_data_biweekly_8/MODIS
+      # SOIL: processed_data_biweekly_8/SOIL
+    val_label_data_root: processed_data_biweekly_8/yield_geotiffs     # <-- updated for biweek 8
     test_data_root:
-      S2L2A: processed_data_biweekly_3/S2L2A     # <-- updated for biweek 3
-      S1GRD: processed_data_biweekly_3/S1GRD     # <-- updated for biweek 3
-      DEM: processed_data_biweekly_3/DEM         # <-- updated for biweek 3
-      CDL: processed_data_biweekly_3/CDL         # <-- updated for biweek 3
-      WEATHER: processed_data_biweekly_3/WEATHER # <-- updated for biweek 3
-      # MODIS: processed_data_biweekly_3/MODIS
-      # SOIL: processed_data_biweekly_3/SOIL
-    test_label_data_root: processed_data_biweekly_3/yield_geotiffs    # <-- updated for biweek 3
+      S2L2A: processed_data_biweekly_8/S2L2A     # <-- updated for biweek 8
+      S1GRD: processed_data_biweekly_8/S1GRD     # <-- updated for biweek 8
+      DEM: processed_data_biweekly_8/DEM         # <-- updated for biweek 8
+      WEATHER: processed_data_biweekly_8/WEATHER # <-- updated for biweek 8
+      # MODIS: processed_data_biweekly_8/MODIS
+      # SOIL: processed_data_biweekly_8/SOIL
+    test_label_data_root: processed_data_biweekly_8/yield_geotiffs    # <-- updated for biweek 8
 
-    train_split: processed_data_biweekly_3/train.txt   # <-- updated for biweek 3
-    val_split: processed_data_biweekly_3/val.txt       # <-- updated for biweek 3
-    test_split: processed_data_biweekly_3/test.txt     # <-- updated for biweek 3
+    train_split: processed_data_biweekly_8/train.txt   # <-- updated for biweek 8
+    val_split: processed_data_biweekly_8/val.txt       # <-- updated for biweek 8
+    test_split: processed_data_biweekly_8/test.txt     # <-- updated for biweek 8
     # dataset_bands:
     #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
     #   S1GRD: [1,2]
@@ -138,7 +134,6 @@ model:
       backbone_modalities:
         - S2L2A
         - S1GRD
-        - {"CDL": 1}  # Add new modality and define number of channels
         - DEM
         # - {"MODIS": 7}  # Add new modality and define number of channels
         # - {"SOIL": 10}  # Add new modality and define number of channels

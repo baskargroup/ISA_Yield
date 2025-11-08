@@ -297,7 +297,7 @@ with open(log_file, "w") as logf:
         if not common_dates:
             print(f"No common dates across all modalities for {base_name}, skipping.")
             continue
-        num_times = len(common_dates)
+        num_times = 12 # Number of bi-weeks in 6 months
         selected_dates = {mod: common_dates for mod in dynamic_mods}
         # --- LOG THE DATES USED ---
         logf.write(f"{base_name}: {','.join(common_dates)}\n")

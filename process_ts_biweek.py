@@ -195,8 +195,6 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
             data = np.load(file)
             T, C, H, W = data.shape
             T = data.shape[0]
-            if T < tsave:
-                continue
         if is_rectangular(H, W, threshold=1.2):
             rectangular_files.append(file)
         elif is_almost_square(H, W, lower_threshold=1.0, upper_threshold=1.2):
@@ -216,7 +214,7 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
             # Only aggregate if not static modality
             if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices)
+                data = aggregate_biweekly(data, biweekly_indices[:tsave+1])
                 T = data.shape[0]
         if not is_reference and ref_dims:
             ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))
@@ -275,7 +273,7 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
             # Only aggregate if not static modality
             if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices)
+                data = aggregate_biweekly(data, biweekly_indices[:tsave+1])
                 T = data.shape[0]
         if not is_reference and ref_dims:
             ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))
@@ -310,7 +308,7 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
             # Only aggregate if not static modality
             if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices)
+                data = aggregate_biweekly(data, biweekly_indices[:tsave+1])
                 T = data.shape[0]
         if not is_reference and ref_dims:
             ref_h, ref_w = ref_dims.get(os.path.basename(file).replace('.tif.npy', '.npy'), (H, W))

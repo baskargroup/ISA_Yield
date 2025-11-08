@@ -10,8 +10,8 @@ trainer:
     - class_path: WandbLogger
       init_args:
         project: regr_mean
-        name: S12cdw_5         # <-- updated for biweek 5
-        id: S12cdw_5           # <-- updated for biweek 5
+        name: S12wd_5         # <-- updated for biweek 5
+        id: S12wd_5           # <-- updated for biweek 5
   callbacks:
     - class_path: EarlyStopping
       init_args:
@@ -27,7 +27,7 @@ trainer:
   max_epochs: 1000
   log_every_n_steps: 15
   accumulate_grad_batches: 4
-  default_root_dir: output/S12cdw_5   # <-- updated for biweek 5
+  default_root_dir: output/S12wd_5   # <-- updated for biweek 5
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
@@ -38,7 +38,6 @@ data:
     modalities:
       - S2L2A
       - S1GRD
-      - CDL
       - DEM
       # - MODIS
       - WEATHER
@@ -53,7 +52,6 @@ data:
       S2L2A: processed_data_biweekly_5/S2L2A     # <-- updated for biweek 5
       S1GRD: processed_data_biweekly_5/S1GRD     # <-- updated for biweek 5
       DEM: processed_data_biweekly_5/DEM         # <-- updated for biweek 5
-      CDL: processed_data_biweekly_5/CDL         # <-- updated for biweek 5
       WEATHER: processed_data_biweekly_5/WEATHER # <-- updated for biweek 5
       # MODIS: processed_data_biweekly_5/MODIS
       # SOIL: processed_data_biweekly_5/SOIL
@@ -62,7 +60,6 @@ data:
       S2L2A: processed_data_biweekly_5/S2L2A     # <-- updated for biweek 5
       S1GRD: processed_data_biweekly_5/S1GRD     # <-- updated for biweek 5
       DEM: processed_data_biweekly_5/DEM         # <-- updated for biweek 5
-      CDL: processed_data_biweekly_5/CDL         # <-- updated for biweek 5
       WEATHER: processed_data_biweekly_5/WEATHER # <-- updated for biweek 5
       # MODIS: processed_data_biweekly_5/MODIS
       # SOIL: processed_data_biweekly_5/SOIL
@@ -71,7 +68,6 @@ data:
       S2L2A: processed_data_biweekly_5/S2L2A     # <-- updated for biweek 5
       S1GRD: processed_data_biweekly_5/S1GRD     # <-- updated for biweek 5
       DEM: processed_data_biweekly_5/DEM         # <-- updated for biweek 5
-      CDL: processed_data_biweekly_5/CDL         # <-- updated for biweek 5
       WEATHER: processed_data_biweekly_5/WEATHER # <-- updated for biweek 5
       # MODIS: processed_data_biweekly_5/MODIS
       # SOIL: processed_data_biweekly_5/SOIL
@@ -138,7 +134,6 @@ model:
       backbone_modalities:
         - S2L2A
         - S1GRD
-        - {"CDL": 1}  # Add new modality and define number of channels
         - DEM
         # - {"MODIS": 7}  # Add new modality and define number of channels
         # - {"SOIL": 10}  # Add new modality and define number of channels
