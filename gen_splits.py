@@ -46,20 +46,21 @@ def split_and_save(common_files, output_dir):
     
     # Separate Corn and Soybean files
     corn_files = [s for s in stems if 'corn' in s.lower()]
+    train_corn_size = int(0.7 * len(corn_files))
     soybean_files = [s for s in stems if 'soybean' in s.lower()]
+    train_soybean_size = int(0.7 * len(soybean_files))
     # Calculate split sizes
     total = len(stems)
     train_size = int(0.7 * total)
     val_size = int(0.3 * total)
-    # Split Corn files: 180 for val, 180 for test, rest for train
-    corn_val = corn_files[:180]
-    soybean_val = soybean_files[:180]
     # Split the lists
     train = stems[:train_size]
     val = stems[train_size:train_size + val_size]
     test = stems[train_size:train_size + val_size]
-    train_corn = [f for f in stems if f not in corn_val]
-    train_soybean = [f for f in stems if f not in soybean_val]
+    train_corn = corn_files[:train_corn_size]
+    val_corn = corn_files[train_corn_size:]
+    train_soybean = soybean_files[:train_soybean_size]
+    val_soybean = soybean_files[train_soybean_size:]
     train_2019 = [f for f in stems if f not in files_2019]
     train_2020 = [f for f in stems if f not in files_2020]
     train_2021 = [f for f in stems if f not in files_2021]
@@ -72,26 +73,28 @@ def split_and_save(common_files, output_dir):
             file.write('\n'.join(lst) + '\n')
     
     # Save the files
-    save_list(train, 'train.txt')
-    save_list(val, 'val.txt')
-    save_list(test, 'test.txt')
+    # save_list(train, 'train.txt')
+    # save_list(val, 'val.txt')
+    # save_list(test, 'test.txt')
     save_list(train_corn, 'train_corn.txt')
     save_list(train_soybean, 'train_soybean.txt')
-    save_list(corn_val, 'val_corn.txt')
-    save_list(soybean_val, 'val_soybean.txt')
-    save_list(corn_val, 'test_corn.txt')
-    save_list(soybean_val, 'test_soybean.txt')
-    save_list(train_2019, 'train_2019.txt')
-    save_list(train_2020, 'train_2020.txt')
-    save_list(train_2021, 'train_2021.txt')
-    save_list(train_2022, 'train_2022.txt')
-    save_list(train_2023, 'train_2023.txt')
-    save_list(files_2019, 'val_2019.txt')
-    save_list(files_2020, 'val_2020.txt')
-    save_list(files_2021, 'val_2021.txt')
-    save_list(files_2022, 'val_2022.txt')
-    save_list(files_2023, 'val_2023.txt')
-    print(f"{output_dir}: Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(test)})")
+    save_list(val_corn, 'val_corn.txt')
+    save_list(val_soybean, 'val_soybean.txt')
+    save_list(val_corn, 'test_corn.txt')
+    save_list(val_soybean, 'test_soybean.txt')
+    print(f"{output_dir}: Files saved: train_corn.txt ({len(train_corn)}), val_corn.txt ({len(val_corn)}), test_corn.txt ({len(val_corn)})")
+    print(f"{output_dir}: Files saved: train_soybean.txt ({len(train_soybean)}), val_soybean.txt ({len(val_soybean)}), test_soybean.txt ({len(val_soybean)})")
+    # save_list(train_2019, 'train_2019.txt')
+    # save_list(train_2020, 'train_2020.txt')
+    # save_list(train_2021, 'train_2021.txt')
+    # save_list(train_2022, 'train_2022.txt')
+    # save_list(train_2023, 'train_2023.txt')
+    # save_list(files_2019, 'val_2019.txt')
+    # save_list(files_2020, 'val_2020.txt')
+    # save_list(files_2021, 'val_2021.txt')
+    # save_list(files_2022, 'val_2022.txt')
+    # save_list(files_2023, 'val_2023.txt')
+    # print(f"{output_dir}: Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(test)})")
 
 if __name__ == "__main__":
     random.seed(42)  # For reproducibility
