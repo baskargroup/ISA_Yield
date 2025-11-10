@@ -23,6 +23,8 @@ from terratorch.tasks.optimizer_factory import optimizer_factory
 from terratorch.tasks.tiled_inference import TiledInferenceParameters, tiled_inference
 from terratorch.tasks.base_task import TerraTorchTask
 import pdb
+import pandas as pd
+import os
 BATCH_IDX_FOR_VALIDATION_PLOTTING = 10
 
 logger = logging.getLogger("terratorch")
@@ -296,7 +298,10 @@ class PixelwiseRegressionTask(TerraTorchTask):
             dataloader_idx: Index of the current dataloader.
         """
         x = batch["image"]
-        y = batch["mask"]/550
+        x = aggregate_modalities_mode_8x8(x, block=4)
+        y = batch["mask"].clip(0, 550)
+        y = aggregate_modalities_mode_8x8(y, block=4)
+        y = y/550
         other_keys = batch.keys() - {"image", "mask", "filename"}
         rest = {k: batch[k] for k in other_keys}
         model_output: ModelOutput = self(x, **rest)
@@ -316,7 +321,10 @@ class PixelwiseRegressionTask(TerraTorchTask):
             dataloader_idx: Index of the current dataloader.
         """
         x = batch["image"]
-        y = batch["mask"]/550
+        x = aggregate_modalities_mode_8x8(x, block=4)
+        y = batch["mask"].clip(0, 550)
+        y = aggregate_modalities_mode_8x8(y, block=4)
+        y = y/550
         other_keys = batch.keys() - {"image", "mask", "filename"}
         rest = {k: batch[k] for k in other_keys}
         model_output: ModelOutput = self(x, **rest)
@@ -358,7 +366,23 @@ class PixelwiseRegressionTask(TerraTorchTask):
             dataloader_idx: Index of the current dataloader.
         """
         x = batch["image"]
-        y = batch["mask"]/550
+        x = aggregate_modalities_mode_8x8(x, block=4)
+        y = batch["mask"].clip(0, 550)
+        y = aggregate_modalities_mode_8x8(y, block=4)
+        y = y/550
+        # y_flat = y.flatten().cpu().numpy()
+        # filenames = batch["filename"]
+        # # Repeat filenames to match the number of pixels per image
+        # if isinstance(filenames, (list, tuple)):
+        #     repeated_filenames = []
+        #     pixels_per_image = y.shape[1] * y.shape[2] if y.ndim == 3 else y.shape[-1]
+        #     for fname in filenames:
+        #         repeated_filenames.extend([fname] * pixels_per_image)
+        # else:
+        #     repeated_filenames = [filenames] * y_flat.shape[0]
+        # df = pd.DataFrame({'Yield': y_flat, 'Filename': repeated_filenames})
+        # os.makedirs('early_fusion_feats', exist_ok=True)
+        # df.to_csv(f'early_fusion_feats/allgts.csv', index=False)
         other_keys = batch.keys() - {"image", "mask", "filename"}
         rest = {k: batch[k] for k in other_keys}
 
@@ -402,3 +426,57 @@ class PixelwiseRegressionTask(TerraTorchTask):
         else:
             y_hat: Tensor = self(x, **rest).output
         return y_hat, file_names
+
+def _block_mode_aggregate_hw(x: Tensor, block: int = 8) -> Tensor:
+    """Aggregate each non-overlapping block of size block x block over the last two dims (H, W) using mode.
+    Supports inputs with shape:
+      - [..., H, W] (e.g., B,C,T,H,W or B,H,W or C,H,W)
+    The operation is applied independently for every slice in the leading dims.
+    Preserves original shape via crop after padding.
+    """
+    if x.ndim < 2:
+        return x  # nothing to aggregate
+
+    H, W = x.shape[-2], x.shape[-1]
+    pad_h = (block - (H % block)) % block
+    pad_w = (block - (W % block)) % block
+
+    # Pad H,W with replication to make them multiples of block
+    if pad_h or pad_w:
+        x = F.pad(x, (0, pad_w, 0, pad_h), mode="replicate")
+    Hp, Wp = x.shape[-2], x.shape[-1]
+
+    # Flatten all leading dims into N, keep a dummy channel dim for vectorized ops
+    N = x.numel() // (Hp * Wp)
+    x_flat = x.reshape(N, 1, Hp, Wp)
+
+    Hb, Wb = Hp // block, Wp // block
+    # [N,1,Hb,block,Wb,block]
+    x_blocks = x_flat.view(N, 1, Hb, block, Wb, block).permute(0, 1, 2, 4, 3, 5).contiguous()
+    # Now shape is [N, 1, Hb, Wb, block, block]
+    # Compute mode across each block (flatten the block dimensions)
+    vals, _ = torch.mode(x_blocks.flatten(-2), dim=-1)  # [N, 1, Hb, Wb]
+
+    # Expand mode to fill each block
+    vals_expanded = vals.unsqueeze(-1).unsqueeze(-1).expand(N, 1, Hb, Wb, block, block)
+    # Permute back and reshape
+    x_out = vals_expanded.permute(0, 1, 2, 4, 3, 5).contiguous().reshape(N, 1, Hp, Wp)
+    x_out = x_out.reshape(*x.shape[:-2], Hp, Wp)
+
+    # Remove padding
+    if pad_h or pad_w:
+        x_out = x_out[..., :H, :W]
+    return x_out
+
+def aggregate_modalities_mode_8x8(image: Any, block: int = 8) -> Any:
+    """Apply 8x8 mode aggregation over H,W to all modalities.
+    Works for tensors shaped as B,C,T,H,W or B,H,W (or any [...,H,W]) and for dicts of tensors.
+    """
+    if isinstance(image, dict):
+        return {
+            k: _block_mode_aggregate_hw(v, block) if torch.is_tensor(v) and v.ndim >= 2 else v
+            for k, v in image.items()
+        }
+    if torch.is_tensor(image) and image.ndim >= 2:
+        return _block_mode_aggregate_hw(image, block)
+    return image
