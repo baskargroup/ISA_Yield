@@ -6,7 +6,7 @@ import pdb
 import sys
 import re
 from collections import defaultdict
-
+import argparse
 def get_aspect_ratio(H, W):
     return max(H, W) / min(H, W)
 
@@ -257,6 +257,11 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
+            data = data.clip(0, 550)
+            if 'corn' in file.lower():
+                data = data / 550.0
+            elif 'soybean' in file.lower():
+                data = data / 150.0
         else:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
         # Ensure float32 before saving
@@ -292,6 +297,11 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
+            data = data.clip(0, 550)
+            if 'corn' in file.lower():
+                data = data / 550.0
+            elif 'soybean' in file.lower():
+                data = data / 150.0
         else:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
         # Ensure float32 before saving
@@ -327,6 +337,11 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
+            data = data.clip(0, 550)
+            if 'corn' in file.lower():
+                data = data / 550.0
+            elif 'soybean' in file.lower():
+                data = data / 150.0
         else:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
         # Ensure float32 before saving
@@ -348,9 +363,9 @@ def parse_used_dates_log(log_path):
     return used_dates_dict
 
 def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=12, all=True):
-    if all:
+    if all == True:
         for i in range(1, 13):
-            dest_root_path = f'processed_data_biweekly_{i}'
+            dest_root_path = f'processed_test_data_biweekly_{i}'
             os.makedirs(dest_root_path, exist_ok=True)
             yield_folder = os.path.join(root_path, 'yield_geotiffs')
             if not os.path.exists(yield_folder):
@@ -388,15 +403,14 @@ def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=1
                 if subfolder == 'yield_geotiffs':
                     print(f"Processing reference folder: {subfolder}")
                     process_subfolder(subfolder_path, dest_subfolder_path, is_reference=True, used_dates_dict=used_dates_dict, tsave=tsave)
-                else:
-                    print(f"Processing folder: {subfolder}")
-                    process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=ref_dims, used_dates_dict=used_dates_dict, tsave=tsave)
+                # else:
+                #     print(f"Processing folder: {subfolder}")
+                #     process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=ref_dims, used_dates_dict=used_dates_dict, tsave=tsave)
 
 if __name__ == "__main__":
-    import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--ts', type=int, default=12, help='Number of timepoints to save (default: 12)')
-    parser.add_argument('--all', type=bool, default=True, help='Process all timepoints (default: True)')
+    parser.add_argument('--all', type=bool, default=False, help='Process all timepoints (default: False)')
     args = parser.parse_args()
 
     log_path = './unprocessed_data/used_dates_log.txt'
