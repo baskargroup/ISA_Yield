@@ -6,12 +6,12 @@ trainer:
   devices: auto
   num_nodes: 1
   precision: 16-mixed
-  logger: 
+  logger:
     - class_path: WandbLogger
       init_args:
-        project: regr_crop
-        name: S12wd_12_corn         # <-- updated for biweek 12
-        id: S12wd_12_corn           # <-- updated for biweek 12
+        project: regr_mean
+        name: S12wc_12_2021         # <-- updated for biweek 12
+        id: S12wc_12_2021           # <-- updated for biweek 12
   callbacks:
     - class_path: EarlyStopping
       init_args:
@@ -27,7 +27,7 @@ trainer:
   max_epochs: 1000
   log_every_n_steps: 15
   accumulate_grad_batches: 4
-  default_root_dir: output/S12wd_12_Corn   # <-- updated for biweek 12
+  default_root_dir: output/S12wc_12_2021   # <-- updated for biweek 12
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
@@ -38,7 +38,8 @@ data:
     modalities:
       - S2L2A
       - S1GRD
-      - DEM
+      - CDL
+      # - DEM
       # - MODIS
       - WEATHER
       # - SOIL
@@ -51,31 +52,35 @@ data:
     train_data_root:
       S2L2A: processed_data_biweekly_12/S2L2A     # <-- updated for biweek 12
       S1GRD: processed_data_biweekly_12/S1GRD     # <-- updated for biweek 12
-      DEM: processed_data_biweekly_12/DEM         # <-- updated for biweek 12
+      # DEM: processed_data_biweekly_12/DEM         # <-- updated for biweek 12
       WEATHER: processed_data_biweekly_12/WEATHER # <-- updated for biweek 12
+      CDL: processed_data_biweekly_12/CDL
       # MODIS: processed_data_biweekly_12/MODIS
       # SOIL: processed_data_biweekly_12/SOIL
+      
     train_label_data_root: processed_data_biweekly_12/yield_geotiffs   # <-- updated for biweek 12
     val_data_root:
       S2L2A: processed_data_biweekly_12/S2L2A     # <-- updated for biweek 12
       S1GRD: processed_data_biweekly_12/S1GRD     # <-- updated for biweek 12
-      DEM: processed_data_biweekly_12/DEM         # <-- updated for biweek 12
+      # DEM: processed_data_biweekly_12/DEM         # <-- updated for biweek 12
       WEATHER: processed_data_biweekly_12/WEATHER # <-- updated for biweek 12
+      CDL: processed_data_biweekly_12/CDL         # <-- updated for biweek 12
       # MODIS: processed_data_biweekly_12/MODIS
       # SOIL: processed_data_biweekly_12/SOIL
     val_label_data_root: processed_data_biweekly_12/yield_geotiffs     # <-- updated for biweek 12
     test_data_root:
       S2L2A: processed_data_biweekly_12/S2L2A     # <-- updated for biweek 12
       S1GRD: processed_data_biweekly_12/S1GRD     # <-- updated for biweek 12
-      DEM: processed_data_biweekly_12/DEM         # <-- updated for biweek 12
+      # DEM: processed_data_biweekly_12/DEM         # <-- updated for biweek 12
       WEATHER: processed_data_biweekly_12/WEATHER # <-- updated for biweek 12
+      CDL: processed_data_biweekly_12/CDL         # <-- updated for biweek 12
       # MODIS: processed_data_biweekly_12/MODIS
       # SOIL: processed_data_biweekly_12/SOIL
     test_label_data_root: processed_data_biweekly_12/yield_geotiffs    # <-- updated for biweek 12
 
-    train_split: processed_data_biweekly_12/train_corn.txt   # <-- updated for biweek 12
-    val_split: processed_data_biweekly_12/val_corn.txt       # <-- updated for biweek 12
-    test_split: processed_data_biweekly_12/test_corn.txt     # <-- updated for biweek 12
+    train_split: processed_data_biweekly_12/train_2021.txt   # <-- updated for biweek 12
+    val_split: processed_data_biweekly_12/val_2021.txt       # <-- updated for biweek 12
+    test_split: processed_data_biweekly_12/test_2021_corn.txt     # <-- updated for biweek 12
     # dataset_bands:
     #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
     #   S1GRD: [1,2]
@@ -134,10 +139,11 @@ model:
       backbone_modalities:
         - S2L2A
         - S1GRD
-        - DEM
+        # - DEM
         # - {"MODIS": 7}  # Add new modality and define number of channels
         # - {"SOIL": 10}  # Add new modality and define number of channels
         - {"WEATHER": 7}  # Add new modality and define number of channels
+        - {"CDL": 1}  # Add new modality and define number of channels
       backbone_merge_method: mean
 
       necks:

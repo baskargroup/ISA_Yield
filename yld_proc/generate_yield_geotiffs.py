@@ -4,6 +4,7 @@ from math import pi, cos, ceil
 import rasterio
 from rasterio.transform import from_bounds
 from scipy.interpolate import griddata
+from scipy.spatial import cKDTree
 import geopandas as gpd
 import os
 import glob
@@ -34,8 +35,27 @@ def create_geotiff_from_group(df):
         )
         points = group[['x', 'y']].values
         values = group['Yield'].values
+        
+        # Perform linear interpolation
         interpolated = griddata(points, values, (lon_grid, lat_grid), method='linear')
-        data = np.nan_to_num(interpolated, nan=0.0)
+        
+        # Create a mask based on distance from actual data points
+        # Only keep interpolated values within a reasonable distance from real data
+        grid_points = np.column_stack([lon_grid.ravel(), lat_grid.ravel()])
+        tree = cKDTree(points)
+        
+        # Calculate distances to nearest data point
+        # Convert maximum distance threshold to degrees (approximately 3 pixels worth)
+        max_distance_deg = 3 * max(res_lon, res_lat)
+        distances, _ = tree.query(grid_points)
+        distances = distances.reshape(lon_grid.shape)
+        
+        # Apply mask: only keep interpolated values close to actual data points
+        # This prevents interpolation in areas with no data
+        data = np.where(distances <= max_distance_deg, interpolated, np.nan)
+        
+        # Replace remaining NaN with 0 (for areas with valid interpolation that failed)
+        data = np.nan_to_num(data, nan=0.0)
         os.makedirs('unprocessed_data/yield_geotiffs', exist_ok=True)
         if len(group.Crop.unique()) == 1:
             output_file = f"unprocessed_data/yield_geotiffs/{layer_id}_{group['Crop'].iloc[0]}.tif"

@@ -238,6 +238,7 @@ def process_single_file(file, dest_subfolder_path, modality_name, is_reference, 
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
+            data[data < 30] = 0.0  # Set values below 30 to 0
             data = data.clip(0, norm_max_corn if 'corn' in file.lower() else norm_max_soybean)
             data = data / (norm_max_corn if 'corn' in file.lower() else norm_max_soybean)
         else:

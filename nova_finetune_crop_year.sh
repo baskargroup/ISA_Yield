@@ -24,8 +24,14 @@
 
 echo "Job is starting on `hostname` for s12wd"
 export WANDB_HTTP_TIMEOUT=120
+# terratorch fit -c conf_crop/s12wd_12_Corn.yaml
+# terratorch fit -c conf_crop/s12wd_12_Soybean.yaml
 
-terratorch fit -c conf_crop/s12wd_12_Corn.yaml
-terratorch fit -c conf_crop/s12wd_12_Soybean.yaml
+terratorch fit -c conf_year/s12wc_12_2021_corn.yaml
+terratorch fit -c conf_year/s12wc_12_2021_soybean.yaml
+terratorch fit -c conf_year/s12wd_12_2021_corn.yaml
+terratorch fit -c conf_year/s12wd_12_2021_soybean.yaml
+terratorch fit -c conf_year/s12cdw_12_2021_corn.yaml
+terratorch fit -c conf_year/s12cdw_12_2021_soybean.yaml
 
 echo "Job finished for s12wd"
