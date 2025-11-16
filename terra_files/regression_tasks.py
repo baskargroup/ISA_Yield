@@ -28,7 +28,7 @@ import os
 BATCH_IDX_FOR_VALIDATION_PLOTTING = 10
 
 logger = logging.getLogger("terratorch")
-
+block = 56
 
 class RootLossWrapper(nn.Module):
     def __init__(self, loss_function: nn.Module, reduction: None | str = "mean") -> None:
@@ -299,14 +299,15 @@ class PixelwiseRegressionTask(TerraTorchTask):
         """
         x = batch["image"]
         y = batch["mask"]
+        # x = aggregate_modalities_mode_8x8(x, block=block)
+        # y = aggregate_modalities_mode_8x8(y, block=block)
         other_keys = batch.keys() - {"image", "mask", "filename"}
         rest = {k: batch[k] for k in other_keys}
         model_output: ModelOutput = self(x, **rest)
         loss = self.train_loss_handler.compute_loss(model_output, y, self.criterion, self.aux_loss)
         self.train_loss_handler.log_loss(self.log, loss_dict=loss, batch_size=y.shape[0])
         y_hat = model_output.output
-        y = aggregate_modalities_mode_8x8(y, block=32)
-        y_hat = aggregate_modalities_mode_8x8(y_hat, block=32)
+        # y_hat = aggregate_modalities_mode_8x8(y_hat, block=block)
         self.train_metrics.update(y_hat, y)
 
         return loss["loss"]
@@ -321,14 +322,15 @@ class PixelwiseRegressionTask(TerraTorchTask):
         """
         x = batch["image"]
         y = batch["mask"]
+        # x = aggregate_modalities_mode_8x8(x, block=block)
+        # y = aggregate_modalities_mode_8x8(y, block=block)
         other_keys = batch.keys() - {"image", "mask", "filename"}
         rest = {k: batch[k] for k in other_keys}
         model_output: ModelOutput = self(x, **rest)
         loss = self.val_loss_handler.compute_loss(model_output, y, self.criterion, self.aux_loss)
         self.val_loss_handler.log_loss(self.log, loss_dict=loss, batch_size=y.shape[0])
         y_hat = model_output.output
-        y = aggregate_modalities_mode_8x8(y, block=32)
-        y_hat = aggregate_modalities_mode_8x8(y_hat, block=32)
+        # y_hat = aggregate_modalities_mode_8x8(y_hat, block=block)
         self.val_metrics.update(y_hat, y)
 
         if self._do_plot_samples(batch_idx):
@@ -365,6 +367,8 @@ class PixelwiseRegressionTask(TerraTorchTask):
         """
         x = batch["image"]
         y = batch["mask"]
+        # x = aggregate_modalities_mode_8x8(x, block=block)
+        # y = aggregate_modalities_mode_8x8(y, block=block)
         # y_flat = y.flatten().cpu().numpy()
         # filenames = batch["filename"]
         # # Repeat filenames to match the number of pixels per image
@@ -393,8 +397,7 @@ class PixelwiseRegressionTask(TerraTorchTask):
             batch_size=y.shape[0],
         )
         y_hat = model_output.output
-        y = aggregate_modalities_mode_8x8(y, block=32)
-        y_hat = aggregate_modalities_mode_8x8(y_hat, block=32)
+        # y_hat = aggregate_modalities_mode_8x8(y_hat, block=block)
         self.test_metrics[dataloader_idx].update(y_hat, y)
 
         self.record_metrics(dataloader_idx, y_hat, y)
@@ -433,7 +436,7 @@ def _block_mode_aggregate_hw(x: Tensor, block: int = 8) -> Tensor:
     """
     if x.ndim < 2:
         return x  # nothing to aggregate
-
+    pdb.set_trace()
     H, W = x.shape[-2], x.shape[-1]
     pad_h = (block - (H % block)) % block
     pad_w = (block - (W % block)) % block
