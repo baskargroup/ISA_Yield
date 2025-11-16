@@ -13,7 +13,7 @@ import xarray as xr
 import pdb
 # Define the paths
 ext = "IA"
-years = [2019, 2020, 2021, 2022, 2023, 2024]
+years = [2019,2020,2021,2022,2023]
 modalities = ['S2L2A', 
               'S1GRD',
             #   'MODIS',
@@ -302,16 +302,16 @@ with open(log_file, "w") as logf:
         # --- LOG THE DATES USED ---
         logf.write(f"{base_name}: {','.join(common_dates)}\n")
         # Process dynamic modalities
-        for mod in dynamic_mods:
-            if mod not in selected_dates:
-                continue
-            output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
-            combine_and_clip_geotiff(mod_to_dir[mod], output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=True, selected_dates=selected_dates[mod])
-        # Process static modalities (SOIL, CDL, DEM)
-        for mod in ['SOIL', 'CDL', 'DEM']:
-            output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
-            input_path = mod_to_dir[mod] if mod != 'DEM' else dem_path
-            combine_and_clip_geotiff(input_path, output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=False, repeat_times=num_times)
+        # for mod in dynamic_mods:
+        #     if mod not in selected_dates:
+        #         continue
+        #     output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
+        #     combine_and_clip_geotiff(mod_to_dir[mod], output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=True, selected_dates=selected_dates[mod])
+        # # Process static modalities (SOIL, CDL, DEM)
+        # for mod in ['SOIL', 'CDL', 'DEM']:
+        #     output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
+        #     input_path = mod_to_dir[mod] if mod != 'DEM' else dem_path
+        #     combine_and_clip_geotiff(input_path, output_path, bbox_gdf, mod_to_bands[mod], year, mod, is_dated=False, repeat_times=num_times)
         gc.collect()
 
 print("Processing complete.")
