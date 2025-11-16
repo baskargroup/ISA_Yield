@@ -3,7 +3,7 @@
 from collections.abc import Sequence
 from functools import partial
 from typing import Any
-
+import numpy as np
 import logging
 import lightning
 import matplotlib.pyplot as plt
@@ -234,6 +234,11 @@ class PixelwiseRegressionTask(TerraTorchTask):
         self.monitor = f"{self.val_metrics.prefix}loss"
         self.plot_on_val = int(plot_on_val)
 
+        # Initialize lists to accumulate test results
+        self.test_predictions = []
+        self.test_ground_truths = []
+        self.test_filenames = []
+        self.mod_config = ''
     def configure_losses(self) -> None:
         """Initialize the loss criterion.
 
@@ -369,19 +374,6 @@ class PixelwiseRegressionTask(TerraTorchTask):
         y = batch["mask"]
         # x = aggregate_modalities_mode_8x8(x, block=block)
         # y = aggregate_modalities_mode_8x8(y, block=block)
-        # y_flat = y.flatten().cpu().numpy()
-        # filenames = batch["filename"]
-        # # Repeat filenames to match the number of pixels per image
-        # if isinstance(filenames, (list, tuple)):
-        #     repeated_filenames = []
-        #     pixels_per_image = y.shape[1] * y.shape[2] if y.ndim == 3 else y.shape[-1]
-        #     for fname in filenames:
-        #         repeated_filenames.extend([fname] * pixels_per_image)
-        # else:
-        #     repeated_filenames = [filenames] * y_flat.shape[0]
-        # df = pd.DataFrame({'Yield': y_flat, 'Filename': repeated_filenames})
-        # os.makedirs('early_fusion_feats', exist_ok=True)
-        # df.to_csv(f'early_fusion_feats/allgts.csv', index=False)
         other_keys = batch.keys() - {"image", "mask", "filename"}
         rest = {k: batch[k] for k in other_keys}
 
@@ -401,6 +393,52 @@ class PixelwiseRegressionTask(TerraTorchTask):
         self.test_metrics[dataloader_idx].update(y_hat, y)
 
         self.record_metrics(dataloader_idx, y_hat, y)
+        # Save all ground truths and predictions to a csv file
+        y_flat = y.flatten().cpu().numpy()
+        y_hat_flat = y_hat.flatten().cpu().float().numpy() 
+        filenames = batch["filename"]['mask']
+        # Repeat filenames to match the number of pixels per image
+        if isinstance(filenames, (list, tuple)):
+            repeated_filenames = []
+            pixels_per_image = y.shape[-2] * y.shape[-1]
+            for fname in filenames:
+                basename = os.path.splitext(os.path.basename(fname))[0]
+                repeated_filenames.extend([basename] * pixels_per_image)
+        else:
+            repeated_filenames = [filenames] * y_flat.shape[0]
+        # Store data from this batch
+        self.test_predictions.append(y_hat_flat)
+        self.test_ground_truths.append(y_flat)
+        self.test_filenames.extend(repeated_filenames)
+        df = pd.DataFrame({'YieldGT': y_flat, 'Prediction': y_hat_flat, 'Filename': repeated_filenames})
+        os.makedirs('predictions', exist_ok=True)
+        if self.mod_config == '':
+            names = batch["filename"].keys()
+            for name in names:
+                self.mod_config += name + "_" 
+    
+    def on_test_epoch_end(self) -> None:
+        """Called at the end of the test epoch to save accumulated results."""
+        super().on_test_epoch_end()
+        
+        # Concatenate all batches
+        all_predictions = np.concatenate(self.test_predictions)
+        all_ground_truths = np.concatenate(self.test_ground_truths)
+        
+        # Create DataFrame
+        df = pd.DataFrame({
+            'YieldGT': all_ground_truths,
+            'Prediction': all_predictions,
+            'Filename': self.test_filenames
+        })
+        
+        # Save to CSV
+        os.makedirs('predictions', exist_ok=True)
+        df.to_csv(f'predictions/{self.mod_config}.csv', index=False)        
+        # Clear accumulated data for next test run
+        self.test_predictions = []
+        self.test_ground_truths = []
+        self.test_filenames = []
 
     def predict_step(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> Tensor:
         """Compute the predicted class probabilities.
@@ -436,7 +474,6 @@ def _block_mode_aggregate_hw(x: Tensor, block: int = 8) -> Tensor:
     """
     if x.ndim < 2:
         return x  # nothing to aggregate
-    pdb.set_trace()
     H, W = x.shape[-2], x.shape[-1]
     pad_h = (block - (H % block)) % block
     pad_w = (block - (W % block)) % block

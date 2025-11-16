@@ -1,18 +1,15 @@
 import os
 import numpy as np
 from tqdm import tqdm
-from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error  # Added MAE
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error
 from xgboost import XGBRegressor
 from sklearn.cross_decomposition import PLSRegression
 import pandas as pd
-import pdb
 try:
     import cupy as cp
     use_cupy = True
 except ImportError:
     use_cupy = False
-
 # List all processed_data_biweekly_* folders
 all_biweek_folders = sorted([f for f in os.listdir('.') if f.startswith('processed_data_biweekly') and os.path.isdir(f)])
 modalities = ["S2L2A", 
@@ -31,7 +28,8 @@ def read_split(split_path):
         return [line.strip() + ".npy" for line in f if line.strip()]
 
 def build_X_y(file_names, modal_paths, label_path):
-    X_list, y_list, file_label_list = [], [], []
+    data_rows = []
+    
     for fname in tqdm(file_names, desc="Files"):
         feats = []
         skip = False
@@ -51,25 +49,41 @@ def build_X_y(file_names, modal_paths, label_path):
         if y.ndim == 3:
             y = y.squeeze(0)
         y = y.flatten()
+        
+        # Get basename without extension
+        basename = os.path.splitext(fname)[0]
+        # Filter finite values
         mask = np.isfinite(y)
-        X = X[mask]
-        y = y[mask]
-        file_labels = np.array([fname] * len(y))
-        X_list.append(X)
-        y_list.append(y)
-        file_label_list.append(file_labels)
-    if X_list:
-        X = np.concatenate(X_list, axis=0)
-        y = np.concatenate(y_list, axis=0)
-        file_labels = np.concatenate(file_label_list, axis=0)
-    else:
-        X = np.empty((0, 1))
-        y = np.empty((0,))
-        file_labels = np.empty((0,), dtype=object)
-    nonzero_mask = y != 0
-    X = X[nonzero_mask]
-    y = y[nonzero_mask]
-    file_labels = file_labels[nonzero_mask]
+        X_filtered = X[mask]
+        y_filtered = y[mask]
+        
+        # Create rows for dataframe
+        for i in range(len(y_filtered)):
+            row = {f'feature_{j}': X_filtered[i, j] for j in range(X_filtered.shape[1])}
+            row['yield'] = y_filtered[i]
+            row['file'] = basename
+            data_rows.append(row)
+    
+    # Create dataframe
+    df = pd.DataFrame(data_rows)
+    
+    if len(df) == 0:
+        # Return empty arrays if no data
+        return np.empty((0, 1)), np.empty((0,)), np.empty((0,), dtype=object)
+    
+    # Discard rows where yield is zero
+    df = df[df['yield'] != 0]
+    
+    # Aggregate by file - compute mean for all features and yield
+    feature_cols = [col for col in df.columns if col.startswith('feature_')]
+    agg_dict = {col: 'mean' for col in feature_cols}
+    agg_dict['yield'] = 'mean'
+    
+    df_agg = df.groupby('file', as_index=False).agg(agg_dict)
+    # Extract X, y, and file_labels from aggregated dataframe
+    X = df_agg[feature_cols].values
+    y = df_agg['yield'].values
+    file_labels = df_agg['file'].values
     return X, y, file_labels
 
 for biweek_folder in all_biweek_folders:
@@ -87,23 +101,6 @@ for biweek_folder in all_biweek_folders:
     # Build data
     X_train, y_train, train_labels = build_X_y(splits["train"], modal_paths, label_path)
     X_test, y_test, test_labels = build_X_y(splits["test"], modal_paths, label_path)
-
-    # # --- Random Forest ---
-    # rf = RandomForestRegressor(n_estimators=100, n_jobs=-1, random_state=42)
-    # rf.fit(X_train, y_train)
-    # y_pred_train_rf = rf.predict(X_train)
-    # y_pred_val_rf = rf.predict(X_val)
-    # y_pred_test_rf = rf.predict(X_test)
-    # results.append({
-    #     "biweek": biweek_folder,
-    #     "model": "RandomForest",
-    #     "train_r2": r2_score(y_train, y_pred_train_rf),
-    #     "val_r2": r2_score(y_val, y_pred_val_rf),
-    #     "test_r2": r2_score(y_test, y_pred_test_rf),
-    #     "train_rmse": root_mean_squared_error(y_train, y_pred_train_rf),
-    #     "val_rmse": root_mean_squared_error(y_val, y_pred_val_rf),
-    #     "test_rmse": root_mean_squared_error(y_test, y_pred_test_rf)
-    # })
 
     # --- XGBoost ---
     xgb_params = {
@@ -138,33 +135,15 @@ for biweek_folder in all_biweek_folders:
         y_pred_test_xgb = cp.asnumpy(y_pred_test_xgb)
     
     results.append({
-    "biweek": biweek_folder,
-    "model": "XGBoost",
-    "train_r2": r2_score(y_train, y_pred_train_xgb),
-    "test_r2": r2_score(y_test, y_pred_test_xgb),
-    "train_rmse": root_mean_squared_error(y_train, y_pred_train_xgb),
-    "test_rmse": root_mean_squared_error(y_test, y_pred_test_xgb),
-    "train_mae": mean_absolute_error(y_train, y_pred_train_xgb),   # Added MAE
-    "test_mae": mean_absolute_error(y_test, y_pred_test_xgb)       # Added MAE
-})
-
-
-    # Aggregate metrics by file
-    df_xgb = pd.DataFrame({
-        "file": test_labels,
-        "y_true": y_test,
-        "y_pred": y_pred_test_xgb
+        "biweek": biweek_folder,
+        "model": "XGBoost",
+        "train_r2": r2_score(y_train, y_pred_train_xgb),
+        "test_r2": r2_score(y_test, y_pred_test_xgb),
+        "train_rmse": root_mean_squared_error(y_train, y_pred_train_xgb),
+        "test_rmse": root_mean_squared_error(y_test, y_pred_test_xgb),
+        "train_mae": mean_absolute_error(y_train, y_pred_train_xgb),
+        "test_mae": mean_absolute_error(y_test, y_pred_test_xgb)
     })
-    file_level_xgb = []
-    for fname, group in df_xgb.groupby("file"):
-        file_level_xgb.append({
-            "biweek": biweek_folder,
-            "model": "XGBoost",
-            "file": fname,
-            "r2": r2_score(group["y_true"], group["y_pred"]),
-            "rmse": root_mean_squared_error(group["y_true"], group["y_pred"]),
-            "mae": mean_absolute_error(group["y_true"], group["y_pred"])
-        })
 
     # --- PLSR ---
     n_components = min(20, X_train.shape[1])
@@ -179,38 +158,11 @@ for biweek_folder in all_biweek_folders:
         "test_r2": r2_score(y_test, y_pred_test_pls),
         "train_rmse": root_mean_squared_error(y_train, y_pred_train_pls),
         "test_rmse": root_mean_squared_error(y_test, y_pred_test_pls),
-        "train_mae": mean_absolute_error(y_train, y_pred_train_pls),   # Added MAE
-        "test_mae": mean_absolute_error(y_test, y_pred_test_pls)       # Added MAE
+        "train_mae": mean_absolute_error(y_train, y_pred_train_pls),
+        "test_mae": mean_absolute_error(y_test, y_pred_test_pls)
     })
-
-    df_pls = pd.DataFrame({
-        "file": test_labels,
-        "y_true": y_test,
-        "y_pred": y_pred_test_pls
-    })
-    file_level_pls = []
-    for fname, group in df_pls.groupby("file"):
-        file_level_pls.append({
-            "biweek": biweek_folder,
-            "model": "PLSR",
-            "file": fname,
-            "r2": r2_score(group["y_true"], group["y_pred"]),
-            "rmse": root_mean_squared_error(group["y_true"], group["y_pred"]),
-            "mae": mean_absolute_error(group["y_true"], group["y_pred"])
-        })
-
-    # Collect file-level results
-    if biweek_folder == all_biweek_folders[0]:
-        file_level_results = []
-    file_level_results.extend(file_level_xgb)
-    file_level_results.extend(file_level_pls)
 
 # Save results as a table
 df_results = pd.DataFrame(results)
 print(df_results)
 df_results.to_csv(f"classical_ml_results_{_code}.csv", index=False)
-
-# Save file-level results
-df_file_level = pd.DataFrame(file_level_results)
-print(df_file_level)
-df_file_level.to_csv(f"classical_ml_file_level_results_{_code}.csv", index=False)
