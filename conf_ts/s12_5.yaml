@@ -10,8 +10,8 @@ trainer:
     - class_path: WandbLogger
       init_args:
         project: regr_mean
-        name: S12cd_4
-        id: S12cd_4
+        name: S12_5
+        id: S12_5
   callbacks:
     - class_path: EarlyStopping
       init_args:
@@ -25,9 +25,9 @@ trainer:
       init_args:
         logging_interval: epoch
   max_epochs: 1000
-  log_every_n_steps: 15
+  log_every_n_steps: 1
   accumulate_grad_batches: 4
-  default_root_dir: output/S12cd_4  # Updated for biweek 4
+  default_root_dir: output/S12_5  # Updated for biweek 5
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
@@ -38,8 +38,8 @@ data:
     modalities:
       - S2L2A
       - S1GRD
-      - CDL
-      - DEM
+      # - CDL
+      # - DEM
       # - MODIS
       # - WEATHER
       # - SOIL
@@ -50,36 +50,36 @@ data:
       - 2
       - 1
     train_data_root:
-      S2L2A: processed_data_biweekly_4/S2L2A
-      S1GRD: processed_data_biweekly_4/S1GRD
-      DEM: processed_data_biweekly_4/DEM
-      CDL: processed_data_biweekly_4/CDL
-      # WEATHER: processed_data_biweekly_4/WEATHER
-      # MODIS: processed_data_biweekly_4/MODIS
-      # SOIL: processed_data_biweekly_4/SOIL
-    train_label_data_root: processed_data_biweekly_4/yield_geotiffs
+      S2L2A: processed_data_biweekly_5/S2L2A
+      S1GRD: processed_data_biweekly_5/S1GRD
+      # DEM: processed_data_biweekly_5/DEM
+      # CDL: processed_data_biweekly_5/CDL
+      # WEATHER: processed_data_biweekly_5/WEATHER
+      # MODIS: processed_data_biweekly_5/MODIS
+      # SOIL: processed_data_biweekly_5/SOIL
+    train_label_data_root: processed_data_biweekly_5/yield_geotiffs
     val_data_root:
-      S2L2A: processed_data_biweekly_4/S2L2A
-      S1GRD: processed_data_biweekly_4/S1GRD
-      DEM: processed_data_biweekly_4/DEM
-      CDL: processed_data_biweekly_4/CDL
-      # WEATHER: processed_data_biweekly_4/WEATHER
-      # MODIS: processed_data_biweekly_4/MODIS
-      # SOIL: processed_data_biweekly_4/SOIL
-    val_label_data_root: processed_data_biweekly_4/yield_geotiffs
+      S2L2A: processed_data_biweekly_5/S2L2A
+      S1GRD: processed_data_biweekly_5/S1GRD
+      # DEM: processed_data_biweekly_5/DEM
+      # CDL: processed_data_biweekly_5/CDL
+      # WEATHER: processed_data_biweekly_5/WEATHER
+      # MODIS: processed_data_biweekly_5/MODIS
+      # SOIL: processed_data_biweekly_5/SOIL
+    val_label_data_root: processed_data_biweekly_5/yield_geotiffs
     test_data_root:
-      S2L2A: processed_data_biweekly_4/S2L2A
-      S1GRD: processed_data_biweekly_4/S1GRD
-      DEM: processed_data_biweekly_4/DEM
-      CDL: processed_data_biweekly_4/CDL
-      # WEATHER: processed_data_biweekly_4/WEATHER
-      # MODIS: processed_data_biweekly_4/MODIS
-      # SOIL: processed_data_biweekly_4/SOIL
-    test_label_data_root: processed_data_biweekly_4/yield_geotiffs
+      S2L2A: processed_data_biweekly_5/S2L2A
+      S1GRD: processed_data_biweekly_5/S1GRD
+      # DEM: processed_data_biweekly_5/DEM
+      # CDL: processed_data_biweekly_5/CDL
+      # WEATHER: processed_data_biweekly_5/WEATHER
+      # MODIS: processed_data_biweekly_5/MODIS
+      # SOIL: processed_data_biweekly_5/SOIL
+    test_label_data_root: processed_data_biweekly_5/yield_geotiffs
 
-    train_split: processed_data_biweekly_4/train.txt
-    val_split: processed_data_biweekly_4/val.txt
-    test_split: processed_data_biweekly_4/test.txt
+    train_split: processed_data_biweekly_5/train.txt
+    val_split: processed_data_biweekly_5/val.txt
+    test_split: processed_data_biweekly_5/test.txt
     # dataset_bands:
     #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
     #   S1GRD: [1,2]
@@ -138,8 +138,8 @@ model:
       backbone_modalities:
         - S2L2A
         - S1GRD
-        - {"CDL": 1}  # Add new modality and define number of channels
-        - DEM
+        # - {"CDL": 1}  # Add new modality and define number of channels
+        # - DEM
         # - {"MODIS": 7}  # Add new modality and define number of channels
         # - {"SOIL": 10}  # Add new modality and define number of channels
         # - {"WEATHER": 7}  # Add new modality and define number of channels

@@ -24,15 +24,15 @@
 
 echo "Job is starting on `hostname`"
 
-# Loop through all YAML config files in ./configs folder
-# for config_file in ./configs/*.yaml; do
-#     if [ -f "$config_file" ]; then
-#         echo "Running terratorch fit with config: $config_file"
-#         terratorch fit -c "$config_file"
-#     fi
-# done
+Loop through all YAML config files in ./configs folder
+for config_file in ./configs/*.yaml; do
+    if [ -f "$config_file" ]; then
+        echo "Running terratorch fit with config: $config_file"
+        terratorch fit -c "$config_file"
+    fi
+done
 
-terratorch fit -c configs/config_s12ws.yaml
+# terratorch fit -c configs/config_s12ws.yaml
 
 echo "All config files processed"
 

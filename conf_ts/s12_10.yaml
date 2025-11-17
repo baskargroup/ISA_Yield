@@ -10,8 +10,8 @@ trainer:
     - class_path: WandbLogger
       init_args:
         project: regr_mean
-        name: S12cd_2
-        id: S12cd_2
+        name: S12_10
+        id: S12_10
   callbacks:
     - class_path: EarlyStopping
       init_args:
@@ -25,9 +25,9 @@ trainer:
       init_args:
         logging_interval: epoch
   max_epochs: 1000
-  log_every_n_steps: 15
+  log_every_n_steps: 1
   accumulate_grad_batches: 4
-  default_root_dir: output/S12cd_2
+  default_root_dir: output/S12_10  # Updated for biweek 10
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
@@ -38,8 +38,8 @@ data:
     modalities:
       - S2L2A
       - S1GRD
-      - CDL
-      - DEM
+      # - CDL
+      # - DEM
       # - MODIS
       # - WEATHER
       # - SOIL
@@ -50,36 +50,36 @@ data:
       - 2
       - 1
     train_data_root:
-      S2L2A: processed_data_biweekly_2/S2L2A
-      S1GRD: processed_data_biweekly_2/S1GRD
-      DEM: processed_data_biweekly_2/DEM
-      CDL: processed_data_biweekly_2/CDL
-      # WEATHER: processed_data_biweekly_2/WEATHER
-      # MODIS: processed_data_biweekly_2/MODIS
-      # SOIL: processed_data_biweekly_2/SOIL
-    train_label_data_root: processed_data_biweekly_2/yield_geotiffs
+      S2L2A: processed_data_biweekly_10/S2L2A
+      S1GRD: processed_data_biweekly_10/S1GRD
+      # DEM: processed_data_biweekly_10/DEM
+      # CDL: processed_data_biweekly_10/CDL
+      # WEATHER: processed_data_biweekly_10/WEATHER
+      # MODIS: processed_data_biweekly_10/MODIS
+      # SOIL: processed_data_biweekly_10/SOIL
+    train_label_data_root: processed_data_biweekly_10/yield_geotiffs
     val_data_root:
-      S2L2A: processed_data_biweekly_2/S2L2A
-      S1GRD: processed_data_biweekly_2/S1GRD
-      DEM: processed_data_biweekly_2/DEM
-      CDL: processed_data_biweekly_2/CDL
-      # WEATHER: processed_data_biweekly_2/WEATHER
-      # MODIS: processed_data_biweekly_2/MODIS
-      # SOIL: processed_data_biweekly_2/SOIL
-    val_label_data_root: processed_data_biweekly_2/yield_geotiffs
+      S2L2A: processed_data_biweekly_10/S2L2A
+      S1GRD: processed_data_biweekly_10/S1GRD
+      # DEM: processed_data_biweekly_10/DEM
+      # CDL: processed_data_biweekly_10/CDL
+      # WEATHER: processed_data_biweekly_10/WEATHER
+      # MODIS: processed_data_biweekly_10/MODIS
+      # SOIL: processed_data_biweekly_10/SOIL
+    val_label_data_root: processed_data_biweekly_10/yield_geotiffs
     test_data_root:
-      S2L2A: processed_data_biweekly_2/S2L2A
-      S1GRD: processed_data_biweekly_2/S1GRD
-      DEM: processed_data_biweekly_2/DEM
-      CDL: processed_data_biweekly_2/CDL
-      # WEATHER: processed_data_biweekly_2/WEATHER
-      # MODIS: processed_data_biweekly_2/MODIS
-      # SOIL: processed_data_biweekly_2/SOIL
-    test_label_data_root: processed_data_biweekly_2/yield_geotiffs
+      S2L2A: processed_data_biweekly_10/S2L2A
+      S1GRD: processed_data_biweekly_10/S1GRD
+      # DEM: processed_data_biweekly_10/DEM
+      # CDL: processed_data_biweekly_10/CDL
+      # WEATHER: processed_data_biweekly_10/WEATHER
+      # MODIS: processed_data_biweekly_10/MODIS
+      # SOIL: processed_data_biweekly_10/SOIL
+    test_label_data_root: processed_data_biweekly_10/yield_geotiffs
 
-    train_split: processed_data_biweekly_2/train.txt
-    val_split: processed_data_biweekly_2/val.txt
-    test_split: processed_data_biweekly_2/test.txt
+    train_split: processed_data_biweekly_10/train.txt
+    val_split: processed_data_biweekly_10/val.txt
+    test_split: processed_data_biweekly_10/test.txt
     # dataset_bands:
     #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
     #   S1GRD: [1,2]
@@ -138,17 +138,16 @@ model:
       backbone_modalities:
         - S2L2A
         - S1GRD
-        - {"CDL": 1}  # Add new modality and define number of channels
-        - DEM
-        # - {"MODIS": 7}  # Add new modality and define number of channels
-        # - {"SOIL": 10}  # Add new modality and define number of channels
-        # - {"WEATHER": 7}  # Add new modality and define number of channels
+        # - {"CDL": 1}
+        # - DEM
+        # - {"MODIS": 7}
+        # - {"SOIL": 10}
+        # - {"WEATHER": 7}
       backbone_merge_method: mean
 
       necks:
         - name: SelectIndices
-          indices: [2, 5, 8, 11]  # base version
-#          indices: [5, 11, 17, 23]  # large version
+          indices: [2, 5, 8, 11]
         - name: ReshapeTokensToImage
           remove_cls_token: False
         - name: LearnedInterpolateToPyramidal

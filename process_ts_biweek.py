@@ -238,9 +238,10 @@ def process_single_file(file, dest_subfolder_path, modality_name, is_reference, 
         # Save with .npy extension in destination subfolder
         if is_reference:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
-            data[data < 30] = 0.0  # Set values below 30 to 0
-            data = data.clip(0, norm_max_corn if 'corn' in file.lower() else norm_max_soybean)
-            data = data / (norm_max_corn if 'corn' in file.lower() else norm_max_soybean)
+            # data[data < 30] = 0.0  # Set values below 30 to 0
+            # data = data.clip(0, norm_max_corn if 'corn' in file.lower() else norm_max_soybean)
+            # data = data / (norm_max_corn if 'corn' in file.lower() else norm_max_soybean)
+            data = data / norm_max_corn  # Normalize all reference data by corn max for consistency
         else:
             save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
         # Ensure float32 before saving
@@ -380,7 +381,7 @@ def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=1
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--ts', type=int, default=12, help='Number of timepoints to save (default: 12)')
-    parser.add_argument('--all', action='store_true', default=False, help='Process all timepoints (1-12)')
+    parser.add_argument('--all', action='store_true', default=True, help='Process all timepoints (1-12)')
     parser.add_argument('--workers', type=int, default=None, help='Number of parallel workers (default: cpu_count-1)')
     parser.add_argument('--num-nodes', type=int, default=None, help='Total number of nodes participating (overrides env NUM_NODES/SLURM_JOB_NUM_NODES)')
     parser.add_argument('--node-rank', type=int, default=None, help='Rank of this node (overrides env NODE_RANK/SLURM_NODEID)')

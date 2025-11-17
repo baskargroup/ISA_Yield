@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from tqdm import tqdm
-from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error
+from sklearn.metrics import r2_score, root_mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 from xgboost import XGBRegressor
 from sklearn.cross_decomposition import PLSRegression
 import pandas as pd
@@ -28,7 +28,7 @@ def read_split(split_path):
         return [line.strip() + ".npy" for line in f if line.strip()]
 
 def build_X_y(file_names, modal_paths, label_path):
-    data_rows = []
+    aggregated_rows = []
     
     for fname in tqdm(file_names, desc="Files"):
         feats = []
@@ -52,35 +52,34 @@ def build_X_y(file_names, modal_paths, label_path):
         
         # Get basename without extension
         basename = os.path.splitext(fname)[0]
-        # Filter finite values
-        mask = np.isfinite(y)
+        # Filter finite values and non-zero yields
+        mask = np.isfinite(y) & (y != 0)
         X_filtered = X[mask]
         y_filtered = y[mask]
         
-        # Create rows for dataframe
-        for i in range(len(y_filtered)):
-            row = {f'feature_{j}': X_filtered[i, j] for j in range(X_filtered.shape[1])}
-            row['yield'] = y_filtered[i]
-            row['file'] = basename
-            data_rows.append(row)
+        # Skip if no valid pixels
+        if len(y_filtered) == 0:
+            continue
+        
+        # Aggregate this file immediately - compute mean for all features and yield
+        X_mean = X_filtered.mean(axis=0)
+        y_mean = y_filtered.mean()
+        
+        # Create aggregated row for this file
+        row = {f'feature_{j}': X_mean[j] for j in range(len(X_mean))}
+        row['yield'] = y_mean
+        row['file'] = basename
+        aggregated_rows.append(row)
     
-    # Create dataframe
-    df = pd.DataFrame(data_rows)
+    # Create dataframe from aggregated rows
+    df_agg = pd.DataFrame(aggregated_rows)
     
-    if len(df) == 0:
+    if len(df_agg) == 0:
         # Return empty arrays if no data
         return np.empty((0, 1)), np.empty((0,)), np.empty((0,), dtype=object)
     
-    # Discard rows where yield is zero
-    df = df[df['yield'] != 0]
-    
-    # Aggregate by file - compute mean for all features and yield
-    feature_cols = [col for col in df.columns if col.startswith('feature_')]
-    agg_dict = {col: 'mean' for col in feature_cols}
-    agg_dict['yield'] = 'mean'
-    
-    df_agg = df.groupby('file', as_index=False).agg(agg_dict)
     # Extract X, y, and file_labels from aggregated dataframe
+    feature_cols = [col for col in df_agg.columns if col.startswith('feature_')]
     X = df_agg[feature_cols].values
     y = df_agg['yield'].values
     file_labels = df_agg['file'].values
@@ -142,7 +141,9 @@ for biweek_folder in all_biweek_folders:
         "train_rmse": root_mean_squared_error(y_train, y_pred_train_xgb),
         "test_rmse": root_mean_squared_error(y_test, y_pred_test_xgb),
         "train_mae": mean_absolute_error(y_train, y_pred_train_xgb),
-        "test_mae": mean_absolute_error(y_test, y_pred_test_xgb)
+        "test_mae": mean_absolute_error(y_test, y_pred_test_xgb),
+        "train_mape": mean_absolute_percentage_error(y_train, y_pred_train_xgb),
+        "test_mape": mean_absolute_percentage_error(y_test, y_pred_test_xgb)
     })
 
     # --- PLSR ---
@@ -159,7 +160,9 @@ for biweek_folder in all_biweek_folders:
         "train_rmse": root_mean_squared_error(y_train, y_pred_train_pls),
         "test_rmse": root_mean_squared_error(y_test, y_pred_test_pls),
         "train_mae": mean_absolute_error(y_train, y_pred_train_pls),
-        "test_mae": mean_absolute_error(y_test, y_pred_test_pls)
+        "test_mae": mean_absolute_error(y_test, y_pred_test_pls),
+        "train_mape": mean_absolute_percentage_error(y_train, y_pred_train_pls),
+        "test_mape": mean_absolute_percentage_error(y_test, y_pred_test_pls)
     })
 
 # Save results as a table

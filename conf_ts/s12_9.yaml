@@ -10,8 +10,8 @@ trainer:
     - class_path: WandbLogger
       init_args:
         project: regr_mean
-        name: S12cd_9
-        id: S12cd_9
+        name: S12_9
+        id: S12_9
   callbacks:
     - class_path: EarlyStopping
       init_args:
@@ -25,9 +25,9 @@ trainer:
       init_args:
         logging_interval: epoch
   max_epochs: 1000
-  log_every_n_steps: 15
+  log_every_n_steps: 1
   accumulate_grad_batches: 4
-  default_root_dir: output/S12cd_9  # Updated for biweek 9
+  default_root_dir: output/S12_9  # Updated for biweek 9
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
@@ -38,8 +38,8 @@ data:
     modalities:
       - S2L2A
       - S1GRD
-      - CDL
-      - DEM
+      # - CDL
+      # - DEM
       # - MODIS
       # - WEATHER
       # - SOIL
@@ -52,8 +52,8 @@ data:
     train_data_root:
       S2L2A: processed_data_biweekly_9/S2L2A
       S1GRD: processed_data_biweekly_9/S1GRD
-      DEM: processed_data_biweekly_9/DEM
-      CDL: processed_data_biweekly_9/CDL
+      # DEM: processed_data_biweekly_9/DEM
+      # CDL: processed_data_biweekly_9/CDL
       # WEATHER: processed_data_biweekly_9/WEATHER
       # MODIS: processed_data_biweekly_9/MODIS
       # SOIL: processed_data_biweekly_9/SOIL
@@ -61,8 +61,8 @@ data:
     val_data_root:
       S2L2A: processed_data_biweekly_9/S2L2A
       S1GRD: processed_data_biweekly_9/S1GRD
-      DEM: processed_data_biweekly_9/DEM
-      CDL: processed_data_biweekly_9/CDL
+      # DEM: processed_data_biweekly_9/DEM
+      # CDL: processed_data_biweekly_9/CDL
       # WEATHER: processed_data_biweekly_9/WEATHER
       # MODIS: processed_data_biweekly_9/MODIS
       # SOIL: processed_data_biweekly_9/SOIL
@@ -70,8 +70,8 @@ data:
     test_data_root:
       S2L2A: processed_data_biweekly_9/S2L2A
       S1GRD: processed_data_biweekly_9/S1GRD
-      DEM: processed_data_biweekly_9/DEM
-      CDL: processed_data_biweekly_9/CDL
+      # DEM: processed_data_biweekly_9/DEM
+      # CDL: processed_data_biweekly_9/CDL
       # WEATHER: processed_data_biweekly_9/WEATHER
       # MODIS: processed_data_biweekly_9/MODIS
       # SOIL: processed_data_biweekly_9/SOIL
@@ -138,8 +138,8 @@ model:
       backbone_modalities:
         - S2L2A
         - S1GRD
-        - {"CDL": 1}
-        - DEM
+        # - {"CDL": 1}
+        # - DEM
         # - {"MODIS": 7}
         # - {"SOIL": 10}
         # - {"WEATHER": 7}
