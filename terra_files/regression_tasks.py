@@ -239,6 +239,7 @@ class PixelwiseRegressionTask(TerraTorchTask):
         self.test_ground_truths = []
         self.test_filenames = []
         self.mod_config = ''
+        self.timesteps_used = 0
     def configure_losses(self) -> None:
         """Initialize the loss criterion.
 
@@ -372,6 +373,8 @@ class PixelwiseRegressionTask(TerraTorchTask):
         """
         x = batch["image"]
         y = batch["mask"]
+        if self.timesteps_used == 0:
+            self.timesteps_used = x['S1GRD'].shape[2]
         # x = aggregate_modalities_mode_8x8(x, block=block)
         # y = aggregate_modalities_mode_8x8(y, block=block)
         other_keys = batch.keys() - {"image", "mask", "filename"}
@@ -434,7 +437,7 @@ class PixelwiseRegressionTask(TerraTorchTask):
         
         # Save to CSV
         os.makedirs('predictions', exist_ok=True)
-        df.to_csv(f'predictions/{self.mod_config}.csv', index=False)        
+        df.to_csv(f'predictions/{self.mod_config}{self.timesteps_used}.csv', index=False)        
         # Clear accumulated data for next test run
         self.test_predictions = []
         self.test_ground_truths = []

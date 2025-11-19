@@ -6,12 +6,12 @@ trainer:
   devices: auto
   num_nodes: 1
   precision: 16-mixed
-  logger: true
-    # - class_path: WandbLogger
-    #   init_args:
-    #     project: regr_mean
-    #     name: S12wd_12_2023         # <-- updated for biweek 12
-    #     id: S12wd_12_2023           # <-- updated for biweek 12
+  logger:
+    - class_path: WandbLogger
+      init_args:
+        project: regr_year
+        name: S12wd_12_2023         # <-- updated for biweek 12
+        id: S12wd_12_2023           # <-- updated for biweek 12
   callbacks:
     - class_path: EarlyStopping
       init_args:
