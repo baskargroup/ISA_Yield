@@ -97,3 +97,44 @@
 2025-09-29 03:00:48,162 INFO GDAL signalled an error: err_no=1, msg='S2B_MSIL2A_20230613T170859_R112_T14TPL_20230614T004353_B11.tif, band 1: IReadBlock failed at X offset 6, Y offset 1: TIFFReadEncodedTile() failed.'
 2025-09-29 03:00:48,162 ERROR Error merging bands: Read failed. See previous exception for details.
 2025-09-29 17:00:21,146 INFO Processing complete! Total time taken: 78207.86790776253 seconds
+2025-10-02 12:35:23,161 INFO GDAL signalled an error: err_no=1, msg='ZIPDecode:Decoding error at scanline 4096, unknown compression method'
+2025-10-02 12:35:23,162 INFO GDAL signalled an error: err_no=1, msg='TIFFReadEncodedTile() failed.'
+2025-10-02 12:35:23,162 INFO GDAL signalled an error: err_no=1, msg='S2B_MSIL2A_20240624T165849_R069_T15TXF_20240625T001234_B03.tif, band 1: IReadBlock failed at X offset 8, Y offset 9: TIFFReadEncodedTile() failed.'
+2025-10-02 12:35:23,162 ERROR Error merging bands: Read failed. See previous exception for details.
+2025-10-02 12:46:29,183 INFO No files found for band: B01
+2025-10-02 12:46:29,184 INFO No files found for band: B02
+2025-10-02 12:46:29,184 INFO No files found for band: B03
+2025-10-02 12:46:29,184 INFO No files found for band: B04
+2025-10-02 12:46:29,185 INFO No files found for band: B05
+2025-10-02 12:46:29,185 INFO No files found for band: B06
+2025-10-02 12:46:29,185 INFO No files found for band: B07
+2025-10-02 12:46:29,185 INFO No files found for band: B08
+2025-10-02 12:46:29,185 INFO No files found for band: B8A
+2025-10-02 12:46:29,185 INFO No files found for band: B09
+2025-10-02 12:46:29,185 INFO No files found for band: B11
+2025-10-02 12:46:29,185 INFO No files found for band: B12
+2025-10-02 12:46:29,188 INFO No files found for band: B01
+2025-10-02 12:46:29,188 INFO No files found for band: B02
+2025-10-02 12:46:29,188 INFO No files found for band: B03
+2025-10-02 12:46:29,188 INFO No files found for band: B04
+2025-10-02 12:46:29,188 INFO No files found for band: B05
+2025-10-02 12:46:29,188 INFO No files found for band: B06
+2025-10-02 12:46:29,189 INFO No files found for band: B07
+2025-10-02 12:46:29,189 INFO No files found for band: B08
+2025-10-02 12:46:29,189 INFO No files found for band: B8A
+2025-10-02 12:46:29,189 INFO No files found for band: B09
+2025-10-02 12:46:29,189 INFO No files found for band: B11
+2025-10-02 12:46:29,189 INFO No files found for band: B12
+2025-10-02 12:46:29,191 INFO No files found for band: B01
+2025-10-02 12:46:29,191 INFO No files found for band: B02
+2025-10-02 12:46:29,191 INFO No files found for band: B03
+2025-10-02 12:46:29,191 INFO No files found for band: B04
+2025-10-02 12:46:29,192 INFO No files found for band: B05
+2025-10-02 12:46:29,192 INFO No files found for band: B06
+2025-10-02 12:46:29,192 INFO No files found for band: B07
+2025-10-02 12:46:29,192 INFO No files found for band: B08
+2025-10-02 12:46:29,192 INFO No files found for band: B8A
+2025-10-02 12:46:29,192 INFO No files found for band: B09
+2025-10-02 12:46:29,192 INFO No files found for band: B11
+2025-10-02 12:46:29,192 INFO No files found for band: B12
+2025-10-03 03:49:34,570 INFO Processing complete! Total time taken: 76190.96964907646 seconds

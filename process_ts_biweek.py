@@ -9,6 +9,8 @@ from collections import defaultdict
 import argparse
 from multiprocessing import Pool, cpu_count
 from functools import partial
+from scipy.interpolate import interp1d
+from scipy.optimize import curve_fit
 
 def resize_nearest(data, new_h, new_w, is_reference=False):
     if not is_reference:
@@ -196,9 +198,167 @@ def aggregate_biweekly(data, biweekly_indices):
             biweekly_data.append(fill)
     return np.concatenate(biweekly_data, axis=0)
 
-def process_single_file(file, dest_subfolder_path, modality_name, is_reference, used_dates_dict, ref_dims, tsave):
+def polynomial_curve(x, a, b, c, d):
+    """3rd order polynomial for curve fitting"""
+    return a * x**3 + b * x**2 + c * x + d
+
+def fill_remaining_zeros_with_nearest(data):
     """
-    Process a single file and save it. This function is designed to be called in parallel.
+    Fill any remaining zeros in the data with the nearest non-zero value in the temporal dimension.
+    
+    Args:
+        data: numpy array of shape (T, C, H, W) or (C, H, W)
+    
+    Returns:
+        data_filled: numpy array with remaining zeros filled by nearest non-zero values
+    """
+    # Handle both (T, C, H, W) and (C, H, W) shapes
+    if data.ndim == 4:
+        T, C, H, W = data.shape
+        has_time = True
+    elif data.ndim == 3:
+        C, H, W = data.shape
+        has_time = False
+    else:
+        # Unsupported shape, return as-is
+        return data
+    
+    data_filled = data.copy()
+    
+    if has_time:
+        # Process each time step and channel separately, using spatial nearest neighbors
+        for t in range(T):
+            for c in range(C):
+                channel_data = data_filled[t, c, :, :]
+                zero_mask = channel_data == 0
+                
+                if np.any(zero_mask):
+                    non_zero_mask = ~zero_mask
+                    
+                    if np.any(non_zero_mask):
+                        # Get coordinates of zero and non-zero positions
+                        zero_coords = np.argwhere(zero_mask)
+                        non_zero_coords = np.argwhere(non_zero_mask)
+                        
+                        # For each zero position, find nearest non-zero position spatially
+                        for zh, zw in zero_coords:
+                            # Calculate Euclidean distances to all non-zero positions
+                            distances = np.sqrt(np.sum((non_zero_coords - np.array([zh, zw]))**2, axis=1))
+                            nearest_idx = np.argmin(distances)
+                            nh, nw = non_zero_coords[nearest_idx]
+                            data_filled[t, c, zh, zw] = data_filled[t, c, nh, nw]
+    else:
+        # For (C, H, W) shape, fill zeros with spatial nearest neighbor
+        for c in range(C):
+            channel_data = data_filled[c, :, :]
+            zero_mask = channel_data == 0
+            
+            if np.any(zero_mask):
+                non_zero_mask = ~zero_mask
+                
+                if np.any(non_zero_mask):
+                    # Get coordinates of zero and non-zero positions
+                    zero_coords = np.argwhere(zero_mask)
+                    non_zero_coords = np.argwhere(non_zero_mask)
+                    
+                    # For each zero position, find nearest non-zero position
+                    for zh, zw in zero_coords:
+                        # Calculate distances to all non-zero positions
+                        distances = np.sqrt(np.sum((non_zero_coords - np.array([zh, zw]))**2, axis=1))
+                        nearest_idx = np.argmin(distances)
+                        nh, nw = non_zero_coords[nearest_idx]
+                        data_filled[c, zh, zw] = data_filled[c, nh, nw]
+    
+    return data_filled
+
+def fit_and_fill_zeros(data, method='polynomial', order=3):
+    """
+    Fit a curve through the temporal dimension and fill zeros in the data.
+    
+    Args:
+        data: numpy array of shape (T, C, H, W) where T=12 biweeks
+        method: 'polynomial', 'spline', or 'linear' interpolation
+        order: order of polynomial (default 3) or spline
+    
+    Returns:
+        data_filled: numpy array of same shape with zeros filled by curve fitting
+    """
+    T, C, H, W = data.shape
+    data_filled = data.copy()
+    
+    # Time indices for the 12 biweeks
+    time_indices = np.arange(T)
+    
+    # Process each channel and spatial location
+    for c in range(C):
+        for h in range(H):
+            for w in range(W):
+                # Extract temporal profile for this pixel
+                temporal_profile = data[:, c, h, w]
+                
+                # Find non-zero indices
+                non_zero_mask = temporal_profile != 0
+                non_zero_indices = time_indices[non_zero_mask]
+                non_zero_values = temporal_profile[non_zero_mask]
+                
+                # Only interpolate if we have at least 2 non-zero points
+                if len(non_zero_indices) >= 2:
+                    zero_indices = time_indices[~non_zero_mask]
+                    
+                    if len(zero_indices) > 0:
+                        try:
+                            if method == 'polynomial':
+                                # Use polynomial fitting (robust to outliers)
+                                poly_order = min(order, len(non_zero_indices) - 1)
+                                coeffs = np.polyfit(non_zero_indices, non_zero_values, poly_order)
+                                poly = np.poly1d(coeffs)
+                                filled_values = poly(zero_indices)
+                                
+                            elif method == 'spline':
+                                # Use spline interpolation with extrapolation
+                                if len(non_zero_indices) > order:
+                                    interp_func = interp1d(non_zero_indices, non_zero_values, 
+                                                          kind=order, fill_value='extrapolate')
+                                else:
+                                    interp_func = interp1d(non_zero_indices, non_zero_values, 
+                                                          kind='linear', fill_value='extrapolate')
+                                filled_values = interp_func(zero_indices)
+                                
+                            elif method == 'linear':
+                                # Linear interpolation with extrapolation
+                                interp_func = interp1d(non_zero_indices, non_zero_values, 
+                                                      kind='linear', fill_value='extrapolate')
+                                filled_values = interp_func(zero_indices)
+                            
+                            # Clip negative values to 0 (physical constraint)
+                            filled_values = np.maximum(filled_values, 0)
+                            
+                            # Fill the zero positions
+                            data_filled[zero_indices, c, h, w] = filled_values
+                            
+                        except Exception as e:
+                            # If fitting fails, use linear interpolation as fallback
+                            try:
+                                interp_func = interp1d(non_zero_indices, non_zero_values, 
+                                                      kind='linear', fill_value='extrapolate')
+                                filled_values = interp_func(zero_indices)
+                                filled_values = np.maximum(filled_values, 0)
+                                data_filled[zero_indices, c, h, w] = filled_values
+                            except:
+                                # If all else fails, keep zeros
+                                pass    
+    return data_filled
+
+def process_single_file(file, dest_subfolder_paths, modality_name, is_reference, used_dates_dict, ref_dims, tsave_list, fill_zeros=False, interp_method='polynomial'):
+    """
+    Process a single file once (aggregating all 12 biweeks) and save multiple versions based on tsave_list.
+    This function is designed to be called in parallel.
+    
+    Args:
+        dest_subfolder_paths: Dict mapping tsave -> dest_subfolder_path
+        tsave_list: List of timepoint counts to save (e.g., [1, 2, 3, ..., 12])
+        fill_zeros: If True, apply curve fitting to fill zero values in the data
+        interp_method: Method for curve fitting ('polynomial', 'spline', or 'linear')
     """
     static_modalities = {"CDL", "DEM", "SOIL"}
     norm_max_corn = 370.0
@@ -211,10 +371,10 @@ def process_single_file(file, dest_subfolder_path, modality_name, is_reference, 
                 C, H, W = data.shape
         else:
             data = np.load(file)
-            # Only aggregate if not static modality
+            # Only aggregate if not static modality - always aggregate all 12 biweeks
             if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices[:tsave+1])
+                data = aggregate_biweekly(data, biweekly_indices)  # Process all 12 biweeks
             # After potential aggregation, capture dims
             T, C, H, W = data.shape
         
@@ -232,35 +392,64 @@ def process_single_file(file, dest_subfolder_path, modality_name, is_reference, 
             print(f"Warning: {file} has very small dimensions after cropping: {data.shape} Skipping.")
             return None
         data = rescale_to_224x224(data, is_reference)
-        # Only keep the first tsave timepoints (for non-reference)
+        
+        # Process non-reference data (apply cleaning and interpolation once on full 12 biweeks)
         if not is_reference:
-            data = data[:tsave]
-        # Save with .npy extension in destination subfolder
-        if is_reference:
-            save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
-            # data[data < 30] = 0.0  # Set values below 30 to 0
-            # data = data.clip(0, norm_max_corn if 'corn' in file.lower() else norm_max_soybean)
-            # data = data / (norm_max_corn if 'corn' in file.lower() else norm_max_soybean)
-            data = data / norm_max_corn  # Normalize all reference data by corn max for consistency
-        else:
-            save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
-        # Ensure float32 before saving
-        data = data.astype(np.float32)
-        np.save(save_path, data)
+            if modality_name.lower() == 's2l2a':
+                data[data < 0] = 0
+            elif modality_name.lower() == 's1grd':
+                data[data < 0] = 0
+            elif modality_name.lower() == 'soil':
+                data[data < 0] = 0
+            if modality_name.lower() not in static_modalities:
+                # Apply curve fitting to fill zeros if requested (on full 12 biweeks)
+                if fill_zeros:
+                    data = fit_and_fill_zeros(data, method=interp_method)
+            # Fill any remaining zeros with nearest non-zero values
+            data = fill_remaining_zeros_with_nearest(data)
+        
+        # Save multiple versions based on tsave_list
+        for tsave in tsave_list:
+            dest_subfolder_path = dest_subfolder_paths[tsave]
+            
+            # Slice data to desired timepoints
+            if not is_reference:
+                data_to_save = data[:tsave]
+            else:
+                data_to_save = data
+            
+            # Save with .npy extension in destination subfolder
+            if is_reference:
+                save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
+                # Min-max normalization
+                data_min = 50.0 if 'corn' in file.lower() else 30.0
+                data_max = norm_max_corn if 'corn' in file.lower() else norm_max_soybean
+                normalized_data = (data_to_save - data_min) / (data_max - data_min)
+                normalized_data[normalized_data < 0] = -1
+                # Ensure float32 before saving
+                normalized_data = normalized_data.astype(np.float32)
+                np.save(save_path, normalized_data)
+            else:
+                save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.splitext(os.path.basename(file))[0])[0] + '.npy')
+                # Ensure float32 before saving
+                data_to_save = data_to_save.astype(np.float32)
+                np.save(save_path, data_to_save)
+        
         return file
     except Exception as e:
         print(f"Error processing {file}: {e}")
         return None
 
-def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_reference=False, used_dates_dict=None, tsave=12, num_workers=None):
+def process_subfolder(subfolder_path, dest_subfolder_paths, ref_dims=None, is_reference=False, used_dates_dict=None, tsave_list=[12], num_workers=None, fill_zeros=False, interp_method='polynomial'):
     modality_name = os.path.basename(subfolder_path)
     if is_reference:
         files = sorted(glob.glob(os.path.join(subfolder_path, '*.tif')) + glob.glob(os.path.join(subfolder_path, '*.tiff')))
     else:
         files = sorted(glob.glob(os.path.join(subfolder_path, '*.tif.npy')) + glob.glob(os.path.join(subfolder_path, '*.npy')))
     
-    # Create destination subfolder if it doesn't exist
-    os.makedirs(dest_subfolder_path, exist_ok=True)
+    # Create destination subfolders if they don't exist
+    for dest_path in dest_subfolder_paths.values():
+        os.makedirs(dest_path, exist_ok=True)
     
     if num_workers is None:
         num_workers = max(1, cpu_count() - 1)
@@ -268,12 +457,14 @@ def process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=None, is_ref
     # Process all images with parallel processing
     process_func = partial(
         process_single_file,
-        dest_subfolder_path=dest_subfolder_path,
+        dest_subfolder_paths=dest_subfolder_paths,
         modality_name=modality_name,
         is_reference=is_reference,
         used_dates_dict=used_dates_dict,
         ref_dims=ref_dims,
-        tsave=tsave
+        tsave_list=tsave_list,
+        fill_zeros=fill_zeros,
+        interp_method=interp_method
     )
     
     if len(files) > 0:
@@ -297,67 +488,19 @@ def parse_used_dates_log(log_path):
             used_dates_dict[fname] = dates
     return used_dates_dict
 
-def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=12, all=True, num_workers=None):
-    def compute_assigned_iterations(total_iters=12, num_nodes=1, node_rank=0):
-        """Return list of iteration indices (1-based) assigned to this node.
-        Distribute as evenly as possible: first (total_iters % num_nodes) nodes get one extra.
-        """
-        if num_nodes <= 1:
-            return list(range(1, total_iters + 1))
-        base = total_iters // num_nodes
-        extra = total_iters % num_nodes
-        # Node ranks < extra get (base+1) items
-        if node_rank < extra:
-            start = node_rank * (base + 1) + 1
-            end = start + (base + 1) - 1
-        else:
-            start = extra * (base + 1) + (node_rank - extra) * base + 1
-            end = start + base - 1
-        return list(range(start, end + 1))
-
-    # Obtain node distribution info from environment or args
-    env_num_nodes = int(os.environ.get('NUM_NODES', os.environ.get('SLURM_JOB_NUM_NODES', '1')))
-    env_node_rank = int(os.environ.get('NODE_RANK', os.environ.get('SLURM_NODEID', '0')))
-    # Allow overriding via function parameters by passing in a tuple via dest_root_path (not used) or environment.
-    num_nodes = env_num_nodes
-    node_rank = env_node_rank
-
+def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=12, all=True, num_workers=None, fill_zeros=False, interp_method='polynomial'):
     if all == True:
-        assigned_iters = compute_assigned_iterations(total_iters=12, num_nodes=num_nodes, node_rank=node_rank)
-        print(f"Node {node_rank}/{num_nodes - 1 if num_nodes>0 else 0} assigned iterations: {assigned_iters}")
-        for i in assigned_iters:
-            dest_root_path = f'processed_data_biweekly_{i}'
-            os.makedirs(dest_root_path, exist_ok=True)
-            yield_folder = os.path.join(root_path, 'yield_geotiffs')
-            if not os.path.exists(yield_folder):
-                print("yield_geotiffs subfolder not found!")
-                return
-            ref_files = sorted(glob.glob(os.path.join(yield_folder, '*.tif')) + glob.glob(os.path.join(yield_folder, '*.tiff')))
-            ref_dims = {}
-            for ref_file in ref_files:
-                with rasterio.open(ref_file) as ds:
-                    ref_dims[os.path.splitext(os.path.basename(ref_file))[0] + '.npy'] = (ds.height, ds.width)
-            for subfolder in sorted(os.listdir(root_path)):
-                subfolder_path = os.path.join(root_path, subfolder)
-                dest_subfolder_path = os.path.join(dest_root_path, subfolder)
-                if os.path.isdir(subfolder_path):
-                    if subfolder == 'yield_geotiffs':
-                        print(f"Processing reference folder: {subfolder}")
-                        process_subfolder(subfolder_path, 
-                                          dest_subfolder_path, 
-                                          is_reference=True, 
-                                          used_dates_dict=used_dates_dict, 
-                                          tsave=i, 
-                                          num_workers=num_workers)
-                    else:
-                        print(f"Processing folder: {subfolder}")
-                        process_subfolder(subfolder_path, 
-                                          dest_subfolder_path, 
-                                          ref_dims=ref_dims, 
-                                          used_dates_dict=used_dates_dict, 
-                                          tsave=i, 
-                                          num_workers=num_workers)
-    else:
+        # Process all 12 biweeks once and save all versions (1-12)
+        all_iters = list(range(1, 13))
+        print(f"Processing all 12 biweeks once and saving versions: {all_iters}")
+        
+        # Create destination paths for all iterations
+        dest_root_paths = {}
+        for i in all_iters:
+            dest_root_paths[i] = f'processed_data_biweekly_{i}'
+            os.makedirs(dest_root_paths[i], exist_ok=True)
+        
+        # Get reference dimensions
         yield_folder = os.path.join(root_path, 'yield_geotiffs')
         if not os.path.exists(yield_folder):
             print("yield_geotiffs subfolder not found!")
@@ -367,33 +510,78 @@ def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=1
         for ref_file in ref_files:
             with rasterio.open(ref_file) as ds:
                 ref_dims[os.path.splitext(os.path.basename(ref_file))[0] + '.npy'] = (ds.height, ds.width)
+        
+        # Process each subfolder once, saving all assigned iterations
+        for subfolder in sorted(os.listdir(root_path)):
+            subfolder_path = os.path.join(root_path, subfolder)
+            if os.path.isdir(subfolder_path):
+                # Create destination subfolder paths for all iterations
+                dest_subfolder_paths = {i: os.path.join(dest_root_paths[i], subfolder) for i in all_iters}
+                
+                if subfolder == 'yield_geotiffs':
+                    print(f"Processing reference folder: {subfolder}")
+                    process_subfolder(subfolder_path, 
+                                      dest_subfolder_paths, 
+                                      is_reference=True, 
+                                      used_dates_dict=used_dates_dict, 
+                                      tsave_list=all_iters, 
+                                      num_workers=num_workers,
+                                      fill_zeros=fill_zeros,
+                                      interp_method=interp_method)
+                else:
+                    print(f"Processing folder: {subfolder}")
+                    process_subfolder(subfolder_path, 
+                                      dest_subfolder_paths, 
+                                      ref_dims=ref_dims, 
+                                      used_dates_dict=used_dates_dict, 
+                                      tsave_list=all_iters, 
+                                      num_workers=num_workers,
+                                      fill_zeros=fill_zeros,
+                                      interp_method=interp_method)
+    else:
+        # Single tsave mode
+        yield_folder = os.path.join(root_path, 'yield_geotiffs')
+        if not os.path.exists(yield_folder):
+            print("yield_geotiffs subfolder not found!")
+            return
+        ref_files = sorted(glob.glob(os.path.join(yield_folder, '*.tif')) + glob.glob(os.path.join(yield_folder, '*.tiff')))
+        ref_dims = {}
+        for ref_file in ref_files:
+            with rasterio.open(ref_file) as ds:
+                ref_dims[os.path.splitext(os.path.basename(ref_file))[0] + '.npy'] = (ds.height, ds.width)
+        
+        dest_subfolder_paths = {tsave: None}
         for subfolder in sorted(os.listdir(root_path)):
             subfolder_path = os.path.join(root_path, subfolder)
             dest_subfolder_path = os.path.join(dest_root_path, subfolder)
+            dest_subfolder_paths[tsave] = dest_subfolder_path
+            
             if os.path.isdir(subfolder_path):
                 if subfolder == 'yield_geotiffs':
                     print(f"Processing reference folder: {subfolder}")
-                    process_subfolder(subfolder_path, dest_subfolder_path, is_reference=True, used_dates_dict=used_dates_dict, tsave=tsave, num_workers=num_workers)
+                    process_subfolder(subfolder_path, dest_subfolder_paths, is_reference=True, used_dates_dict=used_dates_dict, tsave_list=[tsave], num_workers=num_workers, fill_zeros=fill_zeros, interp_method=interp_method)
                 else:
                     print(f"Processing folder: {subfolder}")
-                    process_subfolder(subfolder_path, dest_subfolder_path, ref_dims=ref_dims, used_dates_dict=used_dates_dict, tsave=tsave, num_workers=num_workers)
+                    process_subfolder(subfolder_path, dest_subfolder_paths, ref_dims=ref_dims, used_dates_dict=used_dates_dict, tsave_list=[tsave], num_workers=num_workers, fill_zeros=fill_zeros, interp_method=interp_method)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--ts', type=int, default=12, help='Number of timepoints to save (default: 12)')
     parser.add_argument('--all', action='store_true', default=True, help='Process all timepoints (1-12)')
     parser.add_argument('--workers', type=int, default=None, help='Number of parallel workers (default: cpu_count-1)')
-    parser.add_argument('--num-nodes', type=int, default=None, help='Total number of nodes participating (overrides env NUM_NODES/SLURM_JOB_NUM_NODES)')
-    parser.add_argument('--node-rank', type=int, default=None, help='Rank of this node (overrides env NODE_RANK/SLURM_NODEID)')
+    parser.add_argument('--fill-zeros', action='store_true', default=True, help='Apply curve fitting to fill zero values in the data')
+    parser.add_argument('--interp-method', type=str, default='polynomial', choices=['polynomial', 'spline', 'linear'], 
+                        help='Interpolation method for filling zeros (default: polynomial)')
     args = parser.parse_args()
 
     log_path = './unprocessed_data/used_dates_log.txt'
     used_dates_dict = parse_used_dates_log(log_path)
     dst_folder = f'processed_data_biweekly_{args.ts}'
     os.makedirs(dst_folder, exist_ok=True)
-    # Inject environment overrides if CLI args provided
-    if args.num_nodes is not None:
-        os.environ['NUM_NODES'] = str(args.num_nodes)
-    if args.node_rank is not None:
-        os.environ['NODE_RANK'] = str(args.node_rank)
-    process_root_folder('./unprocessed_data', dst_folder, used_dates_dict=used_dates_dict, tsave=args.ts, all=args.all, num_workers=args.workers)
+    
+    if args.fill_zeros:
+        print(f"Curve fitting enabled using {args.interp_method} interpolation")
+    
+    process_root_folder('./unprocessed_data', dst_folder, used_dates_dict=used_dates_dict, 
+                       tsave=args.ts, all=args.all, num_workers=args.workers,
+                       fill_zeros=args.fill_zeros, interp_method=args.interp_method)

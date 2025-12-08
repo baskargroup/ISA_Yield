@@ -121,8 +121,9 @@ if __name__ == "__main__":
     
     # Read the start and end date from the CSV file
     _dates = pd.read_csv("../date_file.csv")
+    _dates = _dates[_dates["Sunday"].str.contains("2017|2018")]
     # _dates = _dates[_dates["Sunday"].str.contains("2019|2020|2021|2022|2023")]
-    _dates = _dates[_dates["Sunday"].str.contains("2024")]
+    # _dates = _dates[_dates["Sunday"].str.contains("2024")]
     _dates['Sunday_dt'] = pd.to_datetime(_dates['Sunday'])
     _dates = _dates[_dates['Sunday_dt'].dt.month.between(5, 9)]
     _start_dates = _dates["Sunday"].values

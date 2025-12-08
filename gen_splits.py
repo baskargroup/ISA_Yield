@@ -1,10 +1,34 @@
 import os
 import random
 import sys
+import numpy as np
+from multiprocessing import Pool, cpu_count
+
+def check_file_has_zeros(args):
+    """
+    Helper function to check if a file has more than 80% zeros in any timepoint.
+    Returns (filename, has_zeros, message) tuple.
+    """
+    filename, root_folder, dynamic_subfolders = args
+    for sub in dynamic_subfolders:
+        file_path = os.path.join(root_folder, sub, filename)
+        try:
+            data = np.load(file_path)  # Shape: (T, C, H, W)
+            # Check if any timepoint has more than 80% zeros
+            for t in range(data.shape[0]):
+                total_elements = data[t].size
+                zero_count = np.sum(data[t] == 0)
+                zero_percentage = (zero_count / total_elements) * 100
+                if zero_percentage > 80:
+                    return (filename, True, f"Removing {filename}: {zero_percentage:.1f}% zeros found in {sub} at timepoint {t}")
+        except Exception as e:
+            return (filename, True, f"Warning: Could not load {file_path}: {e}")
+    return (filename, False, None)
 
 def find_common_tif(root_folder):
     """
     Finds all .npy files that are present (by filename) in every subfolder of the root folder.
+    Removes files from the common set if any subfolder's version of that file contains all zeros.
     """
     subfolders = [f for f in os.listdir(root_folder) if os.path.isdir(os.path.join(root_folder, f))]
     if not subfolders:
@@ -23,7 +47,26 @@ def find_common_tif(root_folder):
         return []
     common = set.intersection(*file_sets)
     
-    return sorted(list(common))
+    # # Filter out files that have all zeros in any timepoint in any subfolder
+    # filtered_common = []
+    # dynamic_subfolders = ['S1GRD', 'S2L2A', 'WEATHER']  # To avoid linting issues
+    
+    # # Prepare arguments for parallel processing
+    # check_args = [(filename, root_folder, dynamic_subfolders) for filename in common]
+    
+    # # Use parallel processing to check files
+    # num_processes = min(cpu_count(), len(check_args))
+    # with Pool(processes=num_processes) as pool:
+    #     results = pool.map(check_file_has_zeros, check_args)
+    
+    # # Process results
+    # for filename, has_zeros, message in results:
+    #     if message:
+    #         print(message)
+    #     if not has_zeros:
+    #         filtered_common.append(filename)
+    
+    return sorted(common)
 
 def split_and_save(common_files, output_dir):
     """
@@ -57,10 +100,10 @@ def split_and_save(common_files, output_dir):
     train = stems[:train_size]
     val = stems[train_size:train_size + val_size]
     test = stems[train_size:train_size + val_size]
-    val_corn = corn_files[:val_corn_size]
-    train_corn = [f for f in stems if f not in val_corn]
-    val_soybean = soybean_files[:val_soybean_size]
-    train_soybean = [f for f in stems if f not in val_soybean]
+    val_corn = [f for f in val if 'corn' in f.lower()]
+    train_corn = [f for f in train if 'corn' in f.lower()]
+    val_soybean = [f for f in val if 'soybean' in f.lower()]
+    train_soybean = [f for f in train if 'soybean' in f.lower()]
     # Year-based splits
     train_2019 = [f for f in stems if f not in files_2019]
     train_2020 = [f for f in stems if f not in files_2020]
@@ -78,9 +121,10 @@ def split_and_save(common_files, output_dir):
             file.write('\n'.join(lst) + '\n')
     
     # Save the files
-    # save_list(train, 'train.txt')
-    # save_list(val, 'val.txt')
-    # save_list(test, 'test.txt')
+    save_list(train, 'train.txt')
+    save_list(val, 'val.txt')
+    save_list(test, 'test.txt')
+    print(f"{output_dir}: Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(test)})")
     save_list(train_corn, 'train_corn.txt')
     save_list(train_soybean, 'train_soybean.txt')
     save_list(val_corn, 'val_corn.txt')
@@ -89,23 +133,23 @@ def split_and_save(common_files, output_dir):
     save_list(val_soybean, 'test_soybean.txt')
     print(f"{output_dir}: Files saved: train_corn.txt ({len(train_corn)}), val_corn.txt ({len(val_corn)}), test_corn.txt ({len(val_corn)})")
     print(f"{output_dir}: Files saved: train_soybean.txt ({len(train_soybean)}), val_soybean.txt ({len(val_soybean)}), test_soybean.txt ({len(val_soybean)})")
-    # save_list(train_2019, 'train_2019.txt')
-    # save_list(train_2020, 'train_2020.txt')
-    # save_list(train_2021, 'train_2021.txt')
-    # save_list(train_2022, 'train_2022.txt')
-    # save_list(train_2023, 'train_2023.txt')
-    # save_list(files_2019, 'val_2019.txt')
-    # save_list(files_2020, 'val_2020.txt')
-    # save_list(files_2021, 'val_2021.txt')
-    # save_list(files_2022, 'val_2022.txt')
-    # save_list(files_2023, 'val_2023.txt')
+    save_list(train_2019, 'train_2019.txt')
+    save_list(train_2020, 'train_2020.txt')
+    save_list(train_2021, 'train_2021.txt')
+    save_list(train_2022, 'train_2022.txt')
+    save_list(train_2023, 'train_2023.txt')
+    save_list(files_2019, 'val_2019.txt')
+    save_list(files_2020, 'val_2020.txt')
+    save_list(files_2021, 'val_2021.txt')
+    save_list(files_2022, 'val_2022.txt')
+    save_list(files_2023, 'val_2023.txt')
     # print(f"{output_dir}: Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(test)})")
-    save_list(test_2021_corn, 'test_2021_corn.txt')
-    save_list(test_2021_soybean, 'test_2021_soybean.txt')
-    save_list(train_corn_2021, 'train_corn_2021.txt')
-    save_list(train_soybean_2021, 'train_soybean_2021.txt')
-    print(f"{output_dir}: Files saved: test_2021_corn.txt ({len(test_2021_corn)}), test_2021_soybean.txt ({len(test_2021_soybean)})")
-    print(f"{output_dir}: Files saved: train_corn_2021.txt ({len(train_corn_2021)}), train_soybean_2021.txt ({len(train_soybean_2021)})")
+    # save_list(test_2021_corn, 'test_2021_corn.txt')
+    # save_list(test_2021_soybean, 'test_2021_soybean.txt')
+    # save_list(train_corn_2021, 'train_corn_2021.txt')
+    # save_list(train_soybean_2021, 'train_soybean_2021.txt')
+    # print(f"{output_dir}: Files saved: test_2021_corn.txt ({len(test_2021_corn)}), test_2021_soybean.txt ({len(test_2021_soybean)})")
+    # print(f"{output_dir}: Files saved: train_corn_2021.txt ({len(train_corn_2021)}), train_soybean_2021.txt ({len(train_soybean_2021)})")
 
 if __name__ == "__main__":
     random.seed(42)  # For reproducibility

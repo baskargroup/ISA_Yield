@@ -1,0 +1,177 @@
+# lightning.pytorch==2.1.1
+seed_everything: 42
+trainer:
+  accelerator: auto
+  strategy: auto
+  devices: auto
+  num_nodes: 1
+  precision: 16-mixed
+  logger: 
+    - class_path: WandbLogger
+      init_args:
+        project: regr_crop
+        name: S12_12_corn         # <-- updated for biweek 12
+        id: S12_12_corn           # <-- updated for biweek 12
+  callbacks:
+    - class_path: EarlyStopping
+      init_args:
+          monitor: val/loss 
+          patience: 75
+          min_delta: 0.0001
+          mode: min
+          verbose: true
+    - class_path: RichProgressBar
+    - class_path: LearningRateMonitor
+      init_args:
+        logging_interval: epoch
+  max_epochs: 1000
+  log_every_n_steps: 1
+  accumulate_grad_batches: 8
+  default_root_dir: output/S12_12_Corn   # <-- updated for biweek 12
+
+data:
+  class_path: terratorch.datamodules.GenericMultiModalDataModule
+  init_args:
+    task: 'regression'
+    batch_size: 4
+    num_workers: 8
+    modalities:
+      - S2L2A
+      - S1GRD
+      # - DEM
+      # - MODIS
+      # - WEATHER
+      # - SOIL
+      
+    rgb_modality: S2L2A
+    rgb_indices:
+      - 3
+      - 2
+      - 1
+    train_data_root:
+      S2L2A: processed_data_biweekly_12/S2L2A     # <-- updated for biweek 12
+      S1GRD: processed_data_biweekly_12/S1GRD     # <-- updated for biweek 12
+      # DEM: processed_data_biweekly_12/DEM         # <-- updated for biweek 12
+      # WEATHER: processed_data_biweekly_12/WEATHER # <-- updated for biweek 12
+      # MODIS: processed_data_biweekly_12/MODIS
+      # SOIL: processed_data_biweekly_12/SOIL
+    train_label_data_root: processed_data_biweekly_12/yield_geotiffs   # <-- updated for biweek 12
+    val_data_root:
+      S2L2A: processed_data_biweekly_12/S2L2A     # <-- updated for biweek 12
+      S1GRD: processed_data_biweekly_12/S1GRD     # <-- updated for biweek 12
+      # DEM: processed_data_biweekly_12/DEM         # <-- updated for biweek 12
+      # WEATHER: processed_data_biweekly_12/WEATHER # <-- updated for biweek 12
+      # MODIS: processed_data_biweekly_12/MODIS
+      # SOIL: processed_data_biweekly_12/SOIL
+    val_label_data_root: processed_data_biweekly_12/yield_geotiffs     # <-- updated for biweek 12
+    test_data_root:
+      S2L2A: processed_data_biweekly_12/S2L2A     # <-- updated for biweek 12
+      S1GRD: processed_data_biweekly_12/S1GRD     # <-- updated for biweek 12
+      # DEM: processed_data_biweekly_12/DEM         # <-- updated for biweek 12
+      # WEATHER: processed_data_biweekly_12/WEATHER # <-- updated for biweek 12
+      # MODIS: processed_data_biweekly_12/MODIS
+      # SOIL: processed_data_biweekly_12/SOIL
+    test_label_data_root: processed_data_biweekly_12/yield_geotiffs    # <-- updated for biweek 12
+
+    train_split: processed_data_biweekly_12/train_corn.txt   # <-- updated for biweek 12
+    val_split: processed_data_biweekly_12/val_corn.txt       # <-- updated for biweek 12
+    test_split: processed_data_biweekly_12/test_corn.txt     # <-- updated for biweek 12
+    # dataset_bands:
+    #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
+    #   S1GRD: [1,2]
+    #   RGB: [1,2,3]
+    #   DEM: [1]
+    #   MODIS: [1,2,3,4,5,6,7]
+    #   SOIL: [1,2,3,4,5,6,7,8,9,10]
+    #   WEATHER: [1,2,3,4,5,6,7]
+    #   CDL: [1]
+    # output_bands:
+    #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
+    #   S1GRD: [1,2]
+    #   RGB: [1,2,3]
+    #   DEM: [1]
+    #   MODIS: [1,2,3,4,5,6,7]
+    #   SOIL: [1,2,3,4,5,6,7,8,9,10]
+    #   WEATHER: [1,2,3,4,5,6,7]
+    #   CDL: [1]
+    expand_temporal_dimension: False
+    # Adjust file suffixes if required or delete them
+    no_label_replace: 0.0
+    no_data_replace: 0
+    # TerraMind standardization values
+    means:
+      S2L1C: [2357.089, 2137.385, 2018.788, 2082.986, 2295.651, 2854.537, 3122.849, 3040.560, 3306.481, 1473.847, 506.070, 2472.825, 1838.929]
+      S2L2A: [647.300, 706.631, 859.224, 867.749, 1158.589, 1943.776, 2297.061, 2369.876, 2465.203, 2527.470, 1992.562, 1409.875]
+      S1GRD: [0.136, 0.032]
+      S1RTC: [-10.930, -17.329]
+      RGB: [87.271, 80.931, 66.667]
+      DEM: [261.693]
+      MODIS: [854.473, 3450.634, 455.066, 826.045, 3500.701, 2749.189, 1646.328]
+      SOIL: [164.401, 233.710, 280.134, 0.668, 0.648, 230.887, 13863.224, 14870.775, 87.595, 0.566]
+      WEATHER: [49565.363, 3.569, 372.732, 0.220, 25.605, 13.400, 1624.082]
+
+    stds:
+      S2L1C: [1624.683, 1675.806, 1557.708, 1833.702, 1823.738, 1733.977, 1732.131, 1679.732, 1727.260, 1024.687, 442.165, 1331.411, 1160.419]
+      S2L2A: [522.329, 529.943, 563.361, 617.308, 713.200, 1032.108, 1233.406, 1272.939, 1313.408, 1465.657, 1102.952, 875.643]
+      S1GRD: [0.161, 0.028]
+      S1RTC: [4.391, 4.459]
+      RGB: [58.767, 47.663, 42.631]
+      DEM: [68.783]
+      MODIS: [274.742, 532.366, 167.646, 195.329, 390.690, 464.115, 463.360]
+      SOIL: [42.146, 66.719, 91.207, 0.235, 0.240, 76.342, 12903.941, 14781.083, 14.254, 0.241]
+      WEATHER: [293.616, 2.478, 23.879, 0.407, 1.332, 1.199, 130.093]
+
+      
+    # train_transform:
+    #   - class_path: albumentations.D4  # Random flip and rotations
+    #   - class_path: ToTensorV2
+
+model:
+  class_path: terratorch.tasks.PixelwiseRegressionTask
+  init_args:
+    model_factory: EncoderDecoderFactory
+    model_args:
+      backbone: terramind_v1_base  # large version: terramind_v1_large
+      backbone_pretrained: true
+      backbone_modalities:
+        - S2L2A
+        - S1GRD
+        # - DEM
+        # - {"MODIS": 7}  # Add new modality and define number of channels
+        # - {"SOIL": 10}  # Add new modality and define number of channels
+        # - {"WEATHER": 7}  # Add new modality and define number of channels
+      backbone_merge_method: mean
+
+      necks:
+        - name: SelectIndices
+          indices: [2, 5, 8, 11]  # base version
+#          indices: [5, 11, 17, 23]  # large version
+        - name: ReshapeTokensToImage
+          remove_cls_token: False
+        - name: LearnedInterpolateToPyramidal
+
+      decoder: UNetDecoder
+      decoder_channels: [512, 256, 128, 64]
+
+      head_dropout: 0.1
+    loss: mse
+    ignore_index: -1
+    freeze_backbone: false
+    freeze_decoder: false
+
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 1.e-4
+lr_scheduler:
+  class_path: ReduceLROnPlateau
+  init_args:
+    monitor: val/loss
+    factor: 0.5
+    patience: 25
+    min_lr: 0.000001
+  
+  # class_path: CosineAnnealingLR
+  # init_args:
+  #   T_max: 5
+  #   eta_min: 0.000001
