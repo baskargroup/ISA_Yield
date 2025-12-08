@@ -559,14 +559,14 @@ class PixelwiseRegressionTask(TerraTorchTask):
         super().on_validation_epoch_end()
         
         # Concatenate all batches
-        all_predictions = np.concatenate(self.test_predictions)
-        all_ground_truths = np.concatenate(self.test_ground_truths)
+        all_predictions = np.concatenate(self.val_predictions)
+        all_ground_truths = np.concatenate(self.val_ground_truths)
         
         # Create DataFrame
         df = pd.DataFrame({
             'YieldGT': all_ground_truths,
             'Prediction': all_predictions,
-            'Filename': self.test_filenames
+            'Filename': self.val_filenames
         })
         df['YieldGT'] = df['YieldGT'].astype(float)
         df['Prediction'] = df['Prediction'].astype(float)
