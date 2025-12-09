@@ -339,6 +339,8 @@ class PixelwiseRegressionTask(TerraTorchTask):
         if aggr:
             # x = aggregate_modalities_mode_nxn(x, block=block)
             y = aggregate_modalities_mode_nxn(y, block=block)
+        if self.timesteps_used == 0:
+            self.timesteps_used = x['S1GRD'].shape[2]
         other_keys = batch.keys() - {"image", "mask", "filename"}
         rest = {k: batch[k] for k in other_keys}
         model_output: ModelOutput = self(x, **rest)
@@ -348,7 +350,7 @@ class PixelwiseRegressionTask(TerraTorchTask):
         if aggr:
             y_hat = aggregate_modalities_mode_nxn(y_hat, block=block)
         self.val_metrics.update(y_hat, y)
-                # Repeat filenames to match the number of pixels per image
+        # Repeat filenames to match the number of pixels per image
         y_hat_flat = y_hat.flatten().cpu().float().numpy() 
         filenames = batch["filename"]['mask']
         if isinstance(filenames, (list, tuple)):
@@ -368,6 +370,7 @@ class PixelwiseRegressionTask(TerraTorchTask):
             names = batch["filename"].keys()
             for name in names:
                 self.mod_config += name + "_" 
+
         if self._do_plot_samples(batch_idx):
             try:
                 datamodule = self.trainer.datamodule
@@ -740,8 +743,21 @@ def _block_mode_aggregate_hw(x: Tensor, block: int = 8) -> Tensor:
     N = x.numel() // (H * W)
     x_flat = x.reshape(N, H * W)  # [N, H*W]
     
-    # Compute mode across all spatial pixels for each sample
-    vals, _ = torch.mode(x_flat, dim=-1)  # [N]
+    # Compute mode for each sample, excluding -1 values
+    vals = []
+    for i in range(N):
+        sample = x_flat[i]
+        # Drop -1 values
+        valid_values = sample[sample != -1]
+        
+        if valid_values.numel() > 0:
+            mode_val, _ = torch.mode(valid_values, dim=0)
+            vals.append(mode_val)
+        else:
+            # If all values are -1, use -1 as the result
+            vals.append(torch.tensor(-1, dtype=x.dtype, device=x.device))
+    
+    vals = torch.stack(vals)  # [N]
     
     # Reshape back to original leading dims + [1, 1] for H and W
     leading_shape = x.shape[:-2]
