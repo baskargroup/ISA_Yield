@@ -53,27 +53,6 @@ def process_csv_file(input_file):
     for w in workers:
         w.join()
 
-    # Optional: Combine and visualize for each year
-    # parquet_files = [os.path.join(output_dir, f) for f in sorted(os.listdir(output_dir)) if f.endswith('.parquet')]
-    # with ProcessPoolExecutor() as executor:
-    #     future_to_file = {executor.submit(gpd.read_parquet, file): file for file in parquet_files}
-    #     gdf_list = []
-    #     for future in tqdm(as_completed(future_to_file), total=len(future_to_file), desc=f"Loading chunks {year}"):
-    #         gdf_list.append(future.result())
-    # full_gdf = gpd.GeoDataFrame(pd.concat(gdf_list, ignore_index=True), crs="EPSG:4326")
-    # print(f"[{year}] Reconstructed dataset with {len(full_gdf)} rows")
-
-    # # Visualize with heatmap
-    # map_center = [full_gdf['geometry'].y.mean(), full_gdf['geometry'].x.mean()]
-    # mymap = folium.Map(location=map_center, zoom_start=5)
-    # heat_data = []
-    # for point, value in tqdm(zip(full_gdf.geometry, full_gdf['Yield']), total=len(full_gdf), desc=f"Preparing heat data {year}"):
-    #     heat_data.append([point.y, point.x, value])
-    # HeatMap(heat_data, radius=15, blur=10).add_to(mymap)
-    # map_file = f'{input_file.split(".csv")[0]}_map.html'
-    # mymap.save(map_file)
-    # print(f"[{year}] Map saved as '{map_file}'")
-
 if __name__ == "__main__":
     for csv_file in tqdm(csv_files, total=len(csv_files), desc="Processing all years"):
         process_csv_file(csv_file)

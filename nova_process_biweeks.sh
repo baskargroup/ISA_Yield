@@ -4,7 +4,7 @@
 # Adjust node count for multi-node biweekly processing (12 iterations total)
 # If you want one iteration per node, request --nodes=12; else fewer nodes will partition iterations.
 #SBATCH --time=24:00:00              # walltime limit (HH:MM:SS)
-#SBATCH --nodes=4                    # number of nodes (change as needed)
+#SBATCH --nodes=1                    # number of nodes (change as needed)
 #SBATCH --ntasks-per-node=1          # one task per node (gives a unique NODE_RANK)
 #SBATCH --cpus-per-task=16           # CPUs for intra-node multiprocessing
 #SBATCH --mem=128G                   # memory per node (adjust if needed)
@@ -35,7 +35,7 @@ echo "[INFO] SLURM_JOB_NUM_NODES=$SLURM_JOB_NUM_NODES SLURM_NODEID=$SLURM_NODEID
 
 # Each node will automatically pick its assigned iterations via SLURM_NODEID and total nodes.
 # --all triggers distribution across 12 iterations (1..12) inside the script.
-srun --kill-on-bad-exit=1 $PYTHON $SCRIPT --all --workers $WORKERS_PER_NODE
+srun --kill-on-bad-exit=1 $PYTHON $SCRIPT --all
 
 PREPROCESS_STATUS=$?
 if [ $PREPROCESS_STATUS -ne 0 ]; then

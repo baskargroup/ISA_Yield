@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --partition=nova    # gpu node(s)
 #SBATCH --account=mech-ai
-#SBATCH --job-name="Soybean_Finetune"
+#SBATCH --job-name="Soy_Finetune"
 #SBATCH --mail-user=aapowadi@iastate.edu   # email address
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END

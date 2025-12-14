@@ -15,7 +15,7 @@ import pdb
 ext = "IA"
 years = [2019,2020,2021,2022,2023]
 modalities = ['S2L2A', 
-              'S1GRD',
+              'S1RTC',
             #   'MODIS',
               'DEM',
               'CDL',
@@ -235,13 +235,13 @@ def combine_and_clip_geotiff(input_dir, output_path, bbox_gdf, band_list, year, 
         print(f"Error processing {input_dir}: {e}")
 
 # Define dynamic and static modalities
-dynamic_mods = ['S1GRD', 
+dynamic_mods = ['S1RTC', 
                 'S2L2A',
                 # 'MODIS',
                 'WEATHER',
                 ]
 mod_to_dir = {
-    'S1GRD': sentinel1_dir,
+    'S1RTC': sentinel1_dir,
     'S2L2A': sentinel2_dir,
     # 'MODIS': modis_dir,
     'WEATHER': weather_dir,
@@ -250,7 +250,7 @@ mod_to_dir = {
     'DEM': dem_path
 }
 mod_to_bands = {
-    'S1GRD': s1_bands,
+    'S1RTC': s1_bands,
     'S2L2A': s2_bands,
     # 'MODIS': modis_bands,
     'WEATHER': weather_bands,

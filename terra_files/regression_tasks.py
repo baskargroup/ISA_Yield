@@ -31,7 +31,7 @@ BATCH_IDX_FOR_VALIDATION_PLOTTING = 10
 
 logger = logging.getLogger("terratorch")
 block = 1  # block size for mode aggregation
-aggr = True  # whether to apply aggregation
+aggr = False  # whether to apply aggregation
 class RootLossWrapper(nn.Module):
     def __init__(self, loss_function: nn.Module, reduction: None | str = "mean") -> None:
         super().__init__()
@@ -277,7 +277,7 @@ class PixelwiseRegressionTask(TerraTorchTask):
                 "RMSE": MeanSquaredError(squared=False),
                 "MSE": MeanSquaredError(squared=True),
                 "MAE": MeanAbsoluteError(),
-                # "R2_Score": R2Score(),
+                "R2_Score": R2Score(),
             }
 
         def wrap_metrics_with_ignore_index(metrics):
@@ -350,27 +350,6 @@ class PixelwiseRegressionTask(TerraTorchTask):
         if aggr:
             y_hat = aggregate_modalities_mode_nxn(y_hat, block=block)
         self.val_metrics.update(y_hat, y)
-        # Repeat filenames to match the number of pixels per image
-        y_hat_flat = y_hat.flatten().cpu().float().numpy() 
-        filenames = batch["filename"]['mask']
-        if isinstance(filenames, (list, tuple)):
-            repeated_filenames = []
-            pixels_per_image = y.shape[-2] * y.shape[-1]
-            for fname in filenames:
-                basename = os.path.splitext(os.path.basename(fname))[0]
-                repeated_filenames.extend([basename] * pixels_per_image)
-        else:
-            repeated_filenames = [filenames] * y_flat.shape[0]
-        # Store data from this batch
-        y_flat = y.flatten().cpu().numpy()
-        self.val_predictions.append(y_hat_flat)
-        self.val_ground_truths.append(y_flat)
-        self.val_filenames.extend(repeated_filenames)
-        if self.mod_config == '':
-            names = batch["filename"].keys()
-            for name in names:
-                self.mod_config += name + "_" 
-
         if self._do_plot_samples(batch_idx):
             try:
                 datamodule = self.trainer.datamodule
@@ -551,117 +530,13 @@ class PixelwiseRegressionTask(TerraTorchTask):
         print(f"\nPlots saved to 'results/r_square_{modal_code}_{res_name}_{self.timesteps_used}.png' and 'results/r_square_{modal_code}_{res_name}_{self.timesteps_used}.pdf'")
         # Save to CSV
         os.makedirs('predictions', exist_ok=True)
-        df.to_csv(f'predictions/{self.mod_config}{self.timesteps_used}.csv', index=False)        
+        df_corn.to_csv(f'predictions/{self.mod_config}{self.timesteps_used}_Corn.csv', index=False)
+        df_soybean.to_csv(f'predictions/{self.mod_config}{self.timesteps_used}_Soybean.csv', index=False)        
         # Clear accumulated data for next test run
         self.test_predictions = []
         self.test_ground_truths = []
         self.test_filenames = []
     
-    def on_validation_epoch_end(self) -> None:
-        """Called at the end of the test epoch to save accumulated results."""
-        super().on_validation_epoch_end()
-        
-        # Concatenate all batches
-        all_predictions = np.concatenate(self.val_predictions)
-        all_ground_truths = np.concatenate(self.val_ground_truths)
-        
-        # Create DataFrame
-        df = pd.DataFrame({
-            'YieldGT': all_ground_truths,
-            'Prediction': all_predictions,
-            'Filename': self.val_filenames
-        })
-        df['YieldGT'] = df['YieldGT'].astype(float)
-        df['Prediction'] = df['Prediction'].astype(float)
-        df = df[df["YieldGT"] > 0]
-        # Aggregate values by unique Filename (taking mean of predictions and ground truth)
-        df_agg = df.groupby('Filename').agg({
-            'YieldGT': 'mean',
-            'Prediction': 'mean'
-        }).reset_index()
-        # Calculate metrics on aggregated data
-        # Calculate MAE
-        mae = mean_absolute_error(df_agg['YieldGT'], df_agg['Prediction'])
-
-        # Calculate MAPE
-        mape = np.mean(np.abs((df_agg['YieldGT'] - df_agg['Prediction']) / df_agg['YieldGT'])) * 100
-
-        # Calculate R-square
-        r2 = r2_score(df_agg['YieldGT'], df_agg['Prediction'])
-
-        print(f"Mean Absolute Error (MAE): {mae:.4f}")
-        print(f"Mean Absolute Percentage Error (MAPE): {mape:.2f}%")
-        print(f"R-squared (R²): {r2:.4f}")
-        modal_code = 'S12WD' if 'WEATHER' in self.mod_config else 'S12'
-        # Create publication-quality R-square plot
-        plt.figure(figsize=(8, 8), dpi=300)
-
-        # Set style for publication
-        sns.set_style("white")
-        plt.rcParams['font.family'] = 'serif'
-        plt.rcParams['font.size'] = 12
-
-        # Separate corn and soybean data
-        df_corn = df_agg[df_agg['Filename'].str.lower().str.contains('corn')]
-        df_soybean = df_agg[df_agg['Filename'].str.lower().str.contains('soybean')]
-        if len(df_corn) == 0:
-            res_name = 'Soybean'
-            plt.scatter(df_soybean['YieldGT'], df_soybean['Prediction'], alpha=0.5, s=30, 
-            c='#F77F00', edgecolors='none', label='Soybean')
-        else:
-            res_name = 'Corn'
-            # Create scatter plots with different colors
-            plt.scatter(df_corn['YieldGT'], df_corn['Prediction'], alpha=0.5, s=30, 
-                        c='#2E86AB', edgecolors='none', label='Corn')
-            
-        # Add 1:1 line
-        min_val = min(df_agg['YieldGT'].min(), df_agg['Prediction'].min())
-        max_val = max(df_agg['YieldGT'].max(), df_agg['Prediction'].max())
-        plt.plot([min_val, max_val], [min_val, max_val], 'k--', linewidth=2, 
-                label='1:1 Line', alpha=0.7)
-
-        # Add regression line
-        z = np.polyfit(df_agg['YieldGT'], df_agg['Prediction'], 1)
-        p = np.poly1d(z)
-        plt.plot(df_agg['YieldGT'].sort_values(), p(df_agg['YieldGT'].sort_values()), 
-                'r-', linewidth=2, label=f'Fit: y={z[0]:.3f}x+{z[1]:.3f}', alpha=0.7)
-
-        # Add metrics text box
-        textstr = f'R² = {r2:.4f}\nMAE = {mae:.4f}\nMAPE = {mape:.2f}%\nn = {len(df_agg)}'
-        props = dict(boxstyle='round', facecolor='white', alpha=0.8, edgecolor='gray')
-        plt.text(0.05, 0.95, textstr, transform=plt.gca().transAxes, fontsize=11,
-                verticalalignment='top', bbox=props)
-
-        # Labels and formatting
-        plt.xlabel('Observed Yield (Ground Truth)', fontsize=14, fontweight='bold')
-        plt.ylabel('Predicted Yield', fontsize=14, fontweight='bold')
-        plt.title('Model Performance: Predicted vs Observed Yield', fontsize=16, 
-                fontweight='bold', pad=20)
-        # plt.xlim(0,0.7)
-        # plt.ylim(0,0.7)
-        # Legend
-        plt.legend(loc='lower right', frameon=True, fontsize=11, 
-                edgecolor='gray', fancybox=False)
-
-        # Grid
-        plt.grid(True, alpha=0.3, linestyle='--', linewidth=0.5)
-
-        # Equal aspect ratio
-        plt.axis('equal')
-        plt.tight_layout()
-
-        # Save figure
-        plt.savefig(f'results/r_square_{modal_code}_{res_name}_{self.timesteps_used}.png', dpi=300, bbox_inches='tight')
-        plt.savefig(f'results/r_square_{modal_code}_{res_name}_{self.timesteps_used}.pdf', dpi=300, bbox_inches='tight')
-        print(f"\nPlots saved to 'results/r_square_{modal_code}_{res_name}_{self.timesteps_used}.png' and 'results/r_square_{modal_code}_{res_name}_{self.timesteps_used}.pdf'")
-        # Save to CSV
-        os.makedirs('predictions', exist_ok=True)
-        df.to_csv(f'predictions/{self.mod_config}{self.timesteps_used}.csv', index=False)        
-        # Clear accumulated data for next test run
-        self.val_predictions = []
-        self.val_ground_truths = []
-        self.val_filenames = []
-
     def predict_step(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> Tensor:
         """Compute the predicted class probabilities.
 

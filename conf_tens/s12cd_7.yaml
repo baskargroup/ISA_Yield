@@ -32,7 +32,7 @@ data:
     num_workers: 8
     modalities:
       - S2L2A
-      - S1GRD
+      - S1RTC
       - CDL
       - DEM
       # - MODIS
@@ -46,7 +46,7 @@ data:
       - 1
     train_data_root:
       S2L2A: processed_data_biweekly_7/S2L2A
-      S1GRD: processed_data_biweekly_7/S1GRD
+      S1RTC: processed_data_biweekly_7/S1RTC
       DEM: processed_data_biweekly_7/DEM
       CDL: processed_data_biweekly_7/CDL
       # WEATHER: processed_data_biweekly_7/WEATHER
@@ -55,7 +55,7 @@ data:
     train_label_data_root: processed_data_biweekly_7/yield_geotiffs
     val_data_root:
       S2L2A: processed_data_biweekly_7/S2L2A
-      S1GRD: processed_data_biweekly_7/S1GRD
+      S1RTC: processed_data_biweekly_7/S1RTC
       DEM: processed_data_biweekly_7/DEM
       CDL: processed_data_biweekly_7/CDL
       # WEATHER: processed_data_biweekly_7/WEATHER
@@ -64,7 +64,7 @@ data:
     val_label_data_root: processed_data_biweekly_7/yield_geotiffs
     test_data_root:
       S2L2A: processed_data_biweekly_7/S2L2A
-      S1GRD: processed_data_biweekly_7/S1GRD
+      S1RTC: processed_data_biweekly_7/S1RTC
       DEM: processed_data_biweekly_7/DEM
       CDL: processed_data_biweekly_7/CDL
       # WEATHER: processed_data_biweekly_7/WEATHER
@@ -77,7 +77,7 @@ data:
     test_split: processed_data_biweekly_7/test.txt
     # dataset_bands:
     #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
-    #   S1GRD: [1,2]
+    #   S1RTC: [1,2]
     #   RGB: [1,2,3]
     #   DEM: [1]
     #   MODIS: [1,2,3,4,5,6,7]
@@ -86,7 +86,7 @@ data:
     #   CDL: [1]
     # output_bands:
     #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
-    #   S1GRD: [1,2]
+    #   S1RTC: [1,2]
     #   RGB: [1,2,3]
     #   DEM: [1]
     #   MODIS: [1,2,3,4,5,6,7]
@@ -134,7 +134,7 @@ model:
       backbone_pretrained: true
       backbone_modalities:
         - S2L2A
-        - S1GRD
+        - S1RTC
         - {"CDL": 1}
         - DEM
         # - {"MODIS": 7}
@@ -166,8 +166,8 @@ lr_scheduler:
   class_path: ReduceLROnPlateau
   init_args:
     monitor: val/loss
-    factor: 0.5
-    patience: 10
+    factor: 0.8
+    patience: 50
     min_lr: 0.000001
   
   # class_path: CosineAnnealingLR

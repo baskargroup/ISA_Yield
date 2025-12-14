@@ -371,6 +371,11 @@ def process_single_file(file, dest_subfolder_paths, modality_name, is_reference,
                 C, H, W = data.shape
         else:
             data = np.load(file)
+            if 's1rtc' in modality_name.lower():
+                # Define a small positive epsilon value to avoid log(0) or log(-)
+                EPSILON = 1e-5
+                # Clip the array to ensure all values are at least EPSILON, then apply log10
+                data = 10 * np.log10(np.clip(data, a_min=EPSILON, a_max=None))
             # Only aggregate if not static modality - always aggregate all 12 biweeks
             if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
@@ -397,16 +402,14 @@ def process_single_file(file, dest_subfolder_paths, modality_name, is_reference,
         if not is_reference:
             if modality_name.lower() == 's2l2a':
                 data[data < 0] = 0
-            elif modality_name.lower() == 's1grd':
-                data[data < 0] = 0
             elif modality_name.lower() == 'soil':
                 data[data < 0] = 0
             if modality_name.lower() not in static_modalities:
                 # Apply curve fitting to fill zeros if requested (on full 12 biweeks)
                 if fill_zeros:
                     data = fit_and_fill_zeros(data, method=interp_method)
-            # Fill any remaining zeros with nearest non-zero values
-            data = fill_remaining_zeros_with_nearest(data)
+            # # Fill any remaining zeros with nearest non-zero values
+            # data = fill_remaining_zeros_with_nearest(data)
         
         # Save multiple versions based on tsave_list
         for tsave in tsave_list:
@@ -530,14 +533,17 @@ def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=1
                                       interp_method=interp_method)
                 else:
                     print(f"Processing folder: {subfolder}")
+                    # if 's1rtc' in subfolder.lower():
+                    #     print(f"Processing s1rtc data in folder: {subfolder}")
+                    #     print("Note: s1rtc data will be converted from linear to dB scale during processing.")
                     process_subfolder(subfolder_path, 
-                                      dest_subfolder_paths, 
-                                      ref_dims=ref_dims, 
-                                      used_dates_dict=used_dates_dict, 
-                                      tsave_list=all_iters, 
-                                      num_workers=num_workers,
-                                      fill_zeros=fill_zeros,
-                                      interp_method=interp_method)
+                                    dest_subfolder_paths, 
+                                    ref_dims=ref_dims, 
+                                    used_dates_dict=used_dates_dict, 
+                                    tsave_list=all_iters, 
+                                    num_workers=num_workers,
+                                    fill_zeros=fill_zeros,
+                                    interp_method=interp_method)
     else:
         # Single tsave mode
         yield_folder = os.path.join(root_path, 'yield_geotiffs')
@@ -569,7 +575,7 @@ if __name__ == "__main__":
     parser.add_argument('--ts', type=int, default=12, help='Number of timepoints to save (default: 12)')
     parser.add_argument('--all', action='store_true', default=True, help='Process all timepoints (1-12)')
     parser.add_argument('--workers', type=int, default=None, help='Number of parallel workers (default: cpu_count-1)')
-    parser.add_argument('--fill-zeros', action='store_true', default=True, help='Apply curve fitting to fill zero values in the data')
+    parser.add_argument('--fill-zeros', action='store_true', default=False, help='Apply curve fitting to fill zero values in the data')
     parser.add_argument('--interp-method', type=str, default='polynomial', choices=['polynomial', 'spline', 'linear'], 
                         help='Interpolation method for filling zeros (default: polynomial)')
     args = parser.parse_args()
