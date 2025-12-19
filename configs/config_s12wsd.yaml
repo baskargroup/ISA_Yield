@@ -11,11 +11,12 @@ trainer:
       init_args:
         project: config_test
         name: S12wsd-0.5(lr-factor)
+        id: S12wsd
   callbacks:
     - class_path: EarlyStopping
       init_args:
           monitor: val/loss 
-          patience: 25
+          patience: 75
           min_delta: 0.0001
           mode: min
           verbose: true
@@ -172,7 +173,7 @@ lr_scheduler:
   init_args:
     monitor: val/loss
     factor: 0.8
-    patience: 50
+    patience: 25
     min_lr: 0.000001
   
   # class_path: CosineAnnealingLR

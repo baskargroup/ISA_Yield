@@ -12,6 +12,8 @@ from functools import partial
 from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit
 
+ignore_list = []
+
 def resize_nearest(data, new_h, new_w, is_reference=False):
     if not is_reference:
         t, c, old_h, old_w = data.shape
@@ -155,10 +157,12 @@ def aggregate_biweekly(data, biweekly_indices):
     """
     Given data of shape (T, C, H, W) and biweekly_indices (list of lists of indices),
     return (12, C, H, W) where each timepoint is the average of that biweek's available data.
-    If no data for a biweek, fill with mean of previous and next valid biweek (if available), else zeros.
+    If no data for a biweek, fill with mean of nearest previous and next valid biweeks (if available).
+    Falls back to nearest single biweek if interpolation not possible, else zeros.
     Ignores data slices that are all zeros when aggregating.
     """
     T, C, H, W = data.shape
+    # print("Aggregating biweekly data... with shape:", data.shape)
     biweekly_data = []
     valid_means = [None] * len(biweekly_indices)
     # First, compute means for valid biweeks
@@ -168,25 +172,26 @@ def aggregate_biweekly(data, biweekly_indices):
             if valid_slices:
                 stacked = np.stack(valid_slices, axis=0)
                 valid_means[i] = np.mean(stacked, axis=0)
-    # Now, fill missing biweeks with mean of previous and next valid biweek
+    # Now, fill missing biweeks with nearest valid biweek data
+    # print(f"len(biweekly_indices) = {len(biweekly_indices)}")
     for i in range(len(biweekly_indices)):
         if valid_means[i] is not None:
             biweekly_data.append(valid_means[i][None])
         else:
             print(f"Biweek {i} has no valid data, filling...")
-            # Find previous valid
+            # Find nearest previous valid biweek
             prev = None
-            for j in range(i-1, i-2, -1):
+            for j in range(i-1, -1, -1):
                 if valid_means[j] is not None:
                     prev = valid_means[j]
-                    break
-            # Find next valid
+                break
+            # Find nearest next valid biweek
             next_ = None
-            if i < len(biweekly_indices) - 1:
-                for j in range(i+1, i+2):
-                    if valid_means[j] is not None:
-                        next_ = valid_means[j]
-                        break
+            for j in range(i+1, len(biweekly_indices)):
+                if valid_means[j] is not None:
+                    next_ = valid_means[j]
+                break
+            # Use interpolation if both prev and next exist
             if prev is not None and next_ is not None:
                 fill = ((prev + next_) / 2)[None]
             elif prev is not None:
@@ -194,7 +199,7 @@ def aggregate_biweekly(data, biweekly_indices):
             elif next_ is not None:
                 fill = next_[None]
             else:
-                fill = np.zeros((1, C, H, W), dtype=data.dtype)
+                return None
             biweekly_data.append(fill)
     return np.concatenate(biweekly_data, axis=0)
 
@@ -363,7 +368,8 @@ def process_single_file(file, dest_subfolder_paths, modality_name, is_reference,
     static_modalities = {"CDL", "DEM", "SOIL"}
     norm_max_corn = 370.0
     norm_max_soybean = 150.0
-    
+    if file in ignore_list:
+        return None
     try:
         if is_reference:
             with rasterio.open(file) as ds:
@@ -379,7 +385,11 @@ def process_single_file(file, dest_subfolder_paths, modality_name, is_reference,
             # Only aggregate if not static modality - always aggregate all 12 biweeks
             if used_dates_dict is not None and modality_name not in static_modalities:
                 biweekly_indices, dates = get_biweekly_indices(file, used_dates_dict)
-                data = aggregate_biweekly(data, biweekly_indices)  # Process all 12 biweeks
+                data = aggregate_biweekly(data, biweekly_indices)
+                if data is None:
+                    print(f"Warning: {file} could not be aggregated due to lack of valid data. Skipping.")
+                    ignore_list.append(file)
+                    return None
             # After potential aggregation, capture dims
             T, C, H, W = data.shape
         

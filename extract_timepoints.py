@@ -27,12 +27,15 @@ def extract_timepoints(timepoints, source_dir, target_dir):
     Extract specific timepoint(s) from timeseries data.
     
     Args:
-        timepoints: List of timepoint indices to extract (0-indexed)
+        timepoints: List of timepoint numbers to extract (1-indexed, will be converted to 0-indexed)
         source_dir: Path to source directory
         target_dir: Path to target directory
     """
     source_dir = Path(source_dir)
     target_dir = Path(target_dir)
+    
+    # Convert from 1-indexed to 0-indexed for array access
+    timepoint_indices = [t - 1 for t in timepoints]
     
     # Create target directory
     target_dir.mkdir(exist_ok=True)
@@ -70,7 +73,7 @@ def extract_timepoints(timepoints, source_dir, target_dir):
                 
                 # Extract specified timepoint(s) and maintain (T, C, H, W) shape
                 # Always keep the time dimension, even for single timepoint
-                data_extracted = data[timepoints]
+                data_extracted = data[timepoint_indices]
                 
                 # Save to target folder
                 target_file = target_subfolder / npy_file.name
@@ -128,7 +131,7 @@ Examples:
         type=int, 
         nargs='+', 
         required=True,
-        help='Timepoint index/indices to extract (0-indexed). Can specify one or multiple.'
+        help='Timepoint number(s) to extract (1-indexed, e.g., 9 extracts the 9th timepoint). Can specify one or multiple.'
     )
     
     parser.add_argument(

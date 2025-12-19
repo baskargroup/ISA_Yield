@@ -21,13 +21,13 @@ soybean_df = soybean_df.sort_values('sort_key')
 # Denormalize MAE values
 # Based on the normalization: normalized = (data - data_min) / (data_max - data_min)
 # To denormalize: data = normalized * (data_max - data_min) + data_min
-norm_max_corn = 370.0  # Typical max for corn yield
-norm_max_soybean = 150.0  # Typical max for soybean yield
-data_min_corn = 50.0
-data_min_soybean = 30.0
+# norm_max_corn = 370.0  # Typical max for corn yield
+# norm_max_soybean = 150.0  # Typical max for soybean yield
+# data_min_corn = 50.0
+# data_min_soybean = 30.0
 
-corn_df['val/MAE (Min)'] = corn_df['val/MAE (Min)'] * (norm_max_corn - data_min_corn) + data_min_corn
-soybean_df['val/MAE (Min)'] = soybean_df['val/MAE (Min)'] * (norm_max_soybean - data_min_soybean) + data_min_soybean
+# corn_df['val/MAE (Min)'] = corn_df['val/MAE (Min)'] * (norm_max_corn - data_min_corn) + data_min_corn
+# soybean_df['val/MAE (Min)'] = soybean_df['val/MAE (Min)'] * (norm_max_soybean - data_min_soybean) + data_min_soybean
 
 # Create figure with 2 subplots
 fig, axes = plt.subplots(2, 1, figsize=(12, 10))

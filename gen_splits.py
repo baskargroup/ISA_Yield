@@ -96,13 +96,16 @@ def split_and_save(common_files, output_dir):
     total = len(stems)
     train_size = int(0.7 * total)
     val_size = int(0.3 * total)
+    # test_size = total - train_size - val_size
     # Split the lists
     train = stems[:train_size]
     val = stems[train_size:train_size + val_size]
-    test = stems[train_size:train_size + val_size]
+    # test = stems[train_size + val_size:train_size + val_size + test_size]
     val_corn = [f for f in val if 'corn' in f.lower()]
+    # test_corn = [f for f in test if 'corn' in f.lower()]
     train_corn = [f for f in train if 'corn' in f.lower()]
     val_soybean = [f for f in val if 'soybean' in f.lower()]
+    # test_soybean = [f for f in test if 'soybean' in f.lower()]
     train_soybean = [f for f in train if 'soybean' in f.lower()]
     # Year-based splits
     train_2019 = [f for f in stems if f not in files_2019]
@@ -123,8 +126,8 @@ def split_and_save(common_files, output_dir):
     # Save the files
     save_list(train, 'train.txt')
     save_list(val, 'val.txt')
-    save_list(test, 'test.txt')
-    print(f"{output_dir}: Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(test)})")
+    save_list(val, 'test.txt')
+    print(f"{output_dir}: Files saved: train.txt ({len(train)}), val.txt ({len(val)}), test.txt ({len(val)})")
     save_list(train_corn, 'train_corn.txt')
     save_list(train_soybean, 'train_soybean.txt')
     save_list(val_corn, 'val_corn.txt')

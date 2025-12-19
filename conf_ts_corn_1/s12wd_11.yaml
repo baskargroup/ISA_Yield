@@ -168,7 +168,7 @@ lr_scheduler:
   init_args:
     monitor: val/loss
     factor: 0.8
-    patience: 50
+    patience: 25
     min_lr: 0.000001  # class_path: CosineAnnealingLR
   # init_args:
   #   T_max: 5

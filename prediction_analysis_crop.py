@@ -5,9 +5,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import pdb
 # Directory containing prediction CSV files
-predictions_dir = 'predictions/'
+predictions_dir = 'predictions_crop/'
 
 # Get all CSV files in the predictions directory
 csv_files = glob.glob(os.path.join(predictions_dir, '*_DEM_*.csv'))
@@ -21,10 +21,9 @@ for csv_file in csv_files:
     # Extract filename without path and extension
     base_filename = os.path.basename(csv_file)
     file_key = base_filename.replace('.csv', '')
-    
     # Extract time from filename (last part after last underscore)
     try:
-        time_value = int(file_key.split('_')[-1])
+        time_value = int(file_key.split('_')[-2])
     except (ValueError, IndexError):
         print(f"Skipping {base_filename}: Cannot extract time value")
         continue
@@ -91,15 +90,6 @@ results_df_corn = results_df_corn.sort_values('time').reset_index(drop=True)
 
 results_df_soybean = pd.DataFrame(results_soybean)
 results_df_soybean = results_df_soybean.sort_values('time').reset_index(drop=True)
-
-# Denormalize MAE using min-max scaling
-min_corn = 50
-max_corn = 370
-min_soybean = 30
-max_soybean = 150
-
-results_df_corn['mae'] = results_df_corn['mae'] * (max_corn - min_corn) + min_corn
-results_df_soybean['mae'] = results_df_soybean['mae'] * (max_soybean - min_soybean) + min_soybean
 
 print(f"\nProcessed {len(results_df_corn)} corn files and {len(results_df_soybean)} soybean files successfully")
 print("\nCorn Results:")

@@ -36,7 +36,7 @@ echo "Job is starting on `hostname` for s12wd-soybean"
 terratorch fit -c conf_ts_soybean_1/s12wd_9.yaml
 terratorch fit -c conf_ts_soybean_1/s12wd_10.yaml
 terratorch fit -c conf_ts_soybean_1/s12wd_11.yaml
-terratorch fit -c conf_ts_soybean_1/s12wd_12.yaml
+# terratorch fit -c conf_ts_soybean_1/s12wd_12.yaml
 
 echo "Job finished for s12wd-soybean"
 

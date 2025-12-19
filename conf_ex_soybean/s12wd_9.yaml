@@ -49,33 +49,33 @@ data:
       - 2
       - 1
     train_data_root:
-      S2L2A: processed_data_biweek_9/S2L2A     # <-- updated for biweek 9
-      S1RTC: processed_data_biweek_9/S1RTC     # <-- updated for biweek 9
-      DEM: processed_data_biweek_9/DEM         # <-- updated for biweek 9
-      WEATHER: processed_data_biweek_9/WEATHER # <-- updated for biweek 9
-      # MODIS: processed_data_biweek_9/MODIS
-      # SOIL: processed_data_biweek_9/SOIL
-    train_label_data_root: processed_data_biweek_9/yield_geotiffs   # <-- updated for biweek 9
+      S2L2A: processed_biweek_9/S2L2A     # <-- updated for biweek 9
+      S1RTC: processed_biweek_9/S1RTC     # <-- updated for biweek 9
+      DEM: processed_biweek_9/DEM         # <-- updated for biweek 9
+      WEATHER: processed_biweek_9/WEATHER # <-- updated for biweek 9
+      # MODIS: processed_biweek_9/MODIS
+      # SOIL: processed_biweek_9/SOIL
+    train_label_data_root: processed_biweek_9/yield_geotiffs   # <-- updated for biweek 9
     val_data_root:
-      S2L2A: processed_data_biweek_9/S2L2A     # <-- updated for biweek 9
-      S1RTC: processed_data_biweek_9/S1RTC     # <-- updated for biweek 9
-      DEM: processed_data_biweek_9/DEM         # <-- updated for biweek 9
-      WEATHER: processed_data_biweek_9/WEATHER # <-- updated for biweek 9
-      # MODIS: processed_data_biweek_9/MODIS
-      # SOIL: processed_data_biweek_9/SOIL
-    val_label_data_root: processed_data_biweek_9/yield_geotiffs     # <-- updated for biweek 9
+      S2L2A: processed_biweek_9/S2L2A     # <-- updated for biweek 9
+      S1RTC: processed_biweek_9/S1RTC     # <-- updated for biweek 9
+      DEM: processed_biweek_9/DEM         # <-- updated for biweek 9
+      WEATHER: processed_biweek_9/WEATHER # <-- updated for biweek 9
+      # MODIS: processed_biweek_9/MODIS
+      # SOIL: processed_biweek_9/SOIL
+    val_label_data_root: processed_biweek_9/yield_geotiffs     # <-- updated for biweek 9
     test_data_root:
-      S2L2A: processed_data_biweek_9/S2L2A     # <-- updated for biweek 9
-      S1RTC: processed_data_biweek_9/S1RTC     # <-- updated for biweek 9
-      DEM: processed_data_biweek_9/DEM         # <-- updated for biweek 9
-      WEATHER: processed_data_biweek_9/WEATHER # <-- updated for biweek 9
-      # MODIS: processed_data_biweek_9/MODIS
-      # SOIL: processed_data_biweek_9/SOIL
-    test_label_data_root: processed_data_biweek_9/yield_geotiffs    # <-- updated for biweek 9
+      S2L2A: processed_biweek_9/S2L2A     # <-- updated for biweek 9
+      S1RTC: processed_biweek_9/S1RTC     # <-- updated for biweek 9
+      DEM: processed_biweek_9/DEM         # <-- updated for biweek 9
+      WEATHER: processed_biweek_9/WEATHER # <-- updated for biweek 9
+      # MODIS: processed_biweek_9/MODIS
+      # SOIL: processed_biweek_9/SOIL
+    test_label_data_root: processed_biweek_9/yield_geotiffs    # <-- updated for biweek 9
 
-    train_split: processed_data_biweek_9/train_soybean.txt   # <-- updated for biweek 9
-    val_split: processed_data_biweek_9/val_soybean.txt       # <-- updated for biweek 9
-    test_split: processed_data_biweek_9/test_soybean.txt     # <-- updated for biweek 9
+    train_split: processed_biweek_9/train_soybean.txt   # <-- updated for biweek 9
+    val_split: processed_biweek_9/val_soybean.txt       # <-- updated for biweek 9
+    test_split: processed_biweek_9/test_soybean.txt     # <-- updated for biweek 9
     # dataset_bands:
     #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
     #   S1RTC: [1,2]

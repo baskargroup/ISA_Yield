@@ -6,13 +6,18 @@ trainer:
   devices: auto
   num_nodes: 1
   precision: 16-mixed
-  logger: true
+  logger:
+    - class_path: WandbLogger
+      init_args:
+        project: native_soybean
+        name: S12d_11         # <-- updated for biweek 11
+        id: S12d_11           # <-- updated for biweek 11
   callbacks:
     - class_path: EarlyStopping
       init_args:
           monitor: val/loss 
-          patience: 25
-          min_delta: 0.0001
+          patience: 75
+          min_delta: 0.00001
           mode: min
           verbose: true
     - class_path: RichProgressBar
@@ -22,18 +27,17 @@ trainer:
   max_epochs: 1000
   log_every_n_steps: 1
   accumulate_grad_batches: 8
-  default_root_dir: output/S12cd_1
+  default_root_dir: output/S12wd_11   # <-- updated for biweek 11
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
   init_args:
     task: 'regression'
-    batch_size: 5
+    batch_size: 4
     num_workers: 8
     modalities:
       - S2L2A
       - S1RTC
-      - CDL
       - DEM
       # - MODIS
       # - WEATHER
@@ -45,36 +49,33 @@ data:
       - 2
       - 1
     train_data_root:
-      S2L2A: processed_data_biweekly_1/S2L2A
-      S1RTC: processed_data_biweekly_1/S1RTC
-      DEM: processed_data_biweekly_1/DEM
-      CDL: processed_data_biweekly_1/CDL
-      # WEATHER: processed_data_biweekly_1/WEATHER
-      # MODIS: processed_data_biweekly_1/MODIS
-      # SOIL: processed_data_biweekly_1/SOIL
-    train_label_data_root: processed_data_biweekly_1/yield_geotiffs
+      S2L2A: processed_data_biweekly_11/S2L2A     # <-- updated for biweek 11
+      S1RTC: processed_data_biweekly_11/S1RTC     # <-- updated for biweek 11
+      DEM: processed_data_biweekly_11/DEM         # <-- updated for biweek 11
+      # WEATHER: processed_data_biweekly_11/WEATHER # <-- updated for biweek 11
+      # MODIS: processed_data_biweekly_11/MODIS
+      # SOIL: processed_data_biweekly_11/SOIL
+    train_label_data_root: processed_data_biweekly_11/yield_geotiffs   # <-- updated for biweek 11
     val_data_root:
-      S2L2A: processed_data_biweekly_1/S2L2A
-      S1RTC: processed_data_biweekly_1/S1RTC
-      DEM: processed_data_biweekly_1/DEM
-      CDL: processed_data_biweekly_1/CDL
-      # WEATHER: processed_data_biweekly_1/WEATHER
-      # MODIS: processed_data_biweekly_1/MODIS
-      # SOIL: processed_data_biweekly_1/SOIL
-    val_label_data_root: processed_data_biweekly_1/yield_geotiffs
+      S2L2A: processed_data_biweekly_11/S2L2A     # <-- updated for biweek 11
+      S1RTC: processed_data_biweekly_11/S1RTC     # <-- updated for biweek 11
+      DEM: processed_data_biweekly_11/DEM         # <-- updated for biweek 11
+      # WEATHER: processed_data_biweekly_11/WEATHER # <-- updated for biweek 11
+      # MODIS: processed_data_biweekly_11/MODIS
+      # SOIL: processed_data_biweekly_11/SOIL
+    val_label_data_root: processed_data_biweekly_11/yield_geotiffs     # <-- updated for biweek 11
     test_data_root:
-      S2L2A: processed_data_biweekly_1/S2L2A
-      S1RTC: processed_data_biweekly_1/S1RTC
-      DEM: processed_data_biweekly_1/DEM
-      CDL: processed_data_biweekly_1/CDL
-      # WEATHER: processed_data_biweekly_1/WEATHER
-      # MODIS: processed_data_biweekly_1/MODIS
-      # SOIL: processed_data_biweekly_1/SOIL
-    test_label_data_root: processed_data_biweekly_1/yield_geotiffs
+      S2L2A: processed_data_biweekly_11/S2L2A     # <-- updated for biweek 11
+      S1RTC: processed_data_biweekly_11/S1RTC     # <-- updated for biweek 11
+      DEM: processed_data_biweekly_11/DEM         # <-- updated for biweek 11
+      # WEATHER: processed_data_biweekly_11/WEATHER # <-- updated for biweek 11
+      # MODIS: processed_data_biweekly_11/MODIS
+      # SOIL: processed_data_biweekly_11/SOIL
+    test_label_data_root: processed_data_biweekly_11/yield_geotiffs    # <-- updated for biweek 11
 
-    train_split: processed_data_biweekly_1/train.txt
-    val_split: processed_data_biweekly_1/val.txt
-    test_split: processed_data_biweekly_1/test.txt
+    train_split: processed_data_biweekly_11/train_soybean.txt   # <-- updated for biweek 11
+    val_split: processed_data_biweekly_11/val_soybean.txt       # <-- updated for biweek 11
+    test_split: processed_data_biweekly_11/soybean_2024.txt     # <-- updated for biweek 11
     # dataset_bands:
     #   S2L2A: [1,2,3,4,5,6,7,8,9,10,11,12]
     #   S1RTC: [1,2]
@@ -100,25 +101,20 @@ data:
     # TerraMind standardization values
     means:
       S2L1C: [2357.089, 2137.385, 2018.788, 2082.986, 2295.651, 2854.537, 3122.849, 3040.560, 3306.481, 1473.847, 506.070, 2472.825, 1838.929]
-      S2L2A: [647.300, 706.631, 859.224, 867.749, 1158.589, 1943.776, 2297.061, 2369.876, 2465.203, 2527.470, 1992.562, 1409.875]
-      S1GRD: [0.136, 0.032]
-      S1RTC: [-10.930, -17.329]
+      S2L2A: [1390.458, 1503.317, 1718.197, 1853.910, 2199.100, 2779.975, 2987.011, 3083.234, 3132.220, 3162.988, 2424.884, 1857.648]
+      S1GRD: [-12.599, -20.293]
+      S1RTC: [-10.93, -17.329]
       RGB: [87.271, 80.931, 66.667]
-      DEM: [261.693]
-      MODIS: [854.473, 3450.634, 455.066, 826.045, 3500.701, 2749.189, 1646.328]
-      SOIL: [164.401, 233.710, 280.134, 0.668, 0.648, 230.887, 13863.224, 14870.775, 87.595, 0.566]
-      WEATHER: [49565.363, 3.569, 372.732, 0.220, 25.605, 13.400, 1624.082]
+      DEM: [670.665]
 
     stds:
-      S2L1C: [1624.683, 1675.806, 1557.708, 1833.702, 1823.738, 1733.977, 1732.131, 1679.732, 1727.260, 1024.687, 442.165, 1331.411, 1160.419]
-      S2L2A: [522.329, 529.943, 563.361, 617.308, 713.200, 1032.108, 1233.406, 1272.939, 1313.408, 1465.657, 1102.952, 875.643]
-      S1GRD: [0.161, 0.028]
+      S2L1C: [1624.683, 1675.806, 1557.708, 1833.702, 1823.738, 1733.977, 1732.131, 1679.732, 1727.26, 1024.687, 442.165, 1331.411, 1160.419]
+      S2L2A: [2106.761, 2141.107, 2038.973, 2134.138, 2085.321, 1889.926, 1820.257, 1871.918, 1753.829, 1797.379, 1434.261, 1334.311]
+      S1GRD: [5.195, 5.890]
       S1RTC: [4.391, 4.459]
       RGB: [58.767, 47.663, 42.631]
-      DEM: [68.783]
-      MODIS: [274.742, 532.366, 167.646, 195.329, 390.690, 464.115, 463.360]
-      SOIL: [42.146, 66.719, 91.207, 0.235, 0.240, 76.342, 12903.941, 14781.083, 14.254, 0.241]
-      WEATHER: [293.616, 2.478, 23.879, 0.407, 1.332, 1.199, 130.093]
+      DEM: [951.272]
+
 
       
     # train_transform:
@@ -135,7 +131,6 @@ model:
       backbone_modalities:
         - S2L2A
         - S1RTC
-        - {"CDL": 1}  # Add new modality and define number of channels
         - DEM
         # - {"MODIS": 7}  # Add new modality and define number of channels
         # - {"SOIL": 10}  # Add new modality and define number of channels
@@ -156,7 +151,7 @@ model:
       head_dropout: 0.1
     loss: mse
     ignore_index: -1
-    freeze_backbone: false
+    freeze_backbone: true
     freeze_decoder: false
 
 optimizer:
@@ -168,10 +163,8 @@ lr_scheduler:
   init_args:
     monitor: val/loss
     factor: 0.8
-    patience: 50
-    min_lr: 0.000001
-  
-  # class_path: CosineAnnealingLR
+    patience: 25
+    min_lr: 0.000001  # class_path: CosineAnnealingLR
   # init_args:
   #   T_max: 5
   #   eta_min: 0.000001

@@ -10,11 +10,11 @@
 #SBATCH --mem=128G                   # memory per node (adjust if needed)
 #SBATCH --partition=nova             # partition name
 #SBATCH --account=mech-ai
-#SBATCH --job-name="biweek_processing"
+#SBATCH --job-name="Test_Nova_Finetune"
 #SBATCH --mail-user=aapowadi@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output="Test%j.out"
-#SBATCH --error="Test%j.err"
+#SBATCH --output="Nova_Test%j.out"
+#SBATCH --error="Nova_Test%j.err"
 
 # Process soybean models
 for i in {1..12}; do
