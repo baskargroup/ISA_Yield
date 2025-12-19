@@ -277,6 +277,11 @@ def create_metrics_bar_plots(all_metrics, output_dir='plots'):
                 modal_code += 's'
             short_labels.append(modal_code)
         
+        # Sort by R² (descending)
+        sorted_indices = np.argsort(r2_values)[::-1]
+        short_labels_r2 = [short_labels[i] for i in sorted_indices]
+        r2_values_sorted = [r2_values[i] for i in sorted_indices]
+        
         # Color scheme
         color = '#E69F00' if crop_name == 'Corn' else '#009E73'
         
@@ -284,10 +289,10 @@ def create_metrics_bar_plots(all_metrics, output_dir='plots'):
         fig, ax = plt.subplots(figsize=(7, 4))
         
         x_pos = np.arange(len(model_names))
-        bars = ax.bar(x_pos, r2_values, color=color, edgecolor='black', linewidth=1, alpha=0.8)
+        bars = ax.bar(x_pos, r2_values_sorted, color=color, edgecolor='black', linewidth=1, alpha=0.8)
         
         # Add value labels on bars
-        for i, (bar, val) in enumerate(zip(bars, r2_values)):
+        for i, (bar, val) in enumerate(zip(bars, r2_values_sorted)):
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
                     f'{val:.3f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
@@ -296,8 +301,8 @@ def create_metrics_bar_plots(all_metrics, output_dir='plots'):
         ax.set_ylabel('R² Score', fontweight='bold', fontsize=11)
         ax.set_title(f'R² Performance Comparison - {crop_name}', fontweight='bold', fontsize=12, pad=15)
         ax.set_xticks(x_pos)
-        ax.set_xticklabels(short_labels, fontsize=9)
-        ax.set_ylim(0, max(r2_values) * 1.15)
+        ax.set_xticklabels(short_labels_r2, fontsize=9)
+        ax.set_ylim(0, max(r2_values_sorted) * 1.15)
         ax.grid(axis='y', alpha=0.3, linestyle='--', linewidth=0.5)
         ax.axhline(y=0, color='black', linewidth=0.8)
         
@@ -307,23 +312,28 @@ def create_metrics_bar_plots(all_metrics, output_dir='plots'):
         plt.close()
         print(f'Saved R² comparison plot for {crop_name}: {output_path}')
         
+        # Sort by MAE (ascending)
+        sorted_indices_mae = np.argsort(mae_values)
+        short_labels_mae = [short_labels[i] for i in sorted_indices_mae]
+        mae_values_sorted = [mae_values[i] for i in sorted_indices_mae]
+        
         # Create MAE bar plot
         fig, ax = plt.subplots(figsize=(7, 4))
         
-        bars = ax.bar(x_pos, mae_values, color=color, edgecolor='black', linewidth=1, alpha=0.8)
+        bars = ax.bar(x_pos, mae_values_sorted, color=color, edgecolor='black', linewidth=1, alpha=0.8)
         
         # Add value labels on bars
-        for i, (bar, val) in enumerate(zip(bars, mae_values)):
+        for i, (bar, val) in enumerate(zip(bars, mae_values_sorted)):
             height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height + max(mae_values) * 0.01,
+            ax.text(bar.get_x() + bar.get_width()/2., height + max(mae_values_sorted) * 0.01,
                     f'{val:.2f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
         
         ax.set_xlabel('Model Configuration', fontweight='bold', fontsize=11)
         ax.set_ylabel('MAE (bu/acre)', fontweight='bold', fontsize=11)
         ax.set_title(f'MAE Performance Comparison - {crop_name}', fontweight='bold', fontsize=12, pad=15)
         ax.set_xticks(x_pos)
-        ax.set_xticklabels(short_labels, fontsize=9)
-        ax.set_ylim(0, max(mae_values) * 1.15)
+        ax.set_xticklabels(short_labels_mae, fontsize=9)
+        ax.set_ylim(0, max(mae_values_sorted) * 1.15)
         ax.grid(axis='y', alpha=0.3, linestyle='--', linewidth=0.5)
         ax.axhline(y=0, color='black', linewidth=0.8)
         
@@ -332,6 +342,130 @@ def create_metrics_bar_plots(all_metrics, output_dir='plots'):
         plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
         print(f'Saved MAE comparison plot for {crop_name}: {output_path}')
+
+def create_overall_metrics_bar_plots(csv_files, output_dir='plots'):
+    """Create bar plots for R² and MAE across all models, combining all data regardless of crop."""
+    
+    model_metrics = {}
+    
+    # Process each CSV file and calculate overall metrics per model
+    for csv_file in csv_files:
+        # Read data
+        df = pd.read_csv(csv_file)
+        y_true = df['YieldGT'].values
+        y_pred = df['Prediction'].values
+        
+        # Extract model configuration from filename
+        filename = Path(csv_file).stem
+        
+        # Extract modal code
+        modal_code = 'S12'
+        if 'CDL' in filename:
+            modal_code += 'c'
+        if 'DEM' in filename:
+            modal_code += 'd'
+        if 'WEATHER' in filename:
+            modal_code += 'w'
+        if 'SOIL' in filename:
+            modal_code += 's'
+        
+        # Store data for this model
+        if modal_code not in model_metrics:
+            model_metrics[modal_code] = {'y_true': [], 'y_pred': []}
+        
+        model_metrics[modal_code]['y_true'].extend(y_true)
+        model_metrics[modal_code]['y_pred'].extend(y_pred)
+    
+    # Calculate metrics for each model across all crops
+    model_names = []
+    r2_values = []
+    mae_values = []
+    
+    for model_code in sorted(model_metrics.keys()):
+        y_true = np.array(model_metrics[model_code]['y_true'])
+        y_pred = np.array(model_metrics[model_code]['y_pred'])
+        
+        r2 = r2_score(y_true, y_pred)
+        mae = mean_absolute_error(y_true, y_pred)
+        
+        model_names.append(model_code)
+        r2_values.append(r2)
+        mae_values.append(mae)
+    
+    # Sort by R² (descending)
+    sorted_indices = np.argsort(r2_values)[::-1]
+    model_names_r2 = [model_names[i] for i in sorted_indices]
+    r2_values_sorted = [r2_values[i] for i in sorted_indices]
+    
+    # Create R² bar plot
+    fig, ax = plt.subplots(figsize=(7, 4))
+    
+    x_pos = np.arange(len(model_names_r2))
+    color = '#56B4E9'  # Light blue for overall
+    bars = ax.bar(x_pos, r2_values_sorted, color=color, edgecolor='black', linewidth=1, alpha=0.8)
+    
+    # Add value labels on bars
+    for i, (bar, val) in enumerate(zip(bars, r2_values_sorted)):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                f'{val:.3f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
+    
+    ax.set_xlabel('Model Configuration', fontweight='bold', fontsize=11)
+    ax.set_ylabel('R² Score', fontweight='bold', fontsize=11)
+    ax.set_title('R² Performance Comparison - Overall (All Crops)', fontweight='bold', fontsize=12, pad=15)
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(model_names_r2, fontsize=9)
+    ax.set_ylim(0, max(r2_values_sorted) * 1.15)
+    ax.grid(axis='y', alpha=0.3, linestyle='--', linewidth=0.5)
+    ax.axhline(y=0, color='black', linewidth=0.8)
+    
+    plt.tight_layout()
+    output_path = os.path.join(output_dir, 'r2_comparison_bar_overall.png')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+    plt.close()
+    print(f'Saved overall R² comparison plot: {output_path}')
+    
+    # Sort by MAE (ascending)
+    sorted_indices_mae = np.argsort(mae_values)
+    model_names_mae = [model_names[i] for i in sorted_indices_mae]
+    mae_values_sorted = [mae_values[i] for i in sorted_indices_mae]
+    
+    # Create MAE bar plot
+    fig, ax = plt.subplots(figsize=(7, 4))
+    
+    x_pos_mae = np.arange(len(model_names_mae))
+    bars = ax.bar(x_pos_mae, mae_values_sorted, color=color, edgecolor='black', linewidth=1, alpha=0.8)
+    
+    # Add value labels on bars
+    for i, (bar, val) in enumerate(zip(bars, mae_values_sorted)):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height + max(mae_values_sorted) * 0.01,
+                f'{val:.2f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
+    
+    ax.set_xlabel('Model Configuration', fontweight='bold', fontsize=11)
+    ax.set_ylabel('MAE (bu/acre)', fontweight='bold', fontsize=11)
+    ax.set_title('MAE Performance Comparison - Overall (All Crops)', fontweight='bold', fontsize=12, pad=15)
+    ax.set_xticks(x_pos_mae)
+    ax.set_xticklabels(model_names_mae, fontsize=9)
+    ax.set_ylim(0, max(mae_values_sorted) * 1.15)
+    ax.grid(axis='y', alpha=0.3, linestyle='--', linewidth=0.5)
+    ax.axhline(y=0, color='black', linewidth=0.8)
+    
+    plt.tight_layout()
+    output_path = os.path.join(output_dir, 'mae_comparison_bar_overall.png')
+    plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+    plt.close()
+    print(f'Saved overall MAE comparison plot: {output_path}')
+    
+    # Save overall metrics to CSV
+    overall_metrics_df = pd.DataFrame({
+        'Model': model_names,
+        'R2': r2_values,
+        'MAE': mae_values
+    })
+    metrics_path = os.path.join(output_dir, 'overall_metrics.csv')
+    overall_metrics_df.to_csv(metrics_path, index=False)
+    print(f'Saved overall metrics: {metrics_path}')
 
 def main():
     # Define predictions directory
@@ -368,6 +502,10 @@ def main():
     print("\n" + "=" * 60)
     print("Creating metrics comparison bar plots...")
     create_metrics_bar_plots(all_metrics)
+    
+    print("\n" + "=" * 60)
+    print("Creating overall metrics bar plots (all crops combined)...")
+    create_overall_metrics_bar_plots(csv_files)
     
     print("\n" + "=" * 60)
     print("All plots generated successfully!")
