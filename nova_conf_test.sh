@@ -21,9 +21,9 @@ for CONFIG_FILE in configs/*.yaml; do
     # Extract the base name (e.g., s12wd_11.yaml -> s12wd_11)
     BASE_NAME=$(basename "$CONFIG_FILE" .yaml)
     
-    # Convert to the checkpoint directory naming convention (e.g., s12wd_11 -> S12wd_11)
-    # Capitalize the first letter
-    CKPT_DIR=$(echo "$BASE_NAME" | sed 's/^./\U&/')
+    # Extract the part after first underscore and capitalize first letter
+    # (e.g., s12wd_11 -> 11 -> 11)
+    CKPT_DIR=$(echo "$BASE_NAME" | cut -d'_' -f2 | sed 's/^./\U&/')
     
     # Look for checkpoint file
     CKPT_FILE=$(find "config_test/${CKPT_DIR}/checkpoints" -name "*.ckpt" -type f 2>/dev/null | head -n 1)
@@ -32,6 +32,6 @@ for CONFIG_FILE in configs/*.yaml; do
         echo "Processing config $BASE_NAME with checkpoint: $CKPT_FILE"
         terratorch test -c "$CONFIG_FILE" --ckpt "$CKPT_FILE"
     else
-        echo "Warning: No checkpoint found for config $BASE_NAME, skipping..."
+        echo "Warning: No checkpoint found for config $CKPT_DIR, skipping..."
     fi
 done

@@ -1,25 +1,37 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from scipy.stats import pearsonr
 from sklearn.metrics import r2_score, mean_absolute_percentage_error, mean_absolute_error
 import os
 from pathlib import Path
 
-# Set publication-quality plot parameters
-plt.rcParams['font.family'] = 'sans-serif'
-plt.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans']
-plt.rcParams['font.size'] = 10
-plt.rcParams['axes.labelsize'] = 11
-plt.rcParams['axes.titlesize'] = 12
-plt.rcParams['xtick.labelsize'] = 10
-plt.rcParams['ytick.labelsize'] = 10
-plt.rcParams['legend.fontsize'] = 9
-plt.rcParams['figure.dpi'] = 300
-plt.rcParams['savefig.dpi'] = 300
-plt.rcParams['savefig.bbox'] = 'tight'
-plt.rcParams['axes.linewidth'] = 1.0
-plt.rcParams['grid.alpha'] = 0.3
+# Set journal-standard matplotlib parameters
+mpl.rcParams['font.family'] = 'sans-serif'
+mpl.rcParams['font.sans-serif'] = ['Arial', 'DejaVu Sans', 'Liberation Sans']
+mpl.rcParams['font.size'] = 9
+mpl.rcParams['axes.labelsize'] = 9
+mpl.rcParams['axes.titlesize'] = 10
+mpl.rcParams['xtick.labelsize'] = 8
+mpl.rcParams['ytick.labelsize'] = 8
+mpl.rcParams['legend.fontsize'] = 8
+mpl.rcParams['figure.titlesize'] = 11
+mpl.rcParams['axes.linewidth'] = 0.8
+mpl.rcParams['grid.linewidth'] = 0.5
+mpl.rcParams['lines.linewidth'] = 1.0
+mpl.rcParams['patch.linewidth'] = 0.5
+mpl.rcParams['xtick.major.width'] = 0.8
+mpl.rcParams['ytick.major.width'] = 0.8
+mpl.rcParams['xtick.major.size'] = 3.5
+mpl.rcParams['ytick.major.size'] = 3.5
+mpl.rcParams['savefig.dpi'] = 600
+mpl.rcParams['savefig.bbox'] = 'tight'
+mpl.rcParams['savefig.pad_inches'] = 0.05
+
+# Journal column widths (in inches)
+SINGLE_COLUMN_WIDTH = 3.5  # ~89mm
+DOUBLE_COLUMN_WIDTH = 7.0  # ~178mm
 
 def calculate_metrics(y_true, y_pred):
     """Calculate various performance metrics."""
@@ -82,8 +94,8 @@ def create_r2_plot(csv_path, output_dir='plots'):
     ax.set_ylim(plot_min, plot_max)
     
     # Labels
-    ax.set_xlabel('Observed Yield (bu/acre)', fontweight='bold')
-    ax.set_ylabel('Predicted Yield (bu/acre)', fontweight='bold')
+    ax.set_xlabel('Observed Yield (bu/acre)')
+    ax.set_ylabel('Predicted Yield (bu/acre)')
     
     # Get filename for title
     filename = Path(csv_path).stem
@@ -97,7 +109,8 @@ def create_r2_plot(csv_path, output_dir='plots'):
     if 'SOIL' in filename:
         modal_code += 's'
     crop = filename.split('_')[-1]
-    model_type = '_'.join(filename.split('_')[:-1])
+    tp= filename.split('_')[-2]
+    # model_type = '_'.join(filename.split('_')[:-2])
     
     # ax.set_title(f'{crop} - {model_type}', fontweight='bold', pad=10)
     
@@ -126,7 +139,7 @@ def create_r2_plot(csv_path, output_dir='plots'):
     
     # Save figure
     os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, f'{modal_code}_{crop}_r2_plot.pdf')
+    output_path = os.path.join(output_dir, f'{modal_code}_{crop}_{tp}_r2_plot.pdf')
     plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
     
@@ -160,7 +173,8 @@ def create_combined_plot(csv_files, output_dir='plots'):
         # Get filename for title
         filename = Path(csv_path).stem
         crop = filename.split('_')[-1]
-        model_type = '_'.join(filename.split('_')[:-1])
+        tp= filename.split('_')[-2]
+        # model_type = '_'.join(filename.split('_')[:-1])
 
         all_metrics[filename] = metrics
         
@@ -189,8 +203,8 @@ def create_combined_plot(csv_files, output_dir='plots'):
         ax.set_ylim(plot_min, plot_max)
         
         # Labels
-        ax.set_xlabel('Observed Yield (bu/acre)', fontweight='bold', fontsize=10)
-        ax.set_ylabel('Predicted Yield (bu/acre)', fontweight='bold', fontsize=10)
+        ax.set_xlabel('Observed Yield (bu/acre)', fontsize=10)
+        ax.set_ylabel('Predicted Yield (bu/acre)', fontsize=10)
         
         # Title with subplot letter
         subplot_letter = chr(97 + idx)  # a, b, c, d
@@ -220,7 +234,7 @@ def create_combined_plot(csv_files, output_dir='plots'):
     
     # Save figure
     os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, 'combined_r2_plots.pdf')
+    output_path = os.path.join(output_dir, f'combined_r2_plots_{tp}.pdf')
     plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
     # plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
@@ -297,8 +311,8 @@ def create_metrics_bar_plots(all_metrics, output_dir='plots'):
             ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
                     f'{val:.3f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
         
-        ax.set_xlabel('Model Configuration', fontweight='bold', fontsize=11)
-        ax.set_ylabel('R² Score', fontweight='bold', fontsize=11)
+        ax.set_xlabel('Model Configuration', fontsize=11)
+        ax.set_ylabel('R² Score', fontsize=11)
         ax.set_title(f'R² Performance Comparison - {crop_name}', fontweight='bold', fontsize=12, pad=15)
         ax.set_xticks(x_pos)
         ax.set_xticklabels(short_labels_r2, fontsize=9)
@@ -328,8 +342,8 @@ def create_metrics_bar_plots(all_metrics, output_dir='plots'):
             ax.text(bar.get_x() + bar.get_width()/2., height + max(mae_values_sorted) * 0.01,
                     f'{val:.2f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
         
-        ax.set_xlabel('Model Configuration', fontweight='bold', fontsize=11)
-        ax.set_ylabel('MAE (bu/acre)', fontweight='bold', fontsize=11)
+        ax.set_xlabel('Model Configuration', fontsize=11)
+        ax.set_ylabel('MAE (bu/acre)', fontsize=11)
         ax.set_title(f'MAE Performance Comparison - {crop_name}', fontweight='bold', fontsize=12, pad=15)
         ax.set_xticks(x_pos)
         ax.set_xticklabels(short_labels_mae, fontsize=9)
@@ -410,8 +424,8 @@ def create_overall_metrics_bar_plots(csv_files, output_dir='plots'):
         ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
                 f'{val:.3f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
     
-    ax.set_xlabel('Model Configuration', fontweight='bold', fontsize=11)
-    ax.set_ylabel('R² Score', fontweight='bold', fontsize=11)
+    ax.set_xlabel('Model Configuration', fontsize=11)
+    ax.set_ylabel('R² Score', fontsize=11)
     ax.set_title('R² Performance Comparison - Overall (All Crops)', fontweight='bold', fontsize=12, pad=15)
     ax.set_xticks(x_pos)
     ax.set_xticklabels(model_names_r2, fontsize=9)
@@ -442,8 +456,8 @@ def create_overall_metrics_bar_plots(csv_files, output_dir='plots'):
         ax.text(bar.get_x() + bar.get_width()/2., height + max(mae_values_sorted) * 0.01,
                 f'{val:.2f}', ha='center', va='bottom', fontsize=9, fontweight='bold')
     
-    ax.set_xlabel('Model Configuration', fontweight='bold', fontsize=11)
-    ax.set_ylabel('MAE (bu/acre)', fontweight='bold', fontsize=11)
+    ax.set_xlabel('Model Configuration', fontsize=11)
+    ax.set_ylabel('MAE (bu/acre)', fontsize=11)
     ax.set_title('MAE Performance Comparison - Overall (All Crops)', fontweight='bold', fontsize=12, pad=15)
     ax.set_xticks(x_pos_mae)
     ax.set_xticklabels(model_names_mae, fontsize=9)
@@ -469,7 +483,7 @@ def create_overall_metrics_bar_plots(csv_files, output_dir='plots'):
 
 def main():
     # Define predictions directory
-    predictions_dir = 'predictions'
+    predictions_dir = 'predictions_crop'
     
     # Find all CSV files
     csv_files = sorted(Path(predictions_dir).glob('*.csv'))

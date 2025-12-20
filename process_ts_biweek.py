@@ -199,7 +199,8 @@ def aggregate_biweekly(data, biweekly_indices):
             elif next_ is not None:
                 fill = next_[None]
             else:
-                return None
+                # return None
+                fill = np.zeros((1, C, H, W), dtype=data.dtype) # Fill with Zeros if no valid data at all
             biweekly_data.append(fill)
     return np.concatenate(biweekly_data, axis=0)
 
@@ -434,10 +435,12 @@ def process_single_file(file, dest_subfolder_paths, modality_name, is_reference,
             # Save with .npy extension in destination subfolder
             if is_reference:
                 save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
-                # Min-max normalization
-                data_min = 50.0 if 'corn' in file.lower() else 30.0
-                data_max = norm_max_corn if 'corn' in file.lower() else norm_max_soybean
-                normalized_data = (data_to_save - data_min) / (data_max - data_min)
+                # # Min-max normalization
+                # data_min = 50.0 if 'corn' in file.lower() else 30.0
+                # data_max = norm_max_corn if 'corn' in file.lower() else norm_max_soybean
+                # normalized_data = (data_to_save - data_min) / (data_max - data_min)
+                normalized_data = data_to_save/370.0  # Normalize by max corn value
+                normalized_data[normalized_data > 1] = 1
                 normalized_data[normalized_data < 0] = -1
                 # Ensure float32 before saving
                 normalized_data = normalized_data.astype(np.float32)

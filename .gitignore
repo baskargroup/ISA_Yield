@@ -4,4 +4,7 @@
 *.zip
 *.tif
 *.log
-./*.yaml
+*.yaml
+*.err
+*.out
+*.pdf

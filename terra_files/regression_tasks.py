@@ -578,12 +578,7 @@ class PixelwiseRegressionTask(TerraTorchTask):
         data_min_soybean = 30.0
 
         # Create publication-quality R-square plot
-        plt.figure(figsize=(8, 8), dpi=300)
-
-        # Set style for publication
-        sns.set_style("white")
-        plt.rcParams['font.family'] = 'serif'
-        plt.rcParams['font.size'] = 12
+        plt.figure(figsize=(8, 8))
 
         # Separate corn and soybean data
         df_corn = df_agg[df_agg['Filename'].str.lower().str.contains('corn')]
