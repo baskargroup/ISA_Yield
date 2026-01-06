@@ -8,3 +8,6 @@
 *.err
 *.out
 *.pdf
+*.npy
+chloe_dataset/
+
