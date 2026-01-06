@@ -88,15 +88,16 @@ def tile_to_min_size(data, min_size=224, is_reference=False):
 
     return tiled
 
-def get_monthly_indices(file, used_dates_dict):
+def get_monthly_indices(file, used_dates_dict, modality_name):
     """
     For a given file, return a list of lists, each containing indices of dates for each month (April to September).
     """
     base = os.path.basename(file)
     # Remove .npy or .tif.npy extension for matching
     base = base.split('.')[0] + '.tif' 
-    # Get available dates for this file
-    dates = used_dates_dict.get(base, [])
+    # Get modality-specific dates
+    file_dates = used_dates_dict.get(base, {})
+    dates = file_dates.get(modality_name.upper(), [])
     # Group indices by month (April=4, ..., September=9)
     month_to_indices = defaultdict(list)
     for idx, d in enumerate(dates):
@@ -124,7 +125,7 @@ def aggregate_monthly(data, monthly_indices):
             monthly_data.append(np.zeros((1, C, H, W), dtype=data.dtype))
     return np.concatenate(monthly_data, axis=0)
 
-def get_weekly_indices(file, used_dates_dict):
+def get_weekly_indices(file, used_dates_dict, modality_name):
     """
     For a given file, return a list of lists, each containing indices of dates for each week.
     April 1 to September 30 = ~26 weeks → use 24 weeks
@@ -132,7 +133,9 @@ def get_weekly_indices(file, used_dates_dict):
     """
     base = os.path.basename(file)
     base = base.split('.')[0] + '.tif'
-    dates = used_dates_dict.get(base, [])
+    # Get modality-specific dates
+    file_dates = used_dates_dict.get(base, {})
+    dates = file_dates.get(modality_name.upper(), [])
     
     # Define 24 weekly bins
     weekly_indices = [[] for _ in range(24)]
@@ -400,7 +403,7 @@ def process_single_file(file, dest_subfolder_paths, modality_name, is_reference,
                 data = 10 * np.log10(np.clip(data, a_min=EPSILON, a_max=None))
             # Only aggregate if not static modality - always aggregate all 24 weeks
             if used_dates_dict is not None and modality_name not in static_modalities:
-                weekly_indices, dates = get_weekly_indices(file, used_dates_dict)
+                weekly_indices, dates = get_weekly_indices(file, used_dates_dict, modality_name)
                 data = aggregate_weekly(data, weekly_indices)
                 if data is None:
                     print(f"Warning: {file} could not be aggregated due to lack of valid data. Skipping.")
@@ -507,27 +510,52 @@ def process_subfolder(subfolder_path, dest_subfolder_paths, ref_dims=None, is_re
 
 def parse_used_dates_log(log_path):
     """
-    Parse processing_log.txt and return a dict: {filename: [date1, date2, ...]}
-    Format: "ST2021IANE044_Corn.tif: 24 dates (target: 24) - 2021-04-01,2021-05-06,..."
+    Parse dates_log.txt and return a nested dict: {filename: {modality: [date1, date2, ...]}}
+    Format:
+    ======================================================================
+    ST2021IA0013_Corn.tif (Field: ST2021IA0013, Year: 2021)
+      S2L2A: 15 dates
+        2021-04-15, 2021-05-01, ...
+      S1RTC: 20 dates
+        2021-04-10, 2021-04-25, ...
     """
     used_dates_dict = {}
+    current_file = None
+    current_modality = None
+    
     with open(log_path, "r") as f:
         for line in f:
-            if ':' not in line:
+            line = line.rstrip()
+            
+            # Skip separator lines
+            if line.startswith('==='):
                 continue
-            # Split on first colon
-            fname, rest = line.strip().split(':', 1)
             
-            # Extract dates part (after ' - ')
-            if ' - ' in rest:
-                dates_str = rest.split(' - ', 1)[1]
-            else:
-                dates_str = rest
+            # Check if this is a file header line
+            if line and not line.startswith(' '):
+                # Extract filename from "ST2021IA0013_Corn.tif (Field: ..."
+                if '(' in line:
+                    current_file = line.split('(')[0].strip()
+                    used_dates_dict[current_file] = {}
             
-            # Filter out non-date strings (must have exactly 2 dashes: YYYY-MM-DD)
-            dates = [d.strip() for d in dates_str.split(',') 
-                     if d.strip() and d.strip().count('-') == 2]
-            used_dates_dict[fname] = dates
+            # Check if this is a modality line (starts with 2 spaces)
+            elif line.startswith('  ') and ':' in line and 'dates' in line:
+                # Extract modality name from "  S2L2A: 15 dates"
+                modality_line = line.strip()
+                if ':' in modality_line:
+                    current_modality = modality_line.split(':')[0].strip()
+            
+            # Check if this is a dates line (starts with 4+ spaces and contains dates)
+            elif line.startswith('    ') and current_file and current_modality:
+                # Parse dates from "    2021-04-15, 2021-05-01, ..."
+                dates_str = line.strip()
+                # Filter out non-date strings (must have exactly 2 dashes: YYYY-MM-DD)
+                dates = [d.strip() for d in dates_str.split(',') 
+                         if d.strip() and d.strip().count('-') == 2]
+                if dates:
+                    used_dates_dict[current_file][current_modality] = dates
+                current_modality = None  # Reset for next modality
+    
     return used_dates_dict
 
 def process_root_folder(root_path, dest_root_path, used_dates_dict=None, tsave=24, all=True, num_workers=None, fill_zeros=False, interp_method='polynomial'):
@@ -620,7 +648,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # ✅ modify
-    log_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/chloe_dataset/processing_log.txt'
+    log_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/chloe_dataset/dates_log.txt'
     root_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/chloe_dataset'
     
     used_dates_dict = parse_used_dates_log(log_path)
