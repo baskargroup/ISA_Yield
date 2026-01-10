@@ -1,6 +1,6 @@
 # Change Log
 
-## Modified Files (3 files)
+## ** [Jan 2] Modified Files (3 files) by Anirudha **
 
 ### 1. `generate_data_timeseries_new_chloe.py`
 **Purpose:** Enhanced spatial alignment and resampling for geospatial data processing
@@ -90,5 +90,16 @@ These changes implement a **unified spatial harmonization and multi-modal tempor
 ---
 
 **Date:** January 6, 2026
+**Branch:** (current)
+**Status:** Ready for commit
+
+
+
+## ** [Jan 8] Modified Files by Chloe **
+
+### 1. `generate_data_timeseries_new_chloe.py`
+**Purpose:** Enhanced spatial alignment and resampling for geospatial data processing
+
+**Date:** January 8, 2026
 **Branch:** (current)
 **Status:** Ready for commit

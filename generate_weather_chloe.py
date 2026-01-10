@@ -86,9 +86,9 @@ def process_weather_field(weather_1km_file, yield_file, output_file):
 
 # ========== Batch Processing ==========
 
-weather_1km_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/Weather_10m'
-yield_dir = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/yld_proc/unprocessed_data/yield_geotiffs'
-output_dir = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/yld_proc/unprocessed_data/weather_processed_10m'
+weather_1km_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/Weather_1km'
+yield_dir = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/yld_proc/unprocessed_data/yield_geotiffs'
+output_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/Weather_processed_10m'
 
 os.makedirs(output_dir, exist_ok=True)
 

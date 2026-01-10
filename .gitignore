@@ -10,4 +10,5 @@
 *.pdf
 *.npy
 chloe_dataset/
-
+processed_data_weekly_*/
+yld_proc/raw_yield/

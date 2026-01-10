@@ -192,7 +192,7 @@ def aggregate_weekly(data, weekly_indices):
     for i in range(len(weekly_indices)):
         if valid_means[i] is not None:
             weekly_data.append(valid_means[i][None])
-        else:
+        else: # impute here ! - chloe
             # Find nearest previous valid week
             prev = None
             for j in range(i-1, -1, -1):
@@ -396,11 +396,11 @@ def process_single_file(file, dest_subfolder_paths, modality_name, is_reference,
                 C, H, W = data.shape
         else:
             data = np.load(file)
-            if 's1rtc' in modality_name.lower():
-                # Define a small positive epsilon value to avoid log(0) or log(-)
-                EPSILON = 1e-5
-                # Clip the array to ensure all values are at least EPSILON, then apply log10
-                data = 10 * np.log10(np.clip(data, a_min=EPSILON, a_max=None))
+            # if 's1rtc' in modality_name.lower():
+            #     # Define a small positive epsilon value to avoid log(0) or log(-)
+            #     EPSILON = 1e-5
+            #     # Clip the array to ensure all values are at least EPSILON, then apply log10
+            #     data = 10 * np.log10(np.clip(data, a_min=EPSILON, a_max=None))
             # Only aggregate if not static modality - always aggregate all 24 weeks
             if used_dates_dict is not None and modality_name not in static_modalities:
                 weekly_indices, dates = get_weekly_indices(file, used_dates_dict, modality_name)
@@ -429,8 +429,9 @@ def process_single_file(file, dest_subfolder_paths, modality_name, is_reference,
         
         # Process non-reference data (apply cleaning and interpolation once on full 24 weeks)
         if not is_reference:
-            if modality_name.lower() == 's2l2a':
+            if modality_name.lower() == 's2l2a': 
                 data[data < 0] = 0
+                data = data*10000
             elif modality_name.lower() == 'soil':
                 data[data < 0] = 0
             if modality_name.lower() not in static_modalities:
@@ -648,8 +649,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # ✅ modify
-    log_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/chloe_dataset/dates_log.txt'
-    root_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/chloe_dataset'
+    log_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/chloe_dataset/dates_log.txt'
+    root_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/chloe_dataset'
     
     used_dates_dict = parse_used_dates_log(log_path)
     dst_folder = f'processed_data_weekly_{args.ts}'

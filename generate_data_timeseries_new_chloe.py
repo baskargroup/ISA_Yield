@@ -16,12 +16,12 @@ soil_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/Soil_
 s2_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/S2_10m'
 s1_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/S1_10m'
 weather_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/Weather_processed_10m'  
-yield_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/yld_proc/unprocessed_data/yield_geotiffs'
+yield_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/yld_proc/unprocessed_data/yield_geotiffs'
 
-output_dir = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/chloe_dataset'
+output_dir = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/chloe_dataset'
 
 # Modalities
-modalities = ['DEM', 'SOIL', 'S2L2A', 'S1RTC', 'WEATHER']
+modalities = ['DEM', 'SOIL', 'S2L2A', 'S1GRD', 'WEATHER']
 
 # Ensure output directories exist
 for m in modalities:
@@ -74,12 +74,13 @@ def resample_to_reference(src_data, src_transform, src_crs, ref_transform, ref_c
         print(f"    ❌ Resampling error: {e}")
         return None
 
-def load_static_data(field_id, data_dir, pattern_suffix, ref_transform, ref_crs, ref_shape, repeat_times=24):
+def load_static_data(field_id, data_dir, pattern_suffix, ref_transform, ref_crs, ref_shape, repeat_times=24, band_indices=None):
     """
     Load static data, align to reference grid, and repeat for temporal dimension.
     
-    Returns:
-        numpy array (repeat_times, bands, H, W)
+    Args:
+        ...
+        band_indices: Optional list of band indices to load (e.g., [0] for first band)
     """
     try:
         file_path = os.path.join(data_dir, f'{field_id}{pattern_suffix}')
@@ -89,7 +90,12 @@ def load_static_data(field_id, data_dir, pattern_suffix, ref_transform, ref_crs,
             return None
         
         with rasterio.open(file_path) as src:
-            src_data = src.read()  # (bands, H, W)
+            # ✅ Band selection
+            if band_indices is not None:
+                src_data = src.read([b+1 for b in band_indices])  # rasterio is 1-indexed
+            else:
+                src_data = src.read()
+            
             src_transform = src.transform
             src_crs = src.crs
         
@@ -102,9 +108,8 @@ def load_static_data(field_id, data_dir, pattern_suffix, ref_transform, ref_crs,
         if aligned_data is None:
             return None
         
-        # ✅ Repeat for temporal dimension
+        # Repeat for temporal dimension
         repeated = np.stack([aligned_data for _ in range(repeat_times)], axis=0)
-        # Shape: (repeat_times, bands, H, W)
         
         return repeated
         
@@ -222,12 +227,19 @@ def load_dynamic_data_with_dates(field_id, data_dir, selected_dates, pattern_suf
         for date in selected_dates:
             # Construct filename
             if pattern_suffix == '.tif':
-                # S1: ST2021IA0013_2021-04-15.tif
+                # S1: check 2 type of S1 file name
                 filename = f'{field_id}_{date}.tif'
+                file_path = os.path.join(data_dir, filename)
+                
+                # check duplicate pattern
+                if not os.path.exists(file_path):
+                    filename = f'{field_id}_{field_id}_{date}.tif'
+                    file_path = os.path.join(data_dir, filename)
             else:
                 # S2: ST2021IA0013_2021-04-15_S2.tif
                 # Weather: ST2021IA0013_2021-04-15_Daymet.tif
                 filename = f'{field_id}_{date}{pattern_suffix}'
+                file_path = os.path.join(data_dir, filename)
             
             file_path = os.path.join(data_dir, filename)
             
@@ -312,20 +324,21 @@ with open(log_file, "w") as logf, open(dates_log_file, "w") as datesf:
                 continue
         dynamic_dates['S2L2A'] = sorted(s2_dates)
         
-        # S1RTC dates
-        s1_pattern = f'{field_id}_{year}-*.tif'
-        s1_files = glob.glob(os.path.join(s1_dir, s1_pattern))
+        # S1GRD dates
+        s1_pattern1 = f'{field_id}_{year}-*.tif'
+        s1_pattern2 = f'{field_id}_{field_id}_{year}-*.tif' # add exceptional case
+        s1_files = glob.glob(os.path.join(s1_dir, s1_pattern1)) + glob.glob(os.path.join(s1_dir, s1_pattern2))
         s1_dates = []
         for f in s1_files:
             filename = os.path.basename(f)
-            date_str = filename.split('_')[1].replace('.tif', '')
+            date_str = filename.replace('.tif', '').split('_')[-1]
             try:
                 month = int(date_str.split('-')[1])
                 if 4 <= month <= 9:
                     s1_dates.append(date_str)
             except:
                 continue
-        dynamic_dates['S1RTC'] = sorted(s1_dates)
+        dynamic_dates['S1GRD'] = sorted(s1_dates)
         
         # WEATHER dates
         weather_pattern = f'{field_id}_{year}-*_Daymet.tif'
@@ -363,12 +376,18 @@ with open(log_file, "w") as logf, open(dates_log_file, "w") as datesf:
         max_dates = max(len(dates) for dates in dynamic_dates.values() if len(dates) > 0)
         repeat_times = max_dates if max_dates > 0 else 1
         
-        print(f"\n  [DEM] (repeating {repeat_times} times to match dynamic data)")
-        dem_data = load_static_data(field_id, dem_dir, '_DEM_10m.tif', ref_transform, ref_crs, ref_shape, repeat_times=repeat_times)
+        # ✅ DEM - pick 1st !
+        print(f"\n  [DEM] (repeating {repeat_times} times, band 0 only)")
+        dem_data = load_static_data(
+            field_id, dem_dir, '_DEM_10m.tif', 
+            ref_transform, ref_crs, ref_shape, 
+            repeat_times=repeat_times,
+            band_indices=[0]  # ✅ 첫 번째 band만!
+        )
         if dem_data is not None:
             output_path = os.path.join(output_dir, 'DEM', base_name.replace('.tif', '.npy'))
             np.save(output_path, dem_data, allow_pickle=False)
-            print(f"    ✅ Saved: {dem_data.shape}")
+            print(f"    ✅ Saved: {dem_data.shape}")  # (repeat_times, 1, H, W)
         
         print(f"\n  [SOIL] (repeating {repeat_times} times to match dynamic data)")
         soil_data = load_static_data(field_id, soil_dir, '_Static_Soil_gNATSGO.tif', ref_transform, ref_crs, ref_shape, repeat_times=repeat_times)
@@ -386,10 +405,10 @@ with open(log_file, "w") as logf, open(dates_log_file, "w") as datesf:
             np.save(output_path, s2_data, allow_pickle=False)
             print(f"    ✅ Saved: {s2_data.shape}")
         
-        print(f"\n  [S1RTC] (loading ALL {len(dynamic_dates['S1RTC'])} dates)")
-        s1_data = load_dynamic_data_with_dates(field_id, s1_dir, dynamic_dates['S1RTC'], '.tif', ref_transform, ref_crs, ref_shape)
+        print(f"\n  [S1GRD] (loading ALL {len(dynamic_dates['S1GRD'])} dates)")
+        s1_data = load_dynamic_data_with_dates(field_id, s1_dir, dynamic_dates['S1GRD'], '.tif', ref_transform, ref_crs, ref_shape)
         if s1_data is not None:
-            output_path = os.path.join(output_dir, 'S1RTC', base_name.replace('.tif', '.npy'))
+            output_path = os.path.join(output_dir, 'S1GRD', base_name.replace('.tif', '.npy'))
             np.save(output_path, s1_data, allow_pickle=False)
             print(f"    ✅ Saved: {s1_data.shape}")
         
@@ -401,7 +420,7 @@ with open(log_file, "w") as logf, open(dates_log_file, "w") as datesf:
             print(f"    ✅ Saved: {weather_data.shape}")
         
         # Log
-        logf.write(f"{base_name}: S2L2A={len(dynamic_dates['S2L2A'])}, S1RTC={len(dynamic_dates['S1RTC'])}, WEATHER={len(dynamic_dates['WEATHER'])}\n")
+        logf.write(f"{base_name}: S2L2A={len(dynamic_dates['S2L2A'])}, S1GRD={len(dynamic_dates['S1GRD'])}, WEATHER={len(dynamic_dates['WEATHER'])}\n")
         
         gc.collect()
 
