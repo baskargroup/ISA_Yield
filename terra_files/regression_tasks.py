@@ -457,7 +457,7 @@ class PixelwiseRegressionTask(TerraTorchTask):
             # x = aggregate_modalities_mode_nxn(x, block=block)
             y = aggregate_modalities_mode_nxn(y, block=block)
         if self.timesteps_used == 0:
-            self.timesteps_used = x['S1RTC'].shape[2]
+            self.timesteps_used = x['S1GRD'].shape[2]
         other_keys = batch.keys() - {"image", "mask", "filename"}
         rest = {k: batch[k] for k in other_keys}
         model_output: ModelOutput = self(x, **rest)
@@ -502,7 +502,7 @@ class PixelwiseRegressionTask(TerraTorchTask):
         x = batch["image"]
         y = batch["mask"]
         if self.timesteps_used == 0:
-            self.timesteps_used = x['S1RTC'].shape[2]
+            self.timesteps_used = x['S1GRD'].shape[2]
         if aggr:
             # x = aggregate_modalities_mode_nxn(x, block=block)
             y = aggregate_modalities_mode_nxn(y, block=block)

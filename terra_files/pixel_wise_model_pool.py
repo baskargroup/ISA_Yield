@@ -145,7 +145,7 @@ class PixelWiseModel(Model, SegmentationModel):
             # for backwards compatibility, if this is defined in the encoder, use it
             prepare = getattr(self.encoder, "prepare_features_for_image_model", lambda x: x)
         features = prepare(output)
-        pdb.set_trace()
+        # pdb.set_trace()
         # Determine t and k
         t = x['S2L2A'].shape[2]
         k = len(x.keys())

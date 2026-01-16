@@ -151,7 +151,8 @@ class PixelWiseModel(Model, SegmentationModel):
             aux_outputs[name] = aux_output
 
 
-        return ModelOutput(output=mask, auxiliary_heads=aux_outputs), features
+        # return ModelOutput(output=mask, auxiliary_heads=aux_outputs), features
+        return ModelOutput(output=mask, auxiliary_heads=aux_outputs) # Chloe
 
     def _get_head(self, task: str, input_embed_dim: int, head_kwargs):
         if task == "segmentation":

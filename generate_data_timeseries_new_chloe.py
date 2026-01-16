@@ -11,14 +11,14 @@ ext = "IA"
 years = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
 
 # Base directories 
-dem_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/Elevation_10m'  
-soil_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/Soil_10m'  
-s2_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/S2_10m'
-s1_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/S1_10m'
-weather_dir = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/Weather_processed_10m'  
-yield_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/yld_proc/unprocessed_data/yield_geotiffs'
+dem_dir = '/scratch/bepk/bkim2/geospatial-data/iowa-soybean-association/Elevation_10m'  
+soil_dir = '/scratch/bepk/bkim2/geospatial-data/iowa-soybean-association/Soil_10m'  
+s2_dir = '/scratch/bepk/bkim2/geospatial-data/iowa-soybean-association/S2_10m'
+s1_dir = '/scratch/bepk/bkim2/geospatial-data/iowa-soybean-association/S1_10m'
+weather_dir = '/scratch/bepk/bkim2/geospatial-data/iowa-soybean-association/Weather_processed_10m'  
+yield_path = '/scratch/bepk/bkim2/ISA_Yield/yld_proc/unprocessed_data/yield_geotiffs'
 
-output_dir = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/chloe_dataset'
+output_dir = '/scratch/bepk/bkim2/ISA_Yield/chloe_dataset'
 
 # Modalities
 modalities = ['DEM', 'SOIL', 'S2L2A', 'S1GRD', 'WEATHER']
