@@ -9,6 +9,9 @@ import pdb
 from terratorch.models.heads import RegressionHead, SegmentationHead
 from terratorch.models.model import AuxiliaryHeadWithDecoderWithoutInstantiatedHead, Model, ModelOutput
 from terratorch.models.utils import pad_images
+from terratorch.models.utils import TemporalWrapper
+import pandas as pd
+import os
 
 def freeze_module(module: nn.Module):
     for param in module.parameters():
@@ -119,21 +122,55 @@ class PixelWiseModel(Model, SegmentationModel):
         features_list = []
         t_dim = next(iter(x.values())).shape[2]
 
-        for i in range(t_dim): # Number of time dimensions
-            sliced_x = {k: v[:, :, i, :, :] for k, v in x.items()}
-            o_features = self.encoder(sliced_x, **kwargs)
-            # only for backwards compatibility with pre-neck times.
-            if self.neck:
-                prepare = self.neck
-            else:
-                # for backwards compatibility, if this is defined in the encoder, use it
-                prepare = getattr(self.encoder, "prepare_features_for_image_model", lambda x: x)
-            o_features = prepare(o_features)
-            if i == 0:
-                features = [tensor.clone() for tensor in o_features]
-            else:
-                features = [torch.cat((t1, t2), dim=1) for t1, t2 in zip(features, o_features)]
+        wrapper = TemporalWrapper(self.encoder, pooling="mean")
+        output = wrapper(x)
+        # for i in range(t_dim): # Number of time dimensions
+        #     sliced_x = {k: v[:, :, i, :, :] for k, v in x.items()}
+        #     o_features = self.encoder(sliced_x, **kwargs)
+        #     # only for backwards compatibility with pre-neck times.
+        #     if self.neck:
+        #         prepare = self.neck
+        #     else:
+        #         # for backwards compatibility, if this is defined in the encoder, use it
+        #         prepare = getattr(self.encoder, "prepare_features_for_image_model", lambda x: x)
+        #     o_features = prepare(o_features)
+        #     if i == 0:
+        #         features = [tensor.clone() for tensor in o_features]
+        #     else:
+        #         features = [torch.cat((t1, t2), dim=1) for t1, t2 in zip(features, o_features)]
         # pdb.set_trace()
+        if self.neck:
+                prepare = self.neck
+        else:
+            # for backwards compatibility, if this is defined in the encoder, use it
+            prepare = getattr(self.encoder, "prepare_features_for_image_model", lambda x: x)
+        features = prepare(output)
+        # # Determine t and k
+        # t = x['S2L2A'].shape[2]
+        # k = len(x.keys())
+        # # Set csv_name based on k
+        # if k == 5:
+        #     csv_name = f"s12cdw_{t}"
+        # elif k == 4:
+        #     csv_name = f"s12cd_{t}"
+        # else:
+        #     csv_name = f"features_{t}"
+        # # Flatten and concatenate all features into a single tensor
+        # flat_features = torch.cat([f.flatten(1) for f in features], dim=1)
+        # # Move to CPU and convert to numpy
+        # features_np = flat_features.detach().cpu().numpy()
+        # # Create feats folder if it doesn't exist
+        # os.makedirs("feats", exist_ok=True)
+        # csv_path = f"feats/{csv_name}.csv"
+        # # Check if file exists and append or create
+        # if os.path.exists(csv_path):
+        #     existing_df = pd.read_csv(csv_path)
+        #     new_df = pd.DataFrame(features_np)
+        #     combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+        #     combined_df.to_csv(csv_path, index=False)
+        # else:
+        #     pd.DataFrame(features_np).to_csv(csv_path, index=False)
+
         decoder_output = self.decoder([f.clone() for f in features])
         mask = self.head(decoder_output)
         if self.rescale and mask.shape[-2:] != input_size:
@@ -151,8 +188,7 @@ class PixelWiseModel(Model, SegmentationModel):
             aux_outputs[name] = aux_output
 
 
-        # return ModelOutput(output=mask, auxiliary_heads=aux_outputs), features
-        return ModelOutput(output=mask, auxiliary_heads=aux_outputs) # Chloe
+        return ModelOutput(output=mask, auxiliary_heads=aux_outputs)
 
     def _get_head(self, task: str, input_embed_dim: int, head_kwargs):
         if task == "segmentation":
