@@ -4,7 +4,6 @@
 *.zip
 *.tif
 *.log
-*.yaml
 *.err
 *.out
 *.pdf
@@ -13,4 +12,4 @@ chloe_dataset/
 processed_data_weekly_*/
 yld_proc/raw_yield/
 wandb/
-native_corn/
+native_corn_checkpoints/
