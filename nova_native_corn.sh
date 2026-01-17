@@ -38,7 +38,7 @@ echo "Job is starting on `hostname` for s12wd-corn"
 # terratorch fit -c conf_native_corn/s12d_11.yaml
 # terratorch fit -c conf_native_corn/s12d_12.yaml
 
-terratorch fit -c conf_native_corn/s12wd_11.yaml
+terratorch fit -c conf_native_corn/s12d_1_new.yaml
 
 echo "Job finished for s12wd-corn"
 

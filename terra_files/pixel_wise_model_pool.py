@@ -145,32 +145,32 @@ class PixelWiseModel(Model, SegmentationModel):
             # for backwards compatibility, if this is defined in the encoder, use it
             prepare = getattr(self.encoder, "prepare_features_for_image_model", lambda x: x)
         features = prepare(output)
-        # pdb.set_trace()
-        # Determine t and k
-        t = x['S2L2A'].shape[2]
-        k = len(x.keys())
-        # Set csv_name based on k
-        if k == 5:
-            csv_name = f"s12cdw_{t}"
-        elif k == 4:
-            csv_name = f"s12cd_{t}"
-        else:
-            csv_name = f"features_{t}"
-        # Flatten and concatenate all features into a single tensor
-        flat_features = torch.cat([f.flatten(1) for f in features], dim=1)
-        # Move to CPU and convert to numpy
-        features_np = flat_features.detach().cpu().numpy()
-        # Create feats folder if it doesn't exist
-        os.makedirs("feats", exist_ok=True)
-        csv_path = f"feats/{csv_name}.csv"
-        # Check if file exists and append or create
-        if os.path.exists(csv_path):
-            existing_df = pd.read_csv(csv_path)
-            new_df = pd.DataFrame(features_np)
-            combined_df = pd.concat([existing_df, new_df], ignore_index=True)
-            combined_df.to_csv(csv_path, index=False)
-        else:
-            pd.DataFrame(features_np).to_csv(csv_path, index=False)
+        # # Determine t and k
+        # t = x['S2L2A'].shape[2]
+        # k = len(x.keys())
+        # # Set csv_name based on k
+        # if k == 5:
+        #     csv_name = f"s12cdw_{t}"
+        # elif k == 4:
+        #     csv_name = f"s12cd_{t}"
+        # else:
+        #     csv_name = f"features_{t}"
+        # # Flatten and concatenate all features into a single tensor
+        # flat_features = torch.cat([f.flatten(1) for f in features], dim=1)
+        # # Move to CPU and convert to numpy
+        # features_np = flat_features.detach().cpu().numpy()
+        # # Create feats folder if it doesn't exist
+        # os.makedirs("feats", exist_ok=True)
+        # csv_path = f"feats/{csv_name}.csv"
+        # # Check if file exists and append or create
+        # if os.path.exists(csv_path):
+        #     existing_df = pd.read_csv(csv_path)
+        #     new_df = pd.DataFrame(features_np)
+        #     combined_df = pd.concat([existing_df, new_df], ignore_index=True)
+        #     combined_df.to_csv(csv_path, index=False)
+        # else:
+        #     pd.DataFrame(features_np).to_csv(csv_path, index=False)
+
         decoder_output = self.decoder([f.clone() for f in features])
         mask = self.head(decoder_output)
         if self.rescale and mask.shape[-2:] != input_size:
