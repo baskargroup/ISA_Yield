@@ -67,28 +67,28 @@ data:
       - 295.994
     task: regression
     test_data_root:
-      DEM: processed_data_weekly_1/DEM
-      S1GRD: processed_data_weekly_1/S1GRD
-      S2L2A: processed_data_weekly_1/S2L2A
-    test_label_data_root: processed_data_weekly_1/yield_geotiffs
-    test_split: processed_data_weekly_1/test_corn.txt
+      DEM: processed_data_weekly_24/DEM
+      S1GRD: processed_data_weekly_24/S1GRD
+      S2L2A: processed_data_weekly_24/S2L2A
+    test_label_data_root: processed_data_weekly_24/yield_geotiffs
+    test_split: processed_data_weekly_24/test_corn.txt
     train_data_root:
-      DEM: processed_data_weekly_1/DEM
-      S1GRD: processed_data_weekly_1/S1GRD
-      S2L2A: processed_data_weekly_1/S2L2A
-    train_label_data_root: processed_data_weekly_1/yield_geotiffs
-    train_split: processed_data_weekly_1/train_corn.txt
+      DEM: processed_data_weekly_24/DEM
+      S1GRD: processed_data_weekly_24/S1GRD
+      S2L2A: processed_data_weekly_24/S2L2A
+    train_label_data_root: processed_data_weekly_24/yield_geotiffs
+    train_split: processed_data_weekly_24/train_corn.txt
     val_data_root:
-      DEM: processed_data_weekly_1/DEM
-      S1GRD: processed_data_weekly_1/S1GRD
-      S2L2A: processed_data_weekly_1/S2L2A
-    val_label_data_root: processed_data_weekly_1/yield_geotiffs
-    val_split: processed_data_weekly_1/val_corn.txt
+      DEM: processed_data_weekly_24/DEM
+      S1GRD: processed_data_weekly_24/S1GRD
+      S2L2A: processed_data_weekly_24/S2L2A
+    val_label_data_root: processed_data_weekly_24/yield_geotiffs
+    val_split: processed_data_weekly_24/val_corn.txt
 deploy_config_file: true
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
   init_args:
-    freeze_backbone: true
+    freeze_backbone: false
     freeze_decoder: false
     freeze_head: false
     ignore_index: -1

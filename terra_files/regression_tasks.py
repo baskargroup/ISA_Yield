@@ -29,11 +29,13 @@ import os
 from sklearn.metrics import r2_score, mean_absolute_percentage_error, mean_absolute_error
 import seaborn as sns
 from pathlib import Path
+from datetime import datetime
 BATCH_IDX_FOR_VALIDATION_PLOTTING = 10
 
 logger = logging.getLogger("terratorch")
 block = 1  # block size for mode aggregation
 aggr = False  # whether to apply aggregation
+timestamp = datetime.now().strftime('%Y%m%d_%H%M%S') # add Chloe
 
 def calculate_metrics(y_true, y_pred):
     """Calculate various performance metrics."""
@@ -141,7 +143,8 @@ def create_r2_plot(csv_path, output_dir='plots'):
     
     # Save figure
     os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, f'{modal_code}_{crop}_r2_plot.png')
+    # output_path = os.path.join(output_dir, f'{modal_code}_{crop}_r2_plot.png')
+    output_path = os.path.join(output_dir, f'{modal_code}_{crop}_{timestamp}_r2_plot.png') # add Chloe
     plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
     
@@ -509,7 +512,8 @@ class PixelwiseRegressionTask(TerraTorchTask):
         other_keys = batch.keys() - {"image", "mask", "filename"}
         rest = {k: batch[k] for k in other_keys}
 
-        model_output = self.handle_full_or_tiled_inference(x, 1, **rest)
+        # model_output = self.handle_full_or_tiled_inference(x, 1, **rest)
+        model_output: ModelOutput = self(x, **rest) # Chloe
 
         if dataloader_idx >= len(self.test_loss_handler):
             msg = "You are returning more than one test dataloader but not defining enough test_dataloaders_names."
@@ -598,14 +602,19 @@ class PixelwiseRegressionTask(TerraTorchTask):
             
         # Save to CSV
         os.makedirs('predictions', exist_ok=True)
+
+
+
         if len(df_corn) > 0:
-            filepath = f'predictions/{self.mod_config}{self.timesteps_used}_Corn.csv'
+            # filepath = f'predictions/{self.mod_config}{self.timesteps_used}_Corn.csv'
+            filepath = f'predictions/{self.mod_config}{self.timesteps_used}_{timestamp}_Corn.csv' # add Chloe
             if os.path.exists(filepath):
                 os.remove(filepath)
             df_corn.to_csv(filepath, index=False)
             metrics, output_path = create_r2_plot(str(filepath))
         if len(df_soybean) > 0:
-            filepath = f'predictions/{self.mod_config}{self.timesteps_used}_Soybean.csv'
+            # filepath = f'predictions/{self.mod_config}{self.timesteps_used}_Soybean.csv'
+            filepath = f'predictions/{self.mod_config}{self.timesteps_used}_{timestamp}_Soybean.csv' # add Chloe
             if os.path.exists(filepath):
                 os.remove(filepath)
             df_soybean.to_csv(filepath, index=False)

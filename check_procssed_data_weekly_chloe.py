@@ -1,27 +1,8 @@
-# import numpy as np
-# from pathlib import Path
-
-# modalities = ['DEM', 'S1GRD', 'S2L2A', 'SOIL', 'WEATHER', 'yield_geotiffs']
-
-# print("Checking shapes\n")
-
-# for mod in modalities:
-#     mod_path = Path(mod)
-#     npy_files = list(mod_path.glob('*.npy'))
-    
-#     if npy_files:
-#         sample = np.load(npy_files[0])
-#         print(f"{mod}:")
-#         print(f"  Files: {len(npy_files)}")
-#         print(f"  Shape: {sample.shape}")
-#         print(f"  Dtype: {sample.dtype}")
-#         print()
-
 import numpy as np
 from pathlib import Path
 from collections import Counter
 
-modalities = ["DEM", "S1GRD", "S1RTC", "S2L2A", "SOIL", "WEATHER"]  # 둘 다 넣어두자
+modalities = ["DEM", "S1GRD", "S1RTC", "S2L2A", "SOIL", "WEATHER"]  
 
 def scan(mod):
     p = Path(mod)
