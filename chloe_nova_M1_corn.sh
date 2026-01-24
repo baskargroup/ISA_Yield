@@ -10,9 +10,7 @@
 #SBATCH --account=mech-ai
 #SBATCH --job-name="Corn_Finetune"
 #SBATCH --mail-user=bgekim@iastate.edu   # email address
-#SBATCH --mail-type=BEGIN
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
+#SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --output="Finetune%j.out" # job standard output file (%j replaced by job id)
 #SBATCH --error="Finetune%j.err" # job standard error file (%j replaced by job id)
 
@@ -29,21 +27,9 @@ export WANDB_RUN_NAME="S12d_24_${SLURM_JOB_ID}"
 export WANDB_GROUP="S12d_24"
 
 
-echo "Job is starting on `hostname` for s12wd-corn"
+echo "Job is starting on `hostname` for s12d-corn"
 
-# terratorch fit -c conf_ts_corn/s12wd_1.yaml
-# terratorch fit -c conf_ts_corn/s12wd_2.yaml
-# terratorch fit -c conf_ts_corn/s12wd_3.yaml
-# terratorch fit -c conf_ts_corn/s12wd_4.yaml
-# terratorch fit -c conf_ts_corn/s12wd_5.yaml
-# terratorch fit -c conf_ts_corn/s12wd_6.yaml
-# terratorch fit -c conf_ts_corn/s12wd_7.yaml
-# terratorch fit -c conf_ts_corn/s12wd_8.yaml
-# terratorch fit -c conf_native_corn/s12d_9.yaml
-# terratorch fit -c conf_native_corn/s12d_10.yaml
-# terratorch fit -c conf_native_corn/s12d_11.yaml
-# terratorch fit -c conf_native_corn/s12d_12.yaml
 
 terratorch fit -c conf_native_corn/s12d_24_new.yaml
 
-echo "Job finished for s12wd-corn"
+echo "Job finished for s12d-corn"

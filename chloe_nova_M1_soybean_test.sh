@@ -7,21 +7,25 @@
 #SBATCH --gres=gpu:a100:1
 #SBATCH --partition=nova
 #SBATCH --account=mech-ai
-#SBATCH --job-name="Test_Native_Corn"
+#SBATCH --job-name="Test_Native_Soybean"
 #SBATCH --mail-user=bgekim@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output="Native_Test%j.out"
-#SBATCH --error="Native_Test%j.err"
+#SBATCH --output="Native_Soybean_Test%j.out"
+#SBATCH --error="Native_Soybean_Test%j.err"
+
 # conda environment
 source /work/mech-ai-scratch/bgekim/miniconda3/etc/profile.d/conda.sh
 conda activate isa_yield_env
-# Test native corn model (24 weeks)
-CKPT_FILE="output/corn/M1/S12d_24/checkpoints/best-epoch=138.ckpt"
+
+# Test native soybean model (24 weeks)
+CKPT_FILE="output/soybean/M1_5/lr_e5/checkpoints/best-epoch=290.ckpt"
+
 
 if [[ -n "$CKPT_FILE" ]]; then
-    echo "Testing native corn with checkpoint: $CKPT_FILE"
-    terratorch test -c conf_native_corn/s12d_24_new.yaml --ckpt_path "$CKPT_FILE"
+    echo "Testing native soybean with checkpoint: $CKPT_FILE"
+    terratorch test -c conf_native_soybean/s12d_24_new.yaml --ckpt_path "$CKPT_FILE"
 else
-    echo "Error: No checkpoint found for native corn!"
+    echo "Error: No checkpoint found for native soybean!"
 fi
+
 echo "Test finished"

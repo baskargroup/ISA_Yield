@@ -593,12 +593,16 @@ class PixelwiseRegressionTask(TerraTorchTask):
         df_corn = df_agg[df_agg['Filename'].str.lower().str.contains('corn')]
         df_soybean = df_agg[df_agg['Filename'].str.lower().str.contains('soybean')]
         if len(df_soybean) != 0:
-            df_soybean['YieldGT'] = df_soybean['YieldGT'] * (norm_max_soybean - data_min_soybean) + data_min_soybean
-            df_soybean['Prediction'] = df_soybean['Prediction'] * (norm_max_soybean - data_min_soybean) + data_min_soybean
+            # df_soybean['YieldGT'] = df_soybean['YieldGT'] * (norm_max_soybean - data_min_soybean) + data_min_soybean
+            # df_soybean['Prediction'] = df_soybean['Prediction'] * (norm_max_soybean - data_min_soybean) + data_min_soybean
+            df_soybean['YieldGT'] = df_soybean['YieldGT']*370
+            df_soybean['Prediction'] = df_soybean['Prediction']*370
             
         if len(df_corn) != 0:
-            df_corn['YieldGT'] = df_corn['YieldGT'] * (norm_max_corn - data_min_corn) + data_min_corn
-            df_corn['Prediction'] = df_corn['Prediction'] * (norm_max_corn - data_min_corn) + data_min_corn
+            # df_corn['YieldGT'] = df_corn['YieldGT'] * (norm_max_corn - data_min_corn) + data_min_corn
+            # df_corn['Prediction'] = df_corn['Prediction'] * (norm_max_corn - data_min_corn) + data_min_corn
+            df_corn['YieldGT'] = df_corn['YieldGT']*370
+            df_corn['Prediction'] = df_corn['Prediction']*370
             
         # Save to CSV
         os.makedirs('predictions', exist_ok=True)
