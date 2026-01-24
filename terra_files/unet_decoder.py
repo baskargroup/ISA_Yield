@@ -25,14 +25,13 @@ class UNetDecoder(nn.Module):
             msg = "channels should have the same length as embed_dim"
             raise ValueError(msg)
         super().__init__()
-        # pdb.set_trace()
-        # embed_dim = [1536, 3072, 6144, 6144]
+
         self.decoder = UnetDecoder(
             encoder_channels=[embed_dim[0], *embed_dim],
             decoder_channels=channels,
             n_blocks=len(channels),
-            use_batchnorm=use_batchnorm,
-            center=False,
+            use_norm=use_batchnorm,
+            add_center_block=False,
             attention_type=attention_type,
         )
         initialize_decoder(self.decoder)
@@ -41,4 +40,4 @@ class UNetDecoder(nn.Module):
     def forward(self, x: list[torch.Tensor]) -> torch.Tensor:
         # The first layer is ignored in the original UnetDecoder, so we need to duplicate the first layer
         x = [x[0].clone(), *x]
-        return self.decoder(*x)
+        return self.decoder(x)

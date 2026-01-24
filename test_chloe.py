@@ -3,7 +3,7 @@ from rasterio.features import geometry_mask
 from shapely.geometry import box
 import numpy as np
 
-weather_file = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/Weather_10m/ST2021IASW036_2021-06-24_Daymet.tif'  # 1km 파일
+weather_file = '/work/mech-ai-scratch/geospatial-data/iowa-soybean-association/Weather_10m/ST2021IASW036_2021-06-24_Daymet.tif'  # 1km 
 yield_file = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/yld_proc/unprocessed_data/yield_geotiffs/ST2021IASW036_Soybean.tif'
 
 print("=== 1. Check CRS ===")

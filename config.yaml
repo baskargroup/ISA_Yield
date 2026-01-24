@@ -9,25 +9,42 @@ trainer:
   logger:
   - class_path: lightning.pytorch.loggers.WandbLogger
     init_args:
-      name: S12d_1
+      name: S12d_24
       save_dir: .
       offline: false
-      id: S12d_1
       project: native_corn
       log_model: false
       prefix: ''
       add_file_policy: mutable
   callbacks:
+  - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+    init_args:
+      dirpath: output/corn/M1/S12d_24/checkpoints
+      filename: best-{epoch:03d}
+      monitor: val/loss
+      verbose: false
+      save_last: true
+      save_top_k: 1
+      save_on_exception: false
+      save_weights_only: false
+      mode: min
+      auto_insert_metric_name: true
+      enable_version_counter: true
   - class_path: lightning.pytorch.callbacks.EarlyStopping
     init_args:
       monitor: val/loss
-      min_delta: 0.0001
-      patience: 75
+      min_delta: 0.0
+      patience: 120
       verbose: true
       mode: min
       strict: true
       check_finite: true
       log_rank_zero_only: false
+  - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+    init_args:
+      logging_interval: epoch
+      log_momentum: false
+      log_weight_decay: false
   - class_path: lightning.pytorch.callbacks.RichProgressBar
     init_args:
       refresh_rate: 1
@@ -43,11 +60,6 @@ trainer:
         metrics: italic
         metrics_text_delimiter: ' '
         metrics_format: .3f
-  - class_path: lightning.pytorch.callbacks.LearningRateMonitor
-    init_args:
-      logging_interval: epoch
-      log_momentum: false
-      log_weight_decay: false
   fast_dev_run: false
   max_epochs: 1000
   max_steps: -1
@@ -61,7 +73,6 @@ trainer:
   barebones: false
   sync_batchnorm: false
   reload_dataloaders_every_n_epochs: 0
-  default_root_dir: output/S12d_1
   enable_autolog_hparams: true
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
@@ -95,7 +106,7 @@ model:
     loss: mse
     ignore_index: -1
     lr: 0.001
-    freeze_backbone: true
+    freeze_backbone: false
     freeze_decoder: false
     freeze_head: false
     plot_on_val: 10
@@ -147,23 +158,23 @@ data:
       - 57.13
     task: regression
     train_data_root:
-      S2L2A: processed_data_weekly_1/S2L2A
-      S1GRD: processed_data_weekly_1/S1GRD
-      DEM: processed_data_weekly_1/DEM
+      S2L2A: processed_data_weekly_24/S2L2A
+      S1GRD: processed_data_weekly_24/S1GRD
+      DEM: processed_data_weekly_24/DEM
     val_data_root:
-      S2L2A: processed_data_weekly_1/S2L2A
-      S1GRD: processed_data_weekly_1/S1GRD
-      DEM: processed_data_weekly_1/DEM
+      S2L2A: processed_data_weekly_24/S2L2A
+      S1GRD: processed_data_weekly_24/S1GRD
+      DEM: processed_data_weekly_24/DEM
     test_data_root:
-      S2L2A: processed_data_weekly_1/S2L2A
-      S1GRD: processed_data_weekly_1/S1GRD
-      DEM: processed_data_weekly_1/DEM
-    train_label_data_root: processed_data_weekly_1/yield_geotiffs
-    val_label_data_root: processed_data_weekly_1/yield_geotiffs
-    test_label_data_root: processed_data_weekly_1/yield_geotiffs
-    train_split: processed_data_weekly_1/train_corn.txt
-    val_split: processed_data_weekly_1/val_corn.txt
-    test_split: processed_data_weekly_1/test_corn.txt
+      S2L2A: processed_data_weekly_24/S2L2A
+      S1GRD: processed_data_weekly_24/S1GRD
+      DEM: processed_data_weekly_24/DEM
+    train_label_data_root: processed_data_weekly_24/yield_geotiffs
+    val_label_data_root: processed_data_weekly_24/yield_geotiffs
+    test_label_data_root: processed_data_weekly_24/yield_geotiffs
+    train_split: processed_data_weekly_24/train_corn.txt
+    val_split: processed_data_weekly_24/val_corn.txt
+    test_split: processed_data_weekly_24/test_corn.txt
     rgb_modality: S2L2A
     rgb_indices:
     - 3
@@ -190,7 +201,7 @@ deploy_config_file: true
 optimizer:
   class_path: torch.optim.AdamW
   init_args:
-    lr: 0.0001
+    lr: 1.0e-05
     betas:
     - 0.9
     - 0.999
@@ -212,3 +223,5 @@ lr_scheduler:
     cooldown: 0
     min_lr: 1.0e-06
     eps: 1.0e-08
+ckpt_path: output/corn/M1/S12d_24/checkpoints/best-epoch=138.ckpt
+verbose: true
