@@ -9,25 +9,34 @@ trainer:
   logger:
     - class_path: WandbLogger
       init_args:
-        project: config_test
-        name: S2-0.5-lr-factor
-        id: S2
+        project: native_corn
+        name: S2
   callbacks:
+    - class_path: ModelCheckpoint
+      init_args:
+        dirpath: output/corn/M1/S2/checkpoints
+        monitor: val/loss
+        mode: min
+        save_top_k: 1
+        save_last: true
+        filename: "best-{epoch:03d}"
+
     - class_path: EarlyStopping
       init_args:
-          monitor: val/loss 
-          patience: 75
-          min_delta: 0.0001
-          mode: min
-          verbose: true
-    - class_path: RichProgressBar
+        monitor: val/loss
+        patience: 120
+        mode: min
+        verbose: true
+
     - class_path: LearningRateMonitor
       init_args:
         logging_interval: epoch
+
+    - class_path: RichProgressBar
+
   max_epochs: 1000
   log_every_n_steps: 1
   accumulate_grad_batches: 8
-  default_root_dir: output/S2
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
