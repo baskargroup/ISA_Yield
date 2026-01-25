@@ -14,24 +14,24 @@ import pdb
 from rasterio.io import MemoryFile
 # Define the paths
 ext = "IA"
-years = [2019,2020,2021,2022,2023]
+years = [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
 modalities = [#'S2L2A', 
               #'S1RTC',
             #   'MODIS',
-              'DEM',
-            #   'CDL',
+            #   'DEM',
+              'CDL',
             #   'WEATHER',
             #   'SOIL',
               ]
 # sentinel1_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S1/final_s1_{ext}/'
 # sentinel2_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/S2/final_s2_v3_{ext}/'
 # modis_dir = f'/work/mech-ai-scratch/aapowadi/ISA_Yield/data_download/MODIS/modis_{ext}/'
-crop_dir = '/work/mech-ai-scratch/aapowadi/multimodal_fusion/remapped_cdl'
+crop_dir = '/work/mech-ai-scratch/bgekim/project/imputation/IA_dataset/10m/CDL_remap'
 soil_dir = f'/work/mech-ai-scratch/aapowadi/soil_new/soil_processed_{ext}'
 weather_dir = f'/work/mech-ai-scratch/aapowadi/WEEKLY_WEATHER_{ext}'
 dem_path = f'/work/mech-ai-scratch/bgekim/project/ISA_Yield/yld_proc/unprocessed_data/dem_iowa_10m_utm.tif'
-output_dir = f'/work/mech-ai-scratch/bgekim/project/ISA_Yield/chloe_dataset'
-yield_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield/yld_proc/unprocessed_data/yield_geotiffs'
+output_dir = f'/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/chloe_dataset'
+yield_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/chloe_dataset/yield_geotiffs'
 
 
 # Ensure output directories exist
@@ -74,7 +74,7 @@ def resample_to_reference(src_data, src_transform, src_crs, ref_transform, ref_c
             src_crs=src_crs,
             dst_transform=ref_transform,
             dst_crs=ref_crs,
-            resampling=Resampling.bilinear
+            resampling=Resampling.nearest
         )
         
         return dst_data
@@ -271,22 +271,22 @@ with open(log_file, "w") as logf:
     
         
         # ========== Step 2: Static modalities ==========
-    num_times = 24
-    
-    for mod in ['DEM']:  # Change to ['DEM', 'SOIL', 'CDL'] when ready
-        print(f"\n  [{mod}] Loading and aligning to reference grid (repeat {num_times}x)")
-        output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
+        num_times = 24
         
-        if mod == 'CDL':
-            input_path = os.path.join(mod_to_dir[mod], f'{year}_{ext}_CDL.tif')
-        elif mod == 'DEM':
-            input_path = dem_path
-        else:  # SOIL
-            input_path = mod_to_dir[mod]
+        for mod in ['CDL']:  # Change to ['DEM', 'SOIL', 'CDL'] when ready
+            print(f"\n  [{mod}] Loading and aligning to reference grid (repeat {num_times}x)")
+            output_path = os.path.join(output_dir, mod, base_name.replace('.tif', '.npy'))
+            
+            if mod == 'CDL':
+                input_path = os.path.join(mod_to_dir[mod], f'{year}_{ext}_CDL.tif')
+            elif mod == 'DEM':
+                input_path = dem_path
+            else:  # SOIL
+                input_path = mod_to_dir[mod]
+            
+            clip_geotiff(input_path, output_path, ref_transform, ref_crs, ref_shape, repeat_times=num_times)
         
-        clip_geotiff(input_path, output_path, ref_transform, ref_crs, ref_shape, repeat_times=num_times)
-    
-    gc.collect()
+        gc.collect()
 
 print("\n" + "="*70)
 print("✅ 🎉 Processing complete!")

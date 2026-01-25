@@ -19,7 +19,7 @@ trainer:
   callbacks:
   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
     init_args:
-      dirpath: output/corn/M1/S12d_24/checkpoints
+      dirpath: output/corn/M1_5/lr_e4/checkpoints
       filename: best-{epoch:03d}
       monitor: val/loss
       verbose: false
@@ -34,7 +34,7 @@ trainer:
     init_args:
       monitor: val/loss
       min_delta: 0.0
-      patience: 120
+      patience: 75
       verbose: true
       mode: min
       strict: true
@@ -106,7 +106,7 @@ model:
     loss: mse
     ignore_index: -1
     lr: 0.001
-    freeze_backbone: false
+    freeze_backbone: true
     freeze_decoder: false
     freeze_head: false
     plot_on_val: 10
@@ -223,5 +223,5 @@ lr_scheduler:
     cooldown: 0
     min_lr: 1.0e-06
     eps: 1.0e-08
-ckpt_path: output/corn/M1/S12d_24/checkpoints/best-epoch=138.ckpt
+ckpt_path: output/corn/M1/lr_e4/checkpoints/best-epoch=097.ckpt
 verbose: true

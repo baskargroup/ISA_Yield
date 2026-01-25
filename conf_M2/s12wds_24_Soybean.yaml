@@ -9,13 +9,13 @@ trainer:
   logger:
     - class_path: WandbLogger
       init_args:
-        project: native_corn
-        name: S12d_24              
+        project: M2_soybean
+        name: S12wds_24_soybean
 
   callbacks:
-    - class_path: ModelCheckpoint # add Chloe
+    - class_path: ModelCheckpoint
       init_args:
-        dirpath: output/corn/M1/S12d_24/checkpoints # need to be changed per experiment
+        dirpath: output/soybean/M2/S12wds_le_5/checkpoints
         monitor: val/loss
         mode: min
         save_top_k: 1
@@ -25,7 +25,8 @@ trainer:
     - class_path: EarlyStopping
       init_args:
         monitor: val/loss
-        patience: 120
+        patience: 75
+        min_delta: 0.0001
         mode: min
         verbose: true
 
@@ -38,6 +39,7 @@ trainer:
   max_epochs: 1000
   log_every_n_steps: 1
   accumulate_grad_batches: 8
+  default_root_dir: output/soybean/M2/S12wds_le_5
 
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
@@ -49,47 +51,60 @@ data:
       - S2L2A
       - S1GRD
       - DEM
-      
+      - WEATHER
+      - SOIL
+
     rgb_modality: S2L2A
     rgb_indices:
       - 3
       - 2
       - 1
-    train_data_root:
-      S2L2A: processed_data_weekly_24/S2L2A     
-      S1GRD: processed_data_weekly_24/S1GRD     
-      DEM: processed_data_weekly_24/DEM        
-    train_label_data_root: processed_data_weekly_24/yield_geotiffs   
-    
-    val_data_root:
-      S2L2A: processed_data_weekly_24/S2L2A     
-      S1GRD: processed_data_weekly_24/S1GRD     
-      DEM: processed_data_weekly_24/DEM         
-    val_label_data_root: processed_data_weekly_24/yield_geotiffs     
-    
-    test_data_root:
-      S2L2A: processed_data_weekly_24/S2L2A     
-      S1GRD: processed_data_weekly_24/S1GRD     
-      DEM: processed_data_weekly_24/DEM         
-    test_label_data_root: processed_data_weekly_24/yield_geotiffs    
 
-    train_split: processed_data_weekly_24/train_corn.txt   
-    val_split: processed_data_weekly_24/val_corn.txt       
-    test_split: processed_data_weekly_24/test_corn.txt    
+    train_data_root:
+      S2L2A: processed_data_weekly_24/S2L2A
+      S1GRD: processed_data_weekly_24/S1GRD
+      DEM: processed_data_weekly_24/DEM
+      WEATHER: processed_data_weekly_24/WEATHER
+      SOIL: processed_data_weekly_24/SOIL
+    train_label_data_root: processed_data_weekly_24/yield_geotiffs
+
+    val_data_root:
+      S2L2A: processed_data_weekly_24/S2L2A
+      S1GRD: processed_data_weekly_24/S1GRD
+      DEM: processed_data_weekly_24/DEM
+      WEATHER: processed_data_weekly_24/WEATHER
+      SOIL: processed_data_weekly_24/SOIL
+    val_label_data_root: processed_data_weekly_24/yield_geotiffs
+
+    test_data_root:
+      S2L2A: processed_data_weekly_24/S2L2A
+      S1GRD: processed_data_weekly_24/S1GRD
+      DEM: processed_data_weekly_24/DEM
+      WEATHER: processed_data_weekly_24/WEATHER
+      SOIL: processed_data_weekly_24/SOIL
+    test_label_data_root: processed_data_weekly_24/yield_geotiffs
+
+    train_split: processed_data_weekly_24/train_soybean.txt
+    val_split: processed_data_weekly_24/val_soybean.txt
+    test_split: processed_data_weekly_24/test_soybean.txt
 
     expand_temporal_dimension: False
     no_label_replace: 0.0
     no_data_replace: 0
-    
+
     means:
       S2L2A: [529.509, 622.422, 849.159, 889.618, 1280.020, 2572.048, 3249.194, 3357.392, 3518.104, 3533.077, 2808.764, 1955.034]
       S1GRD: [-11.224, -18.978]
       DEM: [338.315]
+      WEATHER: [23.818, 24.606, 12.064, 373.494, 1482.514, 0.547, 49955.316]
+      SOIL: [0.812, 0.787, 0.741, 20128.930, 21412.781, 253.445, 87.680, 182.086, 264.623, 335.160]
 
     stds:
       S2L2A: [85.014, 107.360, 133.666, 192.031, 230.486, 314.053, 369.633, 373.084, 384.849, 378.250, 345.843, 295.994]
       S1GRD: [0.897, 1.098]
       DEM: [57.130]
+      WEATHER: [7.991, 1.232, 1.241, 11.317, 120.417, 1.337, 504.205]
+      SOIL: [0.064, 0.071, 0.079, 6099.627, 6499.918, 44.726, 4.492, 15.991, 28.075, 41.569]
 
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
@@ -102,6 +117,8 @@ model:
         - S2L2A
         - S1GRD
         - DEM
+        - {"WEATHER": 7}
+        - {"SOIL": 10}
       backbone_merge_method: mean
 
       necks:
@@ -117,14 +134,14 @@ model:
       head_dropout: 0.1
     loss: mse
     ignore_index: -1
-    freeze_backbone: false    # ✅ encoder freeze or end-to-end (unfreeze backbone)
+    freeze_backbone: false
     freeze_decoder: false
-  
 
 optimizer:
   class_path: torch.optim.AdamW
   init_args:
     lr: 1.e-5
+
 lr_scheduler:
   class_path: ReduceLROnPlateau
   init_args:

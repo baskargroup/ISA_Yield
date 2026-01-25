@@ -88,7 +88,7 @@ deploy_config_file: true
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
   init_args:
-    freeze_backbone: false
+    freeze_backbone: true
     freeze_decoder: false
     freeze_head: false
     ignore_index: -1
