@@ -972,8 +972,6 @@ def fit_and_fill_zeros(data, method='polynomial', order=3):
 
 def process_single_file(file, dest_subfolder_paths, modality_name, is_reference, used_dates_dict, ref_dims, tsave_list, fill_zeros=False, interp_method='polynomial'):
     static_modalities = {"CDL", "DEM", "SOIL"}
-    norm_max_corn = 370.0
-    norm_max_soybean = 150.0
 
     if file in ignore_list:
         return None
@@ -1035,7 +1033,15 @@ def process_single_file(file, dest_subfolder_paths, modality_name, is_reference,
 
             if is_reference:
                 save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
-                normalized_data = data_to_save / 370.0
+                # normalized_data = data_to_save / 370.0
+
+                # Min-max normalization (crop-specific) -Chloe
+                norm_max_corn = 370.0
+                norm_max_soybean = 120.0
+                data_min = 50.0 if 'corn' in file.lower() else 30.0
+                data_max = norm_max_corn if 'corn' in file.lower() else norm_max_soybean
+                normalized_data = (data_to_save - data_min) / (data_max - data_min)
+
                 normalized_data[normalized_data > 1] = 1
                 normalized_data[normalized_data < 0] = -1
                 normalized_data = normalized_data.astype(np.float32)

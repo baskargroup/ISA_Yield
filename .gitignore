@@ -13,5 +13,4 @@ processed_data_weekly_*/
 yld_proc/raw_yield/
 wandb/
 native_corn_checkpoints/
-weekly_availability_analysis/
 output/
