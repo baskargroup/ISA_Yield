@@ -12,8 +12,9 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import make_scorer
 
 # Configuration
-BIWEEK_NUMBER = 12  # Specify which biweek to process
-biweek_folder = f"processed_data_biweekly_{BIWEEK_NUMBER}"
+BIWEEK_NUMBER = 24  # Specify which biweek to process
+base_dir = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24'
+biweek_folder = os.path.join(base_dir, f"processed_data_biweekly_{BIWEEK_NUMBER}")
 _code = "s12wd"
 label_folder = "yield_geotiffs"
 

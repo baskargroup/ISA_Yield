@@ -11,7 +11,7 @@ try:
 except ImportError:
     use_cupy = False
 # List all processed_data_biweekly_* folders
-all_biweek_folders = sorted([f for f in os.listdir('.') if f.startswith('processed_data_biweekly') and os.path.isdir(f)])
+all_biweek_folders = sorted([f for f in os.listdir('/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24') if f.startswith('processed_data_weekly') and os.path.isdir(f)])
 modalities = ["S2L2A", 
               "S1GRD",
               "DEM", 
@@ -62,8 +62,13 @@ def build_X_y(file_names, modal_paths, label_path):
             continue
         
         # Aggregate this file immediately - compute mean for all features and yield
-        X_mean = X_filtered.mean(axis=0)
-        y_mean = y_filtered.mean()
+        # Use nanmean to ignore NaN values when computing the mean
+        X_mean = np.nanmean(X_filtered, axis=0)
+        y_mean = np.nanmean(y_filtered)
+        
+        # Skip if all values are NaN (results in NaN after nanmean)
+        if np.any(np.isnan(X_mean)) or np.isnan(y_mean):
+            continue
         
         # Create aggregated row for this file
         row = {f'feature_{j}': X_mean[j] for j in range(len(X_mean))}
@@ -116,22 +121,9 @@ for biweek_folder in all_biweek_folders:
         # "device": "cuda",
     }
     xgb = XGBRegressor(**xgb_params)
-    if use_cupy:
-        X_train_xgb = cp.asarray(X_train)
-        X_test_xgb = cp.asarray(X_test)
-        y_train_xgb = cp.asarray(y_train)
-        y_test_xgb = cp.asarray(y_test)
-    else:
-        X_train_xgb = X_train
-        X_test_xgb = X_test
-        y_train_xgb = y_train
-        y_test_xgb = y_test
-
-    xgb.fit(X_train_xgb, y_train_xgb)
-    y_pred_train_xgb = xgb.predict(X_train_xgb)
-    y_pred_test_xgb = xgb.predict(X_test_xgb)
-    if use_cupy:
-        y_pred_test_xgb = cp.asnumpy(y_pred_test_xgb)
+    xgb.fit(X_train, y_train)
+    y_pred_train_xgb = xgb.predict(X_train)
+    y_pred_test_xgb = xgb.predict(X_test)
     
     results.append({
         "biweek": biweek_folder,
