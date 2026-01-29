@@ -25,9 +25,12 @@ conda activate isa_yield_env
 
 echo "Job is starting on `hostname` for M3_Corn"
 
-for yaml_file in conf_M3/*_corn.yaml; do
-    echo "Running $yaml_file"
-    terratorch fit -c "$yaml_file"
-done
+# for yaml_file in conf_M3/*_corn.yaml; do
+#     echo "Running $yaml_file"
+#     terratorch fit -c "$yaml_file"
+# done
+
+terratorch fit -c conf_M3/s12wc_24_corn.yaml
+terratorch fit -c conf_M3/s12cdws_24_corn.yaml
 
 echo "Job finished for M3_Corn"
