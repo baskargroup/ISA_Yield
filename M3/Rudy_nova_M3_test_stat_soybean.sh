@@ -8,11 +8,11 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --partition=nova    # gpu node(s)
 #SBATCH --account=mech-ai
-#SBATCH --job-name="M3_test_stat"
+#SBATCH --job-name="M3_test_stat_soybean"
 #SBATCH --mail-user=aapowadi@iastate.edu   # email address
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output="M3_test_stat%j.out" # job standard output file (%j replaced by job id)
-#SBATCH --error="M3_test_stat%j.err" # job standard error file (%j replaced by job id)
+#SBATCH --output="M3_test_stat_soybean%j.out" # job standard output file (%j replaced by job id)
+#SBATCH --error="M3_test_stat_soybean%j.err" # job standard error file (%j replaced by job id)
 # SBATCH --cpus-per-task=16   # spread out to use 1 core per numa, set to 64 if tasks is 1
 # Environment setup
 
@@ -22,9 +22,9 @@ source /work/mech-ai-scratch/bgekim/miniconda3/etc/profile.d/conda.sh
 conda activate isa_yield_env
 
 
-echo "Job is starting on `hostname` for M3_test_stat"
+echo "Job is starting on `hostname` for M3_test_stat_soybean"
 
-for yaml_file in conf_M3_stat/*_test.yaml; do
+for yaml_file in conf_M3_stat/*soybean_test.yaml; do
     echo "Running $yaml_file"
     
     # Extract the base config name (e.g., s12_24_corn from s12_24_corn_test.yaml)
@@ -51,4 +51,4 @@ for yaml_file in conf_M3_stat/*_test.yaml; do
     fi
 done
 
-echo "Job finished for M3_test_stat"
+echo "Job finished for M3_test_stat_soybean"

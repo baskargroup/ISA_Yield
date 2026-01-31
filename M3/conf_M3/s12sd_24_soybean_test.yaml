@@ -23,7 +23,6 @@ trainer:
     init_args:
       monitor: val/loss
       patience: 75
-      min_delta: 0.0001
       mode: min
       verbose: true
   - class_path: LearningRateMonitor
