@@ -112,11 +112,11 @@ model:
       backbone_merge_method: mean
 
       necks:
-        - name: SelectIndices_test
+        - name: SelectIndices
           indices: [2, 5, 8, 11]
-        - name: ReshapeTokensToImage_test
+        - name: ReshapeTokensToImage
           remove_cls_token: False
-        - name: LearnedInterpolateToPyramidal_test
+        - name: LearnedInterpolateToPyramidal
 
       decoder: UNetDecoder
       decoder_channels: [512, 256, 128, 64]

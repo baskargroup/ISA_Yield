@@ -9,7 +9,7 @@ trainer:
   logger:
   - class_path: lightning.pytorch.loggers.WandbLogger
     init_args:
-      name: S12_stat_differentnorm
+      name: S12_stat_delta
       save_dir: .
       offline: false
       project: M3_soybean
@@ -19,7 +19,7 @@ trainer:
   callbacks:
   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
     init_args:
-      dirpath: output/soybean/M3/differentnorm/S12_stat/checkpoints
+      dirpath: output/soybean/M3/delta/S12_stat/checkpoints
       filename: best-{epoch:03d}
       monitor: val/loss
       verbose: false
@@ -33,8 +33,8 @@ trainer:
   - class_path: lightning.pytorch.callbacks.EarlyStopping
     init_args:
       monitor: val/loss
-      min_delta: 0.0
-      patience: 75
+      min_delta: 0.0001
+      patience: 20
       verbose: true
       mode: min
       strict: true
@@ -208,7 +208,7 @@ lr_scheduler:
     monitor: val/loss
     mode: min
     factor: 0.8
-    patience: 25
+    patience: 5
     threshold: 0.0001
     threshold_mode: rel
     cooldown: 0
