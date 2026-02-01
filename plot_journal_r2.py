@@ -483,7 +483,7 @@ def create_overall_metrics_bar_plots(csv_files, output_dir='plots'):
 
 def main():
     # Define predictions directory
-    predictions_dir = 'predictions_crop'
+    predictions_dir = 'M3/predictions'
     
     # Find all CSV files
     csv_files = sorted(Path(predictions_dir).glob('*.csv'))
