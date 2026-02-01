@@ -10,12 +10,15 @@ trainer:
     - class_path: WandbLogger
       init_args:
         project: M1_M1_5_Soybean
-        name: M1.5_lr_le-5_differentnorm
+        name: M1.5_lr_le-4_differentnorm_new
+        id: s740adcc
+        resume : "must"
+
 
   callbacks:
     - class_path: ModelCheckpoint # add Chloe
       init_args:
-        dirpath: output/soybean/M1_5/differentnorm/lr_e5/checkpoints # need to be changed per experiment
+        dirpath: output/soybean/M1_5/differentnorm/lr_e4_new/checkpoints # need to be changed per experiment
         monitor: val/loss
         mode: min
         save_top_k: 1
@@ -56,26 +59,26 @@ data:
       - 2
       - 1
     train_data_root:
-      S2L2A: processed_data_weekly_24/S2L2A     
-      S1GRD: processed_data_weekly_24/S1GRD     
-      DEM: processed_data_weekly_24/DEM        
-    train_label_data_root: processed_data_weekly_24/yield_geotiffs   
+      S2L2A: processed_data/weekly_24/processed_data_weekly_24/S2L2A     
+      S1GRD: processed_data/weekly_24/processed_data_weekly_24/S1GRD     
+      DEM: processed_data/weekly_24/processed_data_weekly_24/DEM        
+    train_label_data_root: processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs   
     
     val_data_root:
-      S2L2A: processed_data_weekly_24/S2L2A     
-      S1GRD: processed_data_weekly_24/S1GRD     
-      DEM: processed_data_weekly_24/DEM         
-    val_label_data_root: processed_data_weekly_24/yield_geotiffs     
+      S2L2A: processed_data/weekly_24/processed_data_weekly_24/S2L2A     
+      S1GRD: processed_data/weekly_24/processed_data_weekly_24/S1GRD     
+      DEM: processed_data/weekly_24/processed_data_weekly_24/DEM         
+    val_label_data_root: processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs     
     
     test_data_root:
-      S2L2A: processed_data_weekly_24/S2L2A     
-      S1GRD: processed_data_weekly_24/S1GRD     
-      DEM: processed_data_weekly_24/DEM         
-    test_label_data_root: processed_data_weekly_24/yield_geotiffs    
+      S2L2A: processed_data/weekly_24/processed_data_weekly_24/S2L2A     
+      S1GRD: processed_data/weekly_24/processed_data_weekly_24/S1GRD     
+      DEM: processed_data/weekly_24/processed_data_weekly_24/DEM         
+    test_label_data_root: processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs    
 
-    train_split: processed_data_weekly_24/train_soybean.txt   
-    val_split: processed_data_weekly_24/val_soybean.txt       
-    test_split: processed_data_weekly_24/test_soybean.txt    
+    train_split: processed_data/weekly_24/processed_data_weekly_24/train_soybean.txt   
+    val_split: processed_data/weekly_24/processed_data_weekly_24/val_soybean.txt       
+    test_split: processed_data/weekly_24/processed_data_weekly_24/test_soybean.txt    
 
     expand_temporal_dimension: False
     no_label_replace: 0.0
@@ -136,7 +139,7 @@ model:
 optimizer:
   class_path: torch.optim.AdamW
   init_args:
-    lr: 1.e-5
+    lr: 1.e-4
 lr_scheduler:
   class_path: ReduceLROnPlateau
   init_args:

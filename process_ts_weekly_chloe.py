@@ -1035,7 +1035,7 @@ def process_single_file(file, dest_subfolder_paths, modality_name, is_reference,
                 save_path = os.path.join(dest_subfolder_path, os.path.splitext(os.path.basename(file))[0] + '.npy')
                 # normalized_data = data_to_save / 370.0
 
-                # Min-max normalization (crop-specific) -Chloe
+                # Min-max normalization (crop-specific) -Anirudha 
                 norm_max_corn = 370.0
                 norm_max_soybean = 120.0
                 data_min = 50.0 if 'corn' in file.lower() else 30.0
