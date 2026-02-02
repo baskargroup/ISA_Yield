@@ -9,16 +9,16 @@ trainer:
   logger:
     - class_path: WandbLogger
       init_args:
-        project: M4_Soybean
+        project: M4_Corn
         name: M4_s12d_14_differentnorm_new
-        id: fj9r6tgv
+        id: t2jlber1
         resume : "must"
 
 
   callbacks:
     - class_path: ModelCheckpoint # add Chloe
       init_args:
-        dirpath: output/soybean/M4/differentnorm/s12d_14_new/checkpoints
+        dirpath: output/corn/M4/differentnorm/s12d_14_new/checkpoints
         monitor: val/loss
         mode: min
         save_top_k: 1
@@ -76,9 +76,9 @@ data:
       DEM: processed_data/weekly_24/processed_data_weekly_selected/DEM         
     test_label_data_root: processed_data/weekly_24/processed_data_weekly_selected/yield_geotiffs    
 
-    train_split: processed_data/weekly_24/processed_data_weekly_selected/train_soybean.txt   
-    val_split: processed_data/weekly_24/processed_data_weekly_selected/val_soybean.txt       
-    test_split: processed_data/weekly_24/processed_data_weekly_selected/test_soybean.txt    
+    train_split: processed_data/weekly_24/processed_data_weekly_selected/train_corn.txt   
+    val_split: processed_data/weekly_24/processed_data_weekly_selected/val_corn.txt       
+    test_split: processed_data/weekly_24/processed_data_weekly_selected/test_corn.txt    
 
     expand_temporal_dimension: False
     no_label_replace: 0.0

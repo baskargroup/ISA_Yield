@@ -12,35 +12,26 @@ data:
     expand_temporal_dimension: false
     means:
       DEM:
-      - 670.665
+      - 338.315
       S1GRD:
-      - -12.599
-      - -20.293
+      - -11.224
+      - -18.978
       S2L2A:
-      - 1390.458
-      - 1503.317
-      - 1718.197
-      - 1853.91
-      - 2199.1
-      - 2779.975
-      - 2987.011
-      - 3083.234
-      - 3132.22
-      - 3162.988
-      - 2424.884
-      - 1857.648
-      WEATHER:
-      - 23.818
-      - 24.606
-      - 12.064
-      - 373.494
-      - 1482.514
-      - 0.547
-      - 49955.316
+      - 529.509
+      - 622.422
+      - 849.159
+      - 889.618
+      - 1280.02
+      - 2572.048
+      - 3249.194
+      - 3357.392
+      - 3518.104
+      - 3533.077
+      - 2808.764
+      - 1955.034
     modalities:
     - S2L2A
     - S1GRD
-    - WEATHER
     - DEM
     no_data_replace: 0.0
     no_label_replace: 0.0
@@ -57,53 +48,42 @@ data:
     skip_file_checks: false
     stds:
       DEM:
-      - 951.272
+      - 57.13
       S1GRD:
-      - 5.195
-      - 5.89
+      - 0.897
+      - 1.098
       S2L2A:
-      - 2106.761
-      - 2141.107
-      - 2038.973
-      - 2134.138
-      - 2085.321
-      - 1889.926
-      - 1820.257
-      - 1871.918
-      - 1753.829
-      - 1797.379
-      - 1434.261
-      - 1334.311
-      WEATHER:
-      - 7.991
-      - 1.232
-      - 1.241
-      - 11.317
-      - 120.417
-      - 1.337
-      - 504.205
+      - 85.014
+      - 107.36
+      - 133.666
+      - 192.031
+      - 230.486
+      - 314.053
+      - 369.633
+      - 373.084
+      - 384.849
+      - 378.25
+      - 345.843
+      - 295.994
     task: regression
     test_data_root:
-      DEM: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/DEM
-      S1GRD: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S1GRD
-      S2L2A: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S2L2A
-      WEATHER: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/WEATHER
-    test_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
-    test_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/test_soybean.txt
+      DEM: processed_data/weekly_24/processed_data_weekly_selected/DEM
+      S1GRD: processed_data/weekly_24/processed_data_weekly_selected/S1GRD
+      S2L2A: processed_data/weekly_24/processed_data_weekly_selected/S2L2A
+    test_label_data_root: processed_data/weekly_24/processed_data_weekly_selected/yield_geotiffs
+    test_split: processed_data/weekly_24/processed_data_weekly_selected/test_corn.txt
     train_data_root:
-      DEM: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/DEM
-      S1GRD: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S1GRD
-      S2L2A: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S2L2A
-      WEATHER: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/WEATHER
-    train_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
-    train_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/train_soybean.txt
+      DEM: processed_data/weekly_24/processed_data_weekly_selected/DEM
+      S1GRD: processed_data/weekly_24/processed_data_weekly_selected/S1GRD
+      S2L2A: processed_data/weekly_24/processed_data_weekly_selected/S2L2A
+    train_label_data_root: processed_data/weekly_24/processed_data_weekly_selected/yield_geotiffs
+    train_split: processed_data/weekly_24/processed_data_weekly_selected/train_corn.txt
     val_data_root:
-      DEM: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/DEM
-      S1GRD: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S1GRD
-      S2L2A: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S2L2A
-      WEATHER: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/WEATHER
-    val_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
-    val_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/val_soybean.txt
+      DEM: processed_data/weekly_24/processed_data_weekly_selected/DEM
+      S1GRD: processed_data/weekly_24/processed_data_weekly_selected/S1GRD
+      S2L2A: processed_data/weekly_24/processed_data_weekly_selected/S2L2A
+    val_label_data_root: processed_data/weekly_24/processed_data_weekly_selected/yield_geotiffs
+    val_split: processed_data/weekly_24/processed_data_weekly_selected/val_corn.txt
 deploy_config_file: true
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
@@ -120,7 +100,6 @@ model:
       backbone_modalities:
       - S2L2A
       - S1GRD
-      - WEATHER: 7
       - DEM
       backbone_pretrained: false
       decoder: UNetDecoder
