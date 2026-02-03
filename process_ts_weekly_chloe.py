@@ -1207,8 +1207,9 @@ if __name__ == "__main__":
                         help='Interpolation method for filling zeros (default: polynomial)')
     args = parser.parse_args()
 
-    log_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/chloe_dataset/dates_log.txt'
-    root_path = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/chloe_dataset'
+    log_path = 'chloe_dataset/dates_log.txt'
+    
+    root_path = 'chloe_dataset'
 
     used_dates_dict = parse_used_dates_log(log_path)
     dst_folder = f'processed_data_weekly_{args.ts}'

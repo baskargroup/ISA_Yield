@@ -13,3 +13,4 @@ yld_proc/raw_yield/
 wandb/
 native_corn_checkpoints/
 output/
+processed_data_weekly_*
