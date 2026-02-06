@@ -9,11 +9,11 @@ trainer:
   - class_path: WandbLogger
     init_args:
       project: M3_corn
-      name: S12D_stat_delta
+      name: S12D_stat_differentnorm
   callbacks:
   - class_path: ModelCheckpoint
     init_args:
-      dirpath: output/corn/M3/delta/S12D_stat/checkpoints
+      dirpath: output/corn/M3/differentnorm/S12D_stat/checkpoints
       monitor: val/loss
       mode: min
       save_top_k: 1
@@ -22,7 +22,7 @@ trainer:
   - class_path: EarlyStopping
     init_args:
       monitor: val/loss
-      patience: 20
+      patience: 75
       min_delta: 0.0001
       mode: min
       verbose: true
@@ -59,7 +59,7 @@ data:
     test_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
     train_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/train_corn.txt
     val_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/val_corn.txt
-    test_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/test_corn.txt
+    test_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/test_corn.txt
     expand_temporal_dimension: false
     no_label_replace: 0.0
     no_data_replace: 0
@@ -143,5 +143,5 @@ lr_scheduler:
   init_args:
     monitor: val/loss
     factor: 0.8
-    patience: 5
+    patience: 25
     min_lr: 1.0e-06

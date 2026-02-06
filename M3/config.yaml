@@ -9,7 +9,7 @@ trainer:
   logger:
   - class_path: lightning.pytorch.loggers.WandbLogger
     init_args:
-      name: S12WDSC_stat_delta_test
+      name: S12WD_stat_differentnorm_test
       save_dir: .
       offline: false
       project: M3_soybean
@@ -19,7 +19,7 @@ trainer:
   callbacks:
   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
     init_args:
-      dirpath: output/soybean/M3/delta/S12WDSC_stat/checkpoints
+      dirpath: output/soybean/M3/differentnorm/S12WD_stat/checkpoints
       filename: best-{epoch:03d}_test
       monitor: val/loss
       verbose: false
@@ -34,7 +34,7 @@ trainer:
     init_args:
       monitor: val/loss
       min_delta: 0.0001
-      patience: 20
+      patience: 75
       verbose: true
       mode: min
       strict: true
@@ -83,10 +83,8 @@ model:
       backbone_modalities:
       - S2L2A
       - S1GRD
-      - DEM
       - WEATHER: 7
-      - SOIL: 10
-      - CDL: 1
+      - DEM
       backbone_merge_method: mean
       necks:
       - name: SelectIndices
@@ -120,10 +118,8 @@ data:
     modalities:
     - S2L2A
     - S1GRD
-    - DEM
     - WEATHER
-    - SOIL
-    - CDL
+    - DEM
     means:
       S2L2A:
       - 529.509
@@ -141,8 +137,6 @@ data:
       S1GRD:
       - -11.224
       - -18.978
-      DEM:
-      - 338.315
       WEATHER:
       - 23.818
       - 24.606
@@ -151,19 +145,8 @@ data:
       - 1482.514
       - 0.547
       - 49955.316
-      SOIL:
-      - 0.812
-      - 0.787
-      - 0.741
-      - 20128.93
-      - 21412.781
-      - 253.445
-      - 87.68
-      - 182.086
-      - 264.623
-      - 335.16
-      CDL:
-      - 0
+      DEM:
+      - 670.665
     stds:
       S2L2A:
       - 85.014
@@ -181,8 +164,6 @@ data:
       S1GRD:
       - 0.897
       - 1.098
-      DEM:
-      - 57.13
       WEATHER:
       - 7.991
       - 1.232
@@ -191,41 +172,24 @@ data:
       - 120.417
       - 1.337
       - 504.205
-      SOIL:
-      - 0.064
-      - 0.071
-      - 0.079
-      - 6099.627
-      - 6499.918
-      - 44.726
-      - 4.492
-      - 15.991
-      - 28.075
-      - 41.569
-      CDL:
-      - 1
+      DEM:
+      - 951.272
     task: regression
     train_data_root:
       S2L2A: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S2L2A
       S1GRD: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S1GRD
       WEATHER: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/WEATHER
       DEM: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/DEM
-      CDL: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/CDL
-      SOIL: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/SOIL
     val_data_root:
       S2L2A: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S2L2A
       S1GRD: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S1GRD
       WEATHER: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/WEATHER
       DEM: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/DEM
-      CDL: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/CDL
-      SOIL: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/SOIL
     test_data_root:
       S2L2A: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S2L2A
       S1GRD: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/S1GRD
       WEATHER: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/WEATHER
       DEM: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/DEM
-      CDL: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/CDL
-      SOIL: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/SOIL
     train_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
     val_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
     test_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
@@ -274,11 +238,11 @@ lr_scheduler:
     monitor: val/loss
     mode: min
     factor: 0.8
-    patience: 5
+    patience: 25
     threshold: 0.0001
     threshold_mode: rel
     cooldown: 0
     min_lr: 1.0e-06
     eps: 1.0e-08
-ckpt_path: output/soybean/M3/delta/S12WDSC_stat/checkpoints/best-epoch=036.ckpt
+ckpt_path: output/soybean/M3/differentnorm/S12WD_stat/checkpoints/best-epoch=061.ckpt
 verbose: true

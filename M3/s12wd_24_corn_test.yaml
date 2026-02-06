@@ -9,11 +9,11 @@ trainer:
   - class_path: WandbLogger
     init_args:
       project: M3_corn
-      name: S12WD_stat_delta_test
+      name: S12WD_stat_differentnorm_test
   callbacks:
   - class_path: ModelCheckpoint
     init_args:
-      dirpath: output/corn/M3/delta/S12WD_stat/checkpoints
+      dirpath: output/corn/M3/differentnorm/S12WD_stat/checkpoints
       monitor: val/loss
       mode: min
       save_top_k: 1
@@ -22,7 +22,7 @@ trainer:
   - class_path: EarlyStopping
     init_args:
       monitor: val/loss
-      patience: 20
+      patience: 75
       min_delta: 0.0001
       mode: min
       verbose: true
@@ -162,5 +162,5 @@ lr_scheduler:
   init_args:
     monitor: val/loss
     factor: 0.8
-    patience: 5
+    patience: 25
     min_lr: 1.0e-06

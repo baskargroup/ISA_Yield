@@ -9,11 +9,11 @@ trainer:
   - class_path: WandbLogger
     init_args:
       project: M3_corn
-      name: S12SD_stat_delta
+      name: S12SD_stat_differentnorm
   callbacks:
   - class_path: ModelCheckpoint
     init_args:
-      dirpath: output/corn/M3/delta/S12SD_stat/checkpoints
+      dirpath: output/corn/M3/differentnorm/S12SD_stat/checkpoints
       monitor: val/loss
       mode: min
       save_top_k: 1
@@ -22,7 +22,7 @@ trainer:
   - class_path: EarlyStopping
     init_args:
       monitor: val/loss
-      patience: 20
+      patience: 75
       min_delta: 0.0001
       mode: min
       verbose: true
@@ -61,7 +61,7 @@ data:
     test_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
     train_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/train_corn.txt
     val_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/val_corn.txt
-    test_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/processed_data_weekly_24/test_corn.txt
+    test_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24/test_corn.txt
     expand_temporal_dimension: false
     no_label_replace: 0.0
     no_data_replace: 0
@@ -71,7 +71,7 @@ data:
       - 622.422
       - 849.159
       - 889.618
-      - 1280.02
+      - 1280.020
       - 2572.048
       - 3249.194
       - 3357.392
@@ -98,7 +98,7 @@ data:
     stds:
       S2L2A:
       - 85.014
-      - 107.36
+      - 107.360
       - 133.666
       - 192.031
       - 230.486
@@ -106,7 +106,7 @@ data:
       - 369.633
       - 373.084
       - 384.849
-      - 378.25
+      - 378.250
       - 345.843
       - 295.994
       S1GRD:
@@ -124,7 +124,7 @@ data:
       - 28.075
       - 41.569
       DEM:
-      - 57.13
+      - 57.130
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
   init_args:
@@ -135,6 +135,8 @@ model:
       backbone_modalities:
       - S2L2A
       - S1GRD
+      - SOIL: 10
+      - DEM
       backbone_merge_method: mean
       necks:
       - name: SelectIndices
@@ -166,5 +168,5 @@ lr_scheduler:
   init_args:
     monitor: val/loss
     factor: 0.8
-    patience: 5
+    patience: 25
     min_lr: 1.0e-06

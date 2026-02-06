@@ -9,20 +9,20 @@ trainer:
   - class_path: WandbLogger
     init_args:
       project: M3_soybean
-      name: S12WD_stat_delta_test
+      name: S12WD_stat_differentnorm_test
   callbacks:
   - class_path: ModelCheckpoint
     init_args:
-      dirpath: output/soybean/M3/delta/S12WD_stat/checkpoints
+      dirpath: output/soybean/M3/differentnorm/S12WD_stat/checkpoints
       monitor: val/loss
       mode: min
       save_top_k: 1
       save_last: true
-      filename: best-{epoch:03d}
+      filename: best-{epoch:03d}_test
   - class_path: EarlyStopping
     init_args:
       monitor: val/loss
-      patience: 20
+      patience: 75
       min_delta: 0.0001
       mode: min
       verbose: true
@@ -71,7 +71,7 @@ data:
       - 622.422
       - 849.159
       - 889.618
-      - 1280.02
+      - 1280.020
       - 2572.048
       - 3249.194
       - 3357.392
@@ -95,7 +95,7 @@ data:
     stds:
       S2L2A:
       - 85.014
-      - 107.36
+      - 107.360
       - 133.666
       - 192.031
       - 230.486
@@ -103,7 +103,7 @@ data:
       - 369.633
       - 373.084
       - 384.849
-      - 378.25
+      - 378.250
       - 345.843
       - 295.994
       S1GRD:
@@ -129,6 +129,8 @@ model:
       backbone_modalities:
       - S2L2A
       - S1GRD
+      - WEATHER: 7
+      - DEM
       backbone_merge_method: mean
       necks:
       - name: SelectIndices
@@ -160,5 +162,5 @@ lr_scheduler:
   init_args:
     monitor: val/loss
     factor: 0.8
-    patience: 5
+    patience: 25
     min_lr: 1.0e-06
