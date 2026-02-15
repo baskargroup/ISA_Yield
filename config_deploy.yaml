@@ -31,17 +31,6 @@ data:
       - 3533.077
       - 2808.764
       - 1955.034
-      SOIL:
-      - 0.812
-      - 0.787
-      - 0.741
-      - 20128.93
-      - 21412.781
-      - 253.445
-      - 87.68
-      - 182.086
-      - 264.623
-      - 335.16
       WEATHER:
       - 23.818
       - 24.606
@@ -53,10 +42,9 @@ data:
     modalities:
     - S2L2A
     - S1GRD
+    - CDL
     - DEM
     - WEATHER
-    - SOIL
-    - CDL
     no_data_replace: 0.0
     no_label_replace: 0.0
     num_workers: 8
@@ -91,17 +79,6 @@ data:
       - 378.25
       - 345.843
       - 295.994
-      SOIL:
-      - 0.064
-      - 0.071
-      - 0.079
-      - 6099.627
-      - 6499.918
-      - 44.726
-      - 4.492
-      - 15.991
-      - 28.075
-      - 41.569
       WEATHER:
       - 7.991
       - 1.232
@@ -112,32 +89,29 @@ data:
       - 504.205
     task: regression
     test_data_root:
-      CDL: processed_data_weekly_selected_6/CDL
-      DEM: processed_data_weekly_selected_6/DEM
-      S1GRD: processed_data_weekly_selected_6/S1GRD
-      S2L2A: processed_data_weekly_selected_6/S2L2A
-      SOIL: processed_data_weekly_selected_6/SOIL
-      WEATHER: processed_data_weekly_selected_6/WEATHER
-    test_label_data_root: processed_data_weekly_selected_6/yield_geotiffs
-    test_split: processed_data_weekly_selected_6/test_soybean.txt
+      CDL: processed_data_weekly_24/CDL
+      DEM: processed_data_weekly_24/DEM
+      S1GRD: processed_data_weekly_24/S1GRD
+      S2L2A: processed_data_weekly_24/S2L2A
+      WEATHER: processed_data_weekly_24/WEATHER
+    test_label_data_root: processed_data_weekly_24/yield_geotiffs
+    test_split: processed_data_weekly_24/test_corn.txt
     train_data_root:
-      CDL: processed_data_weekly_selected_6/CDL
-      DEM: processed_data_weekly_selected_6/DEM
-      S1GRD: processed_data_weekly_selected_6/S1GRD
-      S2L2A: processed_data_weekly_selected_6/S2L2A
-      SOIL: processed_data_weekly_selected_6/SOIL
-      WEATHER: processed_data_weekly_selected_6/WEATHER
-    train_label_data_root: processed_data_weekly_selected_6/yield_geotiffs
-    train_split: processed_data_weekly_selected_6/train_soybean.txt
+      CDL: processed_data_weekly_24/CDL
+      DEM: processed_data_weekly_24/DEM
+      S1GRD: processed_data_weekly_24/S1GRD
+      S2L2A: processed_data_weekly_24/S2L2A
+      WEATHER: processed_data_weekly_24/WEATHER
+    train_label_data_root: processed_data_weekly_24/yield_geotiffs
+    train_split: processed_data_weekly_24/train_corn.txt
     val_data_root:
-      CDL: processed_data_weekly_selected_6/CDL
-      DEM: processed_data_weekly_selected_6/DEM
-      S1GRD: processed_data_weekly_selected_6/S1GRD
-      S2L2A: processed_data_weekly_selected_6/S2L2A
-      SOIL: processed_data_weekly_selected_6/SOIL
-      WEATHER: processed_data_weekly_selected_6/WEATHER
-    val_label_data_root: processed_data_weekly_selected_6/yield_geotiffs
-    val_split: processed_data_weekly_selected_6/val_soybean.txt
+      CDL: processed_data_weekly_24/CDL
+      DEM: processed_data_weekly_24/DEM
+      S1GRD: processed_data_weekly_24/S1GRD
+      S2L2A: processed_data_weekly_24/S2L2A
+      WEATHER: processed_data_weekly_24/WEATHER
+    val_label_data_root: processed_data_weekly_24/yield_geotiffs
+    val_split: processed_data_weekly_24/val_corn.txt
 deploy_config_file: true
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
@@ -154,10 +128,9 @@ model:
       backbone_modalities:
       - S2L2A
       - S1GRD
+      - CDL: 1
       - DEM
       - WEATHER: 7
-      - SOIL: 10
-      - CDL: 1
       backbone_pretrained: false
       decoder: UNetDecoder
       decoder_channels:
