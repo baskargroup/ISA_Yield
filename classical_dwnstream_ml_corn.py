@@ -11,14 +11,14 @@ try:
 except ImportError:
     use_cupy = False
 # List all processed_data_biweekly_* folders
-all_biweek_folders = sorted([f for f in os.listdir('/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24') if f.startswith('processed_data_weekly') and os.path.isdir(f)])
+all_biweek_folders = sorted([f for f in os.listdir('/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24') if f.startswith('processed_data_weekly') and os.path.isdir(f) and not f.endswith('_selected')])
 modalities = ["S2L2A", 
               "S1GRD",
               "DEM", 
-              "WEATHER",
+            #   "WEATHER",
               ]
 
-_code = "s12wd"
+_code = "s12d"
 label_folder = "yield_geotiffs"
 
 results = []
@@ -95,9 +95,9 @@ for biweek_folder in all_biweek_folders:
     # Prepare paths
     splits = {}
     for split in ["train", "val", "test"]:
-        split_file = os.path.join(biweek_folder, f"{split}.txt")
+        split_file = os.path.join(biweek_folder, f"{split}_corn.txt")
         if not os.path.exists(split_file):
-            split_file = os.path.join(biweek_folder, split, f"{split}.txt")
+            split_file = os.path.join(biweek_folder, split, f"{split}_corn.txt")
         splits[split] = read_split(split_file)
     modal_paths = {m: os.path.join(biweek_folder, m) for m in modalities}
     label_path = os.path.join(biweek_folder, label_folder)

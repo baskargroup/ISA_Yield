@@ -484,7 +484,7 @@ def create_overall_metrics_bar_plots(csv_files, output_dir='plots'):
 def main():
     # Define predictions directory
     predictions_dir = 'M3/predictions'
-    
+    output_dir = 'M3/plots_stat'
     # Find all CSV files
     csv_files = sorted(Path(predictions_dir).glob('*.csv'))
     
@@ -511,19 +511,18 @@ def main():
     
     print("\n" + "=" * 60)
     print("Creating combined plot...")
-    create_combined_plot(csv_files)
+    create_combined_plot(csv_files, output_dir=output_dir)
     
     print("\n" + "=" * 60)
     print("Creating metrics comparison bar plots...")
-    create_metrics_bar_plots(all_metrics)
+    create_metrics_bar_plots(all_metrics,output_dir=output_dir)
     
     print("\n" + "=" * 60)
     print("Creating overall metrics bar plots (all crops combined)...")
-    create_overall_metrics_bar_plots(csv_files)
+    create_overall_metrics_bar_plots(csv_files, output_dir=output_dir)
     
     print("\n" + "=" * 60)
     print("All plots generated successfully!")
-    print(f"Output directory: plots/")
-
+    print(f"Output directory: {output_dir}")
 if __name__ == '__main__':
     main()
