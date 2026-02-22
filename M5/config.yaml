@@ -9,18 +9,18 @@ trainer:
   logger:
   - class_path: lightning.pytorch.loggers.WandbLogger
     init_args:
-      name: S12WD_stat_differentnorm_test
+      name: S12D_8
       save_dir: .
       offline: false
-      project: M3_soybean
+      project: M5_Corn
       log_model: false
       prefix: ''
       add_file_policy: mutable
   callbacks:
   - class_path: lightning.pytorch.callbacks.ModelCheckpoint
     init_args:
-      dirpath: output/soybean/M3/differentnorm/S12WD_stat/checkpoints
-      filename: best-{epoch:03d}_test
+      dirpath: output/corn/M5/differentnorm/S12D_8/checkpoints
+      filename: best-{epoch:03d}
       monitor: val/loss
       verbose: false
       save_last: true
@@ -83,7 +83,6 @@ model:
       backbone_modalities:
       - S2L2A
       - S1GRD
-      - WEATHER: 7
       - DEM
       backbone_merge_method: mean
       necks:
@@ -118,7 +117,6 @@ data:
     modalities:
     - S2L2A
     - S1GRD
-    - WEATHER
     - DEM
     means:
       S2L2A:
@@ -137,6 +135,10 @@ data:
       S1GRD:
       - -11.224
       - -18.978
+      CDL:
+      - 0
+      DEM:
+      - 338.315
       WEATHER:
       - 23.818
       - 24.606
@@ -145,8 +147,6 @@ data:
       - 1482.514
       - 0.547
       - 49955.316
-      DEM:
-      - 670.665
     stds:
       S2L2A:
       - 85.014
@@ -164,6 +164,10 @@ data:
       S1GRD:
       - 0.897
       - 1.098
+      CDL:
+      - 1
+      DEM:
+      - 57.13
       WEATHER:
       - 7.991
       - 1.232
@@ -172,30 +176,25 @@ data:
       - 120.417
       - 1.337
       - 504.205
-      DEM:
-      - 951.272
     task: regression
     train_data_root:
-      S2L2A: ../../processed_data/weekly_24/processed_data_weekly_24/S2L2A
-      S1GRD: ../../processed_data/weekly_24/processed_data_weekly_24/S1GRD
-      WEATHER: ../../processed_data/weekly_24/processed_data_weekly_24/WEATHER
-      DEM: ../../processed_data/weekly_24/processed_data_weekly_24/DEM
+      S2L2A: ../processed_data/weekly_24/../processed_data_weekly_selected_8/S2L2A
+      S1GRD: ../processed_data/weekly_24/../processed_data_weekly_selected_8/S1GRD
+      DEM: ../processed_data/weekly_24/../processed_data_weekly_selected_8/DEM
     val_data_root:
-      S2L2A: ../../processed_data/weekly_24/processed_data_weekly_24/S2L2A
-      S1GRD: ../../processed_data/weekly_24/processed_data_weekly_24/S1GRD
-      WEATHER: ../../processed_data/weekly_24/processed_data_weekly_24/WEATHER
-      DEM: ../../processed_data/weekly_24/processed_data_weekly_24/DEM
+      S2L2A: ../processed_data/weekly_24/../processed_data_weekly_selected_8/S2L2A
+      S1GRD: ../processed_data/weekly_24/../processed_data_weekly_selected_8/S1GRD
+      DEM: ../processed_data/weekly_24/../processed_data_weekly_selected_8/DEM
     test_data_root:
-      S2L2A: ../../processed_data/weekly_24/processed_data_weekly_24/S2L2A
-      S1GRD: ../../processed_data/weekly_24/processed_data_weekly_24/S1GRD
-      WEATHER: ../../processed_data/weekly_24/processed_data_weekly_24/WEATHER
-      DEM: ../../processed_data/weekly_24/processed_data_weekly_24/DEM
-    train_label_data_root: ../../processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
-    val_label_data_root: ../../processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
-    test_label_data_root: ../../processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
-    train_split: ../../processed_data/weekly_24/processed_data_weekly_24/train_soybean.txt
-    val_split: ../../processed_data/weekly_24/processed_data_weekly_24/val_soybean.txt
-    test_split: ../../processed_data/weekly_24/processed_data_weekly_24/test_soybean.txt
+      S2L2A: ../processed_data/weekly_24/../processed_data_weekly_selected_8/S2L2A
+      S1GRD: ../processed_data/weekly_24/../processed_data_weekly_selected_8/S1GRD
+      DEM: ../processed_data/weekly_24/../processed_data_weekly_selected_8/DEM
+    train_label_data_root: ../processed_data/weekly_24/../processed_data_weekly_selected_8/yield_geotiffs
+    val_label_data_root: ../processed_data/weekly_24/../processed_data_weekly_selected_8/yield_geotiffs
+    test_label_data_root: ../processed_data/weekly_24/../processed_data_weekly_selected_8/yield_geotiffs
+    train_split: ../processed_data/weekly_24/../processed_data_weekly_selected_8/train_corn.txt
+    val_split: ../processed_data/weekly_24/../processed_data_weekly_selected_8/val_corn.txt
+    test_split: ../processed_data/weekly_24/../processed_data_weekly_selected_8/test_corn.txt
     rgb_modality: S2L2A
     rgb_indices:
     - 3
@@ -244,5 +243,3 @@ lr_scheduler:
     cooldown: 0
     min_lr: 1.0e-06
     eps: 1.0e-08
-ckpt_path: output/soybean/M3/differentnorm/S12WD_stat/checkpoints/best-epoch=061.ckpt
-verbose: true
