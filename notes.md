@@ -2,6 +2,7 @@
 
 1. Run ```python yld_proc/save_parquet_chunks.py``` to convert yearly csv file into chunks of parquet files. 
 2. Run ```python yld_proc/data_processing.py``` to combine chunks into one parquet file.
+3. Run ```pyhton extract_field_coordinates.py``` to extract field boundaries into a csv file to download geospatial data.
 3. Run ```python yld_proc/generate_yield_geotiffs.py``` to generate yield geotiffs for each field. 
 4. Run ```python generate_weather_chloe.py```to generate 10m resolution weather TIF files:
    - Input: 1km Daymet weather data
