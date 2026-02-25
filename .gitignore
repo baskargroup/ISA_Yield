@@ -14,3 +14,5 @@ wandb/
 native_corn_checkpoints/
 output/
 processed_data_weekly_*
+processed_data/
+processed_data_fs_*

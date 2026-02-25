@@ -1,35 +1,34 @@
 #!/bin/bash
-
-#SBATCH --time=168:00:00   # walltime limit (HH:MM:SS)
-#SBATCH --nodes=1   # number of nodes
-#SBATCH --ntasks-per-node=1   # 36 processor core(s) per node 
-#SBATCH --mem=369G   # maximum memory per node
-#SBATCH --gres=gpu:a100:1
+#SBATCH --time=48:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem=128G
+#SBATCH --gpus-per-node=1
 #SBATCH --cpus-per-task=16
-#SBATCH --partition=nova    # gpu node(s)
-#SBATCH --account=mech-ai
+#SBATCH --partition=gpuA100x4
+#SBATCH --account=bepk-delta-gpu
 #SBATCH --job-name="M5_corn"
-#SBATCH --mail-user=aapowadi@iastate.edu   # email address
+#SBATCH --mail-user=bgekim@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output="M5_corn%j.out" # job standard output file (%j replaced by job id)
-#SBATCH --error="M5_corn%j.err" # job standard error file (%j replaced by job id)
-# SBATCH --cpus-per-task=16   # spread out to use 1 core per numa, set to 64 if tasks is 1
-# Environment setup
+#SBATCH --output="M5_corn_%j.out"
+#SBATCH --error="M5_corn_%j.err"
 
-
-# conda environment
-source /work/mech-ai-scratch/bgekim/miniconda3/etc/profile.d/conda.sh
+# Conda environment - delta
+source /u/bkim2/miniforge3/etc/profile.d/conda.sh
 conda activate isa_yield_env
 
+# to avoid PROJ conflict
+unset PROJ_DATA
+unset PROJ_LIB
+unset SLURM_NTASKS
 
-echo "Job is starting on `hostname` for M5_corn"
+echo "Job is starting on $(hostname) for M5_corn"
 
-for yaml_file in *_corn.yaml; do
+cd /scratch/bepk/bkim2/ISA_Yield 
+
+for yaml_file in M5/*_corn.yaml; do    # ← M5/ 추가!
     echo "Running $yaml_file"
     terratorch fit -c "$yaml_file"
 done
-
-# terratorch fit -c conf_M5_lre4/s12cdws_24_corn.yaml
-
 
 echo "Job finished for M5_corn"
