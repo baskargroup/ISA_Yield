@@ -183,7 +183,6 @@
 #         print(f"Processing {root_folder} ...")
 #         common_files = find_common_tif(root_folder)
 #         split_and_save(common_files, output_dir)
-
 import os
 import random
 import sys
@@ -237,8 +236,8 @@ def find_common_tif(root_folder):
 def split_and_save(common_files, output_dir):
     """
     Splits files:
-    - Train: 2017-2022 (all)
-    - Val/Test: 2023-2024 split 50/50 for each crop separately
+    - Train: 2017-2022 (all) - 80%
+    - Val = Test: 2023-2024 (same data) - 20%
     """
     if not common_files:
         print("No common files to split.")
@@ -248,29 +247,23 @@ def split_and_save(common_files, output_dir):
     stems = [os.path.splitext(f)[0] for f in common_files]
     
     # Split by year
-    train_files = [s for s in stems if any(year in s for year in ['2017', '2018', '2019', '2020', '2021', '2022'])]
-    val_test_pool = [s for s in stems if any(year in s for year in ['2023', '2024'])]
+    train_files = [s for s in stems if any(year in s for year in ['2017', '2018', '2019', '2020', '2021', '2022', '2023'])]
+    val_test_pool = [s for s in stems if any(year in s for year in ['2024', '2025'])]
     
     # Split val_test_pool by crop
     val_test_corn = [f for f in val_test_pool if 'corn' in f.lower()]
     val_test_soybean = [f for f in val_test_pool if 'soybean' in f.lower()]
     
-    # Shuffle and split 50/50 for each crop
-    random.shuffle(val_test_corn)
-    random.shuffle(val_test_soybean)
+    # Val = Test (use same data!)
+    val_corn = val_test_corn      # all
+    test_corn = val_test_corn     # all (same)
     
-    mid_corn = len(val_test_corn) // 2
-    mid_soybean = len(val_test_soybean) // 2
-    
-    val_corn = val_test_corn[:mid_corn]
-    test_corn = val_test_corn[mid_corn:]
-    
-    val_soybean = val_test_soybean[:mid_soybean]
-    test_soybean = val_test_soybean[mid_soybean:]
+    val_soybean = val_test_soybean      # all
+    test_soybean = val_test_soybean     # all (same)
     
     # Combine for overall val/test
     val_files = val_corn + val_soybean
-    test_files = test_corn + test_soybean
+    test_files = test_corn + test_soybean  # same as val
     
     # Train by crop
     train_corn = [f for f in train_files if 'corn' in f.lower()]
@@ -285,43 +278,43 @@ def split_and_save(common_files, output_dir):
     # Save overall splits (ALL crops combined)
     save_list(train_files, 'train.txt')
     save_list(val_files, 'val.txt')
-    save_list(test_files, 'test.txt')
+    save_list(test_files, 'test.txt')  # same as val
     
     # Save crop-specific splits
     save_list(train_corn, 'train_corn.txt')
     save_list(train_soybean, 'train_soybean.txt')
     save_list(val_corn, 'val_corn.txt')
     save_list(val_soybean, 'val_soybean.txt')
-    save_list(test_corn, 'test_corn.txt')
-    save_list(test_soybean, 'test_soybean.txt')
+    save_list(test_corn, 'test_corn.txt')        # same as val_corn
+    save_list(test_soybean, 'test_soybean.txt')  # same as val_soybean
     
     # Print summary
     print(f"\n{output_dir}:")
     print(f"{'='*70}")
     print(f"Overall splits (Corn + Soybean):")
     print(f"  - train.txt: {len(train_files)} files (2017-2022)")
-    print(f"  - val.txt: {len(val_files)} files (2023-2024, 50% of each crop)")
-    print(f"  - test.txt: {len(test_files)} files (2023-2024, 50% of each crop)")
+    print(f"  - val.txt: {len(val_files)} files (2023-2024)")
+    print(f"  - test.txt: {len(test_files)} files (2023-2024) [SAME as val]")
     print(f"\nCrop-specific splits:")
     print(f"  Corn:")
     print(f"    - train_corn.txt: {len(train_corn)} files (2017-2022)")
-    print(f"    - val_corn.txt: {len(val_corn)} files (2023-2024, 50%)")
-    print(f"    - test_corn.txt: {len(test_corn)} files (2023-2024, 50%)")
+    print(f"    - val_corn.txt: {len(val_corn)} files (2023-2024)")
+    print(f"    - test_corn.txt: {len(test_corn)} files (2023-2024) [SAME as val]")
     print(f"  Soybean:")
-    print(f"    - train_soybean.txt: {len(train_soybean)} files (2017-2022)")
-    print(f"    - val_soybean.txt: {len(val_soybean)} files (2023-2024, 50%)")
-    print(f"    - test_soybean.txt: {len(test_soybean)} files (2023-2024, 50%)")
+    print(f"    - train_soybean.txt: {len(train_soybean)} files (2017-2023)")
+    print(f"    - val_soybean.txt: {len(val_soybean)} files (2024-2025)")
+    print(f"    - test_soybean.txt: {len(test_soybean)} files (2024-2025) [SAME as val]")
     print(f"{'='*70}")
 
 if __name__ == "__main__":
     random.seed(42)  # For reproducibility
 
-    # Find all processed_data_weekly_* folders in the current directory
+    # Find all processed_data_fs_* folders in the current directory
     base_dir = '.'
-    weekly_folders = [f for f in os.listdir(base_dir) if f.startswith('processed_data_weekly') and os.path.isdir(os.path.join(base_dir, f))]
+    weekly_folders = [f for f in os.listdir(base_dir) if f.startswith('processed_data_fs') and os.path.isdir(os.path.join(base_dir, f))]
 
     if not weekly_folders:
-        print("No processed_data_weekly* folders found.")
+        print("No processed_data_fs* folders found.")
         sys.exit(1)
 
     for folder in sorted(weekly_folders):
