@@ -6,7 +6,6 @@
 *.log
 *.err
 *.out
-*.pdf
 *.npy
 chloe_dataset/
 yld_proc/raw_yield/

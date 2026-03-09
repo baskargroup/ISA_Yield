@@ -272,14 +272,19 @@ def fig2_modality_band_statistics():
     base = 'processed_data/weekly_24/processed_data_weekly_24'
     modalities = {
         'S2L2A': {'bands': 12, 'label': 'Sentinel-2',
-                  'names': ['B2','B3','B4','B5','B6','B7','B8','B8A','B9','B11','B12','SCL']},
-        'S1GRD': {'bands': 2, 'label': 'Sentinel-1', 'names': ['VV','VH']},
-        'DEM':   {'bands': 1, 'label': 'DEM', 'names': ['Elevation']},
+                  'names': ['B2','B3','B4','B5','B6','B7','B8','B8A','B9','B11','B12','SCL'],
+                  'ylabel': 'Reflectance (×10⁴)'},
+        'S1GRD': {'bands': 2, 'label': 'Sentinel-1', 'names': ['VV','VH'],
+                  'ylabel': 'Backscatter (dB)'},
+        'DEM':   {'bands': 1, 'label': 'DEM', 'names': ['Elevation'],
+                  'ylabel': 'Elevation (m)'},
         'WEATHER': {'bands': 7, 'label': 'Weather',
-                    'names': ['DAYL','PRCP','SRAD','SWE','TMAX','TMIN','VP']},
+                    'names': ['DAYL','PRCP','SRAD','SWE','TMAX','TMIN','VP'],
+                    'ylabel': 'Value (log scale)'},
         'SOIL':  {'bands': 10, 'label': 'Soil',
-                  'names': [f'Soil_{i+1}' for i in range(10)]},
-        'CDL':   {'bands': 1, 'label': 'CDL', 'names': ['CropType']},
+                  'names': ['aws100','aws150','aws999','nccpi3all','nccpi3corn',
+                            'rootznaws','soc150','soc999','pctearthmc','nccpi3soy'],
+                  'ylabel': 'Value (log scale)'},
     }
 
     # Sample a subset of files for speed
@@ -306,10 +311,9 @@ def fig2_modality_band_statistics():
             'info': mod_info,
         }
 
-    # Create multi-panel figure: one panel per modality
-    fig, axes = plt.subplots(2, 3, figsize=(DOUBLE_COL, 4.0))
-    axes = axes.flatten()
-    colors = ['#4C72B0', '#DD8452', '#55A868', '#C44E52', '#8172B3', '#CCB974']
+    # Create multi-panel figure: one panel per modality (5 panels, no CDL)
+    fig, axes = plt.subplots(1, 5, figsize=(DOUBLE_COL, 2.8))
+    colors = ['#4C72B0', '#DD8452', '#55A868', '#C44E52', '#8172B3']
 
     for idx, (mod_name, data) in enumerate(stats.items()):
         ax = axes[idx]
@@ -324,8 +328,14 @@ def fig2_modality_band_statistics():
         ax.set_xticks(x)
         ax.set_xticklabels(names, rotation=45, ha='right', fontsize=5.5)
         ax.set_title(data['info']['label'], fontweight='bold', fontsize=8, pad=3)
-        ax.set_ylabel('Mean value', fontsize=7)
+        ax.set_ylabel(data['info']['ylabel'], fontsize=7)
         ax.tick_params(axis='both', labelsize=6)
+
+        # Use log scale for panels where value ranges span orders of magnitude
+        if mod_name in ('WEATHER', 'SOIL'):
+            ax.set_yscale('log')
+            # Ensure all bars are visible: set floor slightly above zero
+            ax.set_ylim(bottom=max(1e-3, min(m for m in means if m > 0) * 0.5))
 
     fig.tight_layout(h_pad=0.8, w_pad=0.8)
     save_fig(fig, 'fig2_modality_band_statistics')
@@ -335,7 +345,7 @@ def fig2_modality_band_statistics():
 # FIGURE 3: M3 Modality Ablation — R² and MAE comparison (bar chart)
 # ============================================================================
 def fig3_m3_modality_ablation():
-    """M3 ablation study: R² and MAE across modality combinations, per crop and overall."""
+    """M3 ablation study: R² and MAE across modality combinations, per crop."""
     print('Figure 3: M3 modality ablation bar charts...')
 
     pred_dir = 'M3/predictions'
@@ -354,88 +364,40 @@ def fig3_m3_modality_ablation():
 
     rdf = pd.DataFrame(results)
 
-    # Compute overall (combined corn + soybean) per modality
-    overall = []
-    for modal in rdf['Modal'].unique():
-        sub = rdf[rdf['Modal'] == modal]
-        if len(sub) == 0:
-            continue
-        # Combine all predictions
-        all_true, all_pred = [], []
-        for _, row_csv in enumerate(csv_files):
-            if extract_modal_code(row_csv.stem) == modal:
-                d = pd.read_csv(row_csv)
-                all_true.extend(d['YieldGT'].values)
-                all_pred.extend(d['Prediction'].values)
-        met = calculate_metrics(np.array(all_true), np.array(all_pred))
-        overall.append({'Modal': modal, **met})
-
-    odf = pd.DataFrame(overall).sort_values('R2', ascending=False)
-
-    # ---- Figure: 3 panels (Corn R², Soybean R², Overall R²+MAE) ----
-    fig = plt.figure(figsize=(DOUBLE_COL, 5.5))
-    gs = GridSpec(2, 2, figure=fig, hspace=0.45, wspace=0.35)
+    # ---- Figure: 2 panels (Corn R², Soybean R²) with MAE annotations ----
+    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 4.5))
 
     # Panel (a): Corn R²
-    ax_a = fig.add_subplot(gs[0, 0])
     corn_df = rdf[rdf['Crop'] == 'Corn'].sort_values('R2', ascending=True)
     y_pos = np.arange(len(corn_df))
     ax_a.barh(y_pos, corn_df['R2'], color=CORN_COLOR, edgecolor='black',
               linewidth=0.3, height=0.7, alpha=0.9)
     for i, (_, row) in enumerate(corn_df.iterrows()):
-        ax_a.text(row['R2'] + 0.01, i, f"{row['R2']:.3f}", va='center', fontsize=6)
+        ax_a.text(row['R2'] + 0.005, i,
+                  f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
+                  va='center', fontsize=5.5)
     ax_a.set_yticks(y_pos)
-    ax_a.set_yticklabels(corn_df['Modal'])
+    ax_a.set_yticklabels(corn_df['Modal'], fontsize=6.5)
     ax_a.set_xlabel('$R^2$')
     ax_a.set_title('(a) Corn — $R^2$ by Modality', fontweight='bold', fontsize=8)
-    ax_a.set_xlim(0, corn_df['R2'].max() * 1.2)
+    ax_a.set_xlim(0, corn_df['R2'].max() * 1.35)
 
     # Panel (b): Soybean R²
-    ax_b = fig.add_subplot(gs[0, 1])
     soy_df = rdf[rdf['Crop'] == 'Soybean'].sort_values('R2', ascending=True)
     y_pos = np.arange(len(soy_df))
     ax_b.barh(y_pos, soy_df['R2'], color=SOYBEAN_COLOR, edgecolor='black',
               linewidth=0.3, height=0.7, alpha=0.9)
     for i, (_, row) in enumerate(soy_df.iterrows()):
-        ax_b.text(row['R2'] + 0.01, i, f"{row['R2']:.3f}", va='center', fontsize=6)
+        ax_b.text(row['R2'] + 0.005, i,
+                  f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
+                  va='center', fontsize=5.5)
     ax_b.set_yticks(y_pos)
-    ax_b.set_yticklabels(soy_df['Modal'])
+    ax_b.set_yticklabels(soy_df['Modal'], fontsize=6.5)
     ax_b.set_xlabel('$R^2$')
     ax_b.set_title('(b) Soybean — $R^2$ by Modality', fontweight='bold', fontsize=8)
-    ax_b.set_xlim(0, soy_df['R2'].max() * 1.2)
+    ax_b.set_xlim(0, soy_df['R2'].max() * 1.35)
 
-    # Panel (c): Overall R² + MAE grouped bar
-    ax_c = fig.add_subplot(gs[1, :])
-    odf_sorted = odf.sort_values('R2', ascending=False)
-    x = np.arange(len(odf_sorted))
-    w = 0.35
-    bars1 = ax_c.bar(x - w/2, odf_sorted['R2'], w, color=NEUTRAL_BLUE, alpha=0.85,
-                     edgecolor='black', linewidth=0.3, label='$R^2$')
-    ax_c2 = ax_c.twinx()
-    bars2 = ax_c2.bar(x + w/2, odf_sorted['MAE'], w, color=ACCENT_RED, alpha=0.7,
-                      edgecolor='black', linewidth=0.3, label='MAE')
-
-    ax_c.set_xticks(x)
-    ax_c.set_xticklabels(odf_sorted['Modal'], rotation=30, ha='right')
-    ax_c.set_ylabel('$R^2$ Score', color=NEUTRAL_BLUE)
-    ax_c2.set_ylabel('MAE (bu/acre)', color=ACCENT_RED)
-    ax_c.set_title('(c) Overall — $R^2$ and MAE by Modality Configuration', fontweight='bold', fontsize=8)
-
-    # Combined legend
-    lines1, labels1 = ax_c.get_legend_handles_labels()
-    lines2, labels2 = ax_c2.get_legend_handles_labels()
-    ax_c.legend(lines1 + lines2, labels1 + labels2, loc='upper right', fontsize=7,
-                framealpha=0.9, edgecolor='gray')
-
-    # Add value labels on bars
-    for bar, val in zip(bars1, odf_sorted['R2']):
-        ax_c.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                  f'{val:.2f}', ha='center', va='bottom', fontsize=5.5, color=NEUTRAL_BLUE)
-    for bar, val in zip(bars2, odf_sorted['MAE']):
-        ax_c2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.2,
-                   f'{val:.1f}', ha='center', va='bottom', fontsize=5.5, color=ACCENT_RED)
-
-    ax_c2.spines['right'].set_visible(True)
+    fig.tight_layout(w_pad=1.0)
     save_fig(fig, 'fig3_m3_modality_ablation')
 
 
@@ -694,91 +656,61 @@ def fig7_classical_ml_temporal():
 # FIGURE 8: Classical ML vs TerraMind Comparison
 # ============================================================================
 def fig8_classical_vs_terramind():
-    """Compare classical ML baselines with TerraMind deep learning models."""
+    """Compare classical ML baselines with TerraMind deep learning models, per crop."""
     print('Figure 8: Classical ML vs TerraMind comparison...')
 
-    # Classical ML best results (from classical_ml_summary_s12wd_biweek12.csv — the summary of best)
+    # Classical ML best results (combined — no per-crop split available)
     classical = pd.read_csv('classical_ml_summary_s12wd_biweek12.csv')
 
-    # TerraMind M3 overall metrics
-    m3_metrics = pd.read_csv('M3/plots_stat/overall_metrics.csv')
-    # Pick the best M3 (S12cdw has R2=0.969, but this is train. Use Modality_Config for test metrics).
-    # Actually we ignore Modality_Config per user instructions. Use M3 prediction CSVs directly.
-
-    # Compute M3 test metrics from predictions
+    # Compute M3 test metrics per crop from prediction CSVs
     pred_dir = 'M3/predictions'
-    m3_test = {}
+    m3_crop = {}  # {(modal, crop): {R2, MAE}}
     for csv_file in sorted(Path(pred_dir).glob('*.csv')):
         modal = extract_modal_code(csv_file.stem)
+        crop = extract_crop(csv_file.stem)
         df = pd.read_csv(csv_file)
-        if modal not in m3_test:
-            m3_test[modal] = {'true': [], 'pred': []}
-        m3_test[modal]['true'].extend(df['YieldGT'].values)
-        m3_test[modal]['pred'].extend(df['Prediction'].values)
+        yt = df['YieldGT'].values
+        yp = df['Prediction'].values
+        m3_crop[(modal, crop)] = {'R2': r2_score(yt, yp),
+                                  'MAE': mean_absolute_error(yt, yp)}
 
-    # Get best M3 config
-    best_m3_modal, best_m3_r2 = None, -1
-    m3_results = {}
-    for modal, data in m3_test.items():
-        yt = np.array(data['true'])
-        yp = np.array(data['pred'])
-        r2 = r2_score(yt, yp)
-        mae = mean_absolute_error(yt, yp)
-        m3_results[modal] = {'R2': r2, 'MAE': mae}
-        if r2 > best_m3_r2:
-            best_m3_r2 = r2
-            best_m3_modal = modal
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.5))
 
-    # Build comparison data
-    # Note: classical ML values are normalized (0-1 range), TerraMind is in bu/acre
-    # We'll show R² which is scale-invariant
-    models = ['PLSR', 'XGBoost']
-    classical_r2 = [classical[classical['model'] == m]['test_r2'].values[0] for m in models]
-    classical_mae = [classical[classical['model'] == m]['test_mae'].values[0] for m in models]
+    for ax, crop_name, crop_color in [
+        (ax1, 'Corn', CORN_COLOR), (ax2, 'Soybean', SOYBEAN_COLOR)
+    ]:
+        # Classical ML (combined data — shown as reference)
+        models = ['PLSR*', 'XGBoost*']
+        r2_vals = [classical[classical['model'] == m]['test_r2'].values[0]
+                   for m in ['PLSR', 'XGBoost']]
 
-    # Add top M3 configs
-    sorted_m3 = sorted(m3_results.items(), key=lambda x: x[1]['R2'], reverse=True)[:3]
-    for modal, met in sorted_m3:
-        models.append(f'TM-{modal}')
-        classical_r2.append(met['R2'])
-        classical_mae.append(met['MAE'])
+        # Top 3 M3 configs for this crop
+        crop_results = {k: v for k, v in m3_crop.items() if k[1] == crop_name}
+        sorted_crop = sorted(crop_results.items(), key=lambda x: x[1]['R2'], reverse=True)[:3]
+        for (modal, _), met in sorted_crop:
+            models.append(f'TM-{modal}')
+            r2_vals.append(met['R2'])
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.0))
+        x = np.arange(len(models))
+        colors = [ACCENT_RED, NEUTRAL_BLUE] + [crop_color] * len(sorted_crop)
 
-    colors = [ACCENT_RED, NEUTRAL_BLUE] + [MODEL_COLORS['M3']] * len(sorted_m3)
-    x = np.arange(len(models))
+        bars = ax.bar(x, r2_vals, color=colors, edgecolor='black', linewidth=0.4,
+                      alpha=0.85, zorder=3)
+        for bar, val in zip(bars, r2_vals):
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
+                    f'{val:.3f}', ha='center', va='bottom', fontsize=6, fontweight='bold')
+        ax.set_xticks(x)
+        ax.set_xticklabels(models, rotation=30, ha='right', fontsize=6.5)
+        ax.set_ylabel('Test $R^2$')
+        letter = '(a)' if crop_name == 'Corn' else '(b)'
+        ax.set_title(f'{letter} {crop_name} — $R^2$ Comparison', fontweight='bold', fontsize=8)
+        ax.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
+        ax.set_ylim(0, max(r2_vals) * 1.2)
 
-    # R² comparison
-    bars = ax1.bar(x, classical_r2, color=colors, edgecolor='black', linewidth=0.4,
-                   alpha=0.85, zorder=3)
-    for bar, val in zip(bars, classical_r2):
-        ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                 f'{val:.3f}', ha='center', va='bottom', fontsize=6, fontweight='bold')
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(models, rotation=25, ha='right', fontsize=7)
-    ax1.set_ylabel('Test $R^2$')
-    ax1.set_title('(a) $R^2$ Comparison', fontweight='bold', fontsize=8)
-    ax1.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
-    ax1.set_ylim(0, max(classical_r2) * 1.2)
-
-    # MAE comparison — note: classical MAE is normalized, TerraMind is bu/acre
-    # Only compare R² fairly. For MAE, plot separately with note
-    ax2.bar(x, classical_mae, color=colors, edgecolor='black', linewidth=0.4,
-            alpha=0.85, zorder=3)
-    for i, (bar_x, val) in enumerate(zip(x, classical_mae)):
-        unit = '' if i < 2 else ' bu/ac'
-        ax2.text(bar_x, val + max(classical_mae)*0.02,
-                 f'{val:.2f}{unit}', ha='center', va='bottom', fontsize=5.5, fontweight='bold')
-    ax2.set_xticks(x)
-    ax2.set_xticklabels(models, rotation=25, ha='right', fontsize=7)
-    ax2.set_ylabel('Test MAE')
-    ax2.set_title('(b) MAE Comparison', fontweight='bold', fontsize=8)
-    ax2.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
-
-    # Add note about scale difference
-    ax2.text(0.5, 0.92, 'Note: Classical ML uses normalized yield;\nTerraMind uses bu/acre',
-             transform=ax2.transAxes, fontsize=5.5, ha='center', style='italic',
-             bbox=dict(boxstyle='round,pad=0.3', fc='lightyellow', ec='orange', lw=0.4))
+    # Note about classical ML
+    ax1.text(0.02, 0.02, '* Classical ML trained on\n  combined normalized yield',
+             transform=ax1.transAxes, fontsize=5, style='italic',
+             bbox=dict(boxstyle='round,pad=0.2', fc='lightyellow', ec='orange', lw=0.3))
 
     fig.tight_layout(w_pad=1.0)
     save_fig(fig, 'fig8_classical_vs_terramind')
@@ -948,30 +880,35 @@ def fig10_m5_normalization():
 # FIGURE 11: Comprehensive Model Comparison (M1–M5 summary)
 # ============================================================================
 def fig11_model_summary():
-    """Summary comparison across all 5 model experiments."""
+    """Summary comparison across all 5 model experiments, per crop."""
     print('Figure 11: Model summary M1–M5...')
 
     import json
 
-    # ---- Collect results from each model ----
+    # ---- Collect per-crop results from each model ----
 
-    # M3: from prediction CSVs (best overall config)
+    # M3: per-crop from prediction CSVs — find best config per crop
     pred_dir = 'M3/predictions'
-    m3_test = {}
+    m3_crop = {}  # {(modal, crop): (yt, yp)}
     for csv_file in sorted(Path(pred_dir).glob('*.csv')):
         modal = extract_modal_code(csv_file.stem)
+        crop = extract_crop(csv_file.stem)
         df = pd.read_csv(csv_file)
-        if modal not in m3_test:
-            m3_test[modal] = {'true': [], 'pred': []}
-        m3_test[modal]['true'].extend(df['YieldGT'].values)
-        m3_test[modal]['pred'].extend(df['Prediction'].values)
+        m3_crop[(modal, crop)] = (df['YieldGT'].values, df['Prediction'].values)
 
-    best_m3 = max(m3_test.items(),
-                  key=lambda x: r2_score(np.array(x[1]['true']), np.array(x[1]['pred'])))
-    m3_r2 = r2_score(np.array(best_m3[1]['true']), np.array(best_m3[1]['pred']))
-    m3_mae = mean_absolute_error(np.array(best_m3[1]['true']), np.array(best_m3[1]['pred']))
+    # M1/M2: per-crop from predictions/
+    m1_crop, m2_crop = {}, {}
+    for csv_file in sorted(Path('predictions').glob('*.csv')):
+        modal = extract_modal_code(csv_file.stem)
+        crop = extract_crop(csv_file.stem)
+        df = pd.read_csv(csv_file)
+        yt, yp = df['YieldGT'].values, df['Prediction'].values
+        if modal == 'S12d':
+            m1_crop[crop] = (yt, yp)
+        if modal in ['S12cdws', 'S12cdw']:
+            m2_crop[crop] = (yt, yp)
 
-    # M4: from wandb (best weekly temporal)
+    # M4: from wandb (best weekly temporal — combined validation, no per-crop)
     temporal_data = []
     import re
     for run_dir in sorted(os.listdir('wandb')):
@@ -995,7 +932,7 @@ def fig11_model_summary():
     m4_r2 = max(t['R2'] for t in temporal_data) if temporal_data else 0
     m4_mae = min(t['MAE'] for t in temporal_data) if temporal_data else 0
 
-    # M5: from wandb
+    # M5: from wandb (combined validation, no per-crop)
     m5_r2, m5_mae = 0, 0
     for run_dir in sorted(os.listdir('M5/wandb')):
         if not run_dir.startswith('run-'):
@@ -1010,47 +947,48 @@ def fig11_model_summary():
             m5_r2 = val_r2
             m5_mae = s.get('val/MAE', 0)
 
-    # M1 (frozen backbone, S12d) and M2 (unfrozen, S12wdsc) — extract from configs
-    # M1 and M2 don't have separate wandb dirs; they used the main predictions/ dir
-    # M1 = S12d config (frozen backbone), M2 = S12wdsc (unfrozen, all modalities)
-    # Use predictions/ for M1/M2
-    m1_true, m1_pred = [], []
-    m2_true, m2_pred = [], []
-    for csv_file in sorted(Path('predictions').glob('*.csv')):
-        modal = extract_modal_code(csv_file.stem)
-        df = pd.read_csv(csv_file)
-        if modal == 'S12d':
-            m1_true.extend(df['YieldGT'].values)
-            m1_pred.extend(df['Prediction'].values)
-        # S12cdws or similar all-modality config for M2
-        if modal in ['S12cdws', 'S12cdw']:
-            m2_true.extend(df['YieldGT'].values)
-            m2_pred.extend(df['Prediction'].values)
+    # Build per-crop summary rows
+    rows = []
+    for crop_name in ['Corn', 'Soybean']:
+        # M1
+        if crop_name in m1_crop:
+            yt, yp = m1_crop[crop_name]
+            rows.append({'Model': 'M1', 'Crop': crop_name, 'Config': 'S12d (frozen)',
+                         'R2': r2_score(yt, yp), 'MAE': mean_absolute_error(yt, yp)})
+        # M2
+        if crop_name in m2_crop:
+            yt, yp = m2_crop[crop_name]
+            rows.append({'Model': 'M2', 'Crop': crop_name, 'Config': 'S12cdw (unfrozen)',
+                         'R2': r2_score(yt, yp), 'MAE': mean_absolute_error(yt, yp)})
+        # M3 — best config for this crop
+        crop_m3 = {k: v for k, v in m3_crop.items() if k[1] == crop_name}
+        if crop_m3:
+            best_key = max(crop_m3, key=lambda k: r2_score(crop_m3[k][0], crop_m3[k][1]))
+            yt, yp = crop_m3[best_key]
+            rows.append({'Model': 'M3', 'Crop': crop_name, 'Config': f'{best_key[0]} (ablation)',
+                         'R2': r2_score(yt, yp), 'MAE': mean_absolute_error(yt, yp)})
 
-    m1_r2 = r2_score(np.array(m1_true), np.array(m1_pred)) if m1_true else 0
-    m1_mae = mean_absolute_error(np.array(m1_true), np.array(m1_pred)) if m1_true else 0
-    m2_r2 = r2_score(np.array(m2_true), np.array(m2_pred)) if m2_true else 0
-    m2_mae = mean_absolute_error(np.array(m2_true), np.array(m2_pred)) if m2_true else 0
+    # M4/M5: combined validation only (no per-crop prediction CSVs)
+    rows.append({'Model': 'M4', 'Crop': 'Val', 'Config': 'S12wd (temporal)',
+                 'R2': m4_r2, 'MAE': m4_mae})
+    rows.append({'Model': 'M5', 'Crop': 'Val', 'Config': 'S12d (diff norm)',
+                 'R2': m5_r2, 'MAE': m5_mae})
 
-    # Build summary table
-    summary = pd.DataFrame([
-        {'Model': 'M1', 'Config': 'S12d (frozen)', 'R2': m1_r2, 'MAE': m1_mae,
-         'Description': 'Frozen backbone\nS2+S1+DEM'},
-        {'Model': 'M2', 'Config': 'S12cdw (unfrozen)', 'R2': m2_r2, 'MAE': m2_mae,
-         'Description': 'Unfrozen backbone\nAll modalities'},
-        {'Model': 'M3', 'Config': f'{best_m3[0]} (ablation)', 'R2': m3_r2, 'MAE': m3_mae,
-         'Description': 'Modality ablation\nBest combination'},
-        {'Model': 'M4', 'Config': 'S12wd (temporal)', 'R2': m4_r2, 'MAE': m4_mae,
-         'Description': 'Temporal ablation\nBest window'},
-        {'Model': 'M5', 'Config': 'S12d (diff norm)', 'R2': m5_r2, 'MAE': m5_mae,
-         'Description': 'Different norm\nExploration'},
-    ])
+    summary = pd.DataFrame(rows)
 
     # ---- Figure: grouped horizontal bar ----
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 2.8), sharey=True)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, max(2.8, len(summary) * 0.4)),
+                                   sharey=True)
 
     y = np.arange(len(summary))
-    colors = [MODEL_COLORS[m] for m in summary['Model']]
+    colors = []
+    for _, row in summary.iterrows():
+        if row['Crop'] == 'Corn':
+            colors.append(CORN_COLOR)
+        elif row['Crop'] == 'Soybean':
+            colors.append(SOYBEAN_COLOR)
+        else:
+            colors.append(MODEL_COLORS.get(row['Model'], '#999999'))
 
     # R² bars
     bars1 = ax1.barh(y, summary['R2'], color=colors, edgecolor='black',
@@ -1058,8 +996,8 @@ def fig11_model_summary():
     for i, val in enumerate(summary['R2']):
         ax1.text(val + 0.01, i, f'{val:.3f}', va='center', fontsize=7, fontweight='bold')
     ax1.set_yticks(y)
-    ax1.set_yticklabels([f"{row['Model']}\n{row['Config']}" for _, row in summary.iterrows()],
-                        fontsize=6.5)
+    labels = [f"{row['Model']} {row['Crop']}\n{row['Config']}" for _, row in summary.iterrows()]
+    ax1.set_yticklabels(labels, fontsize=6)
     ax1.set_xlabel('$R^2$ Score')
     ax1.set_title('(a) $R^2$ Comparison', fontweight='bold', fontsize=8)
     ax1.grid(axis='x', alpha=0.2, linewidth=0.3, zorder=0)
@@ -1114,11 +1052,14 @@ def fig12_weather_distributions():
     for idx, (name, vals) in enumerate(band_data.items()):
         ax = axes[idx]
         vals = np.array(vals)
-        ax.hist(vals, bins=60, color=colors[idx], alpha=0.8, edgecolor='white',
+        # Clip outliers using 1st–99th percentiles
+        p1, p99 = np.percentile(vals, [1, 99])
+        vals_clipped = vals[(vals >= p1) & (vals <= p99)]
+        ax.hist(vals_clipped, bins=60, color=colors[idx], alpha=0.8, edgecolor='white',
                 linewidth=0.2, density=True)
         ax.set_title(name, fontweight='bold', fontsize=7.5, pad=2)
         ax.tick_params(labelsize=5.5)
-        txt = f'$\\mu$={vals.mean():.1f}\n$\\sigma$={vals.std():.1f}'
+        txt = f'$\\mu$={vals_clipped.mean():.1f}\n$\\sigma$={vals_clipped.std():.1f}'
         ax.text(0.95, 0.95, txt, transform=ax.transAxes, fontsize=5.5,
                 va='top', ha='right',
                 bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8, ec='gray', lw=0.3))
@@ -1285,24 +1226,9 @@ def fig15_m3_modality_heatmap():
         r2 = r2_score(df['YieldGT'], df['Prediction'])
         results[(modal, crop)] = r2
 
-    # Also compute overall
-    modal_overall = {}
-    for csv_file in csv_files:
-        modal = extract_modal_code(csv_file.stem)
-        if modal not in modal_overall:
-            modal_overall[modal] = {'true': [], 'pred': []}
-        df = pd.read_csv(csv_file)
-        modal_overall[modal]['true'].extend(df['YieldGT'].values)
-        modal_overall[modal]['pred'].extend(df['Prediction'].values)
-
-    for modal in modal_overall:
-        yt = np.array(modal_overall[modal]['true'])
-        yp = np.array(modal_overall[modal]['pred'])
-        results[(modal, 'Overall')] = r2_score(yt, yp)
-
-    # Build matrix
+    # Build matrix (per-crop only)
     modalities = sorted(set(m for m, _ in results.keys()))
-    crops = ['Corn', 'Soybean', 'Overall']
+    crops = ['Corn', 'Soybean']
 
     matrix = np.full((len(modalities), len(crops)), np.nan)
     for i, mod in enumerate(modalities):
@@ -1519,19 +1445,31 @@ def fig18_yield_maps():
 
     fig, axes = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.5))
 
+    # Crop-specific denormalization: normalized = (yield - data_min) / (data_max - data_min)
+    denorm = {
+        'Corn':    {'data_min': 50.0, 'data_max': 370.0},   # range 320
+        'Soybean': {'data_min': 30.0, 'data_max': 120.0},   # range 90
+    }
+
     for ax, fname, crop, cmap_color in [
         (axes[0], corn_file, 'Corn', 'YlOrBr'),
         (axes[1], soy_file, 'Soybean', 'YlGn'),
     ]:
         arr = np.load(os.path.join(yield_dir, fname))[0]  # (224, 224)
-        # Mask zero / NaN pixels
-        masked = np.ma.masked_where(np.isnan(arr) | (arr <= 0), arr)
 
+        # Convert normalized yield back to bu/acre
+        d = denorm[crop]
+        arr_bu = arr * (d['data_max'] - d['data_min']) + d['data_min']
+
+        # Mask invalid pixels (originally <=0 in normalized space)
+        masked = np.ma.masked_where(np.isnan(arr) | (arr <= 0), arr_bu)
+
+        valid_bu = arr_bu[(~np.isnan(arr)) & (arr > 0)]
         im = ax.imshow(masked, cmap=cmap_color, interpolation='nearest',
-                       vmin=np.nanpercentile(arr[arr > 0], 2),
-                       vmax=np.nanpercentile(arr[arr > 0], 98))
+                       vmin=np.nanpercentile(valid_bu, 2),
+                       vmax=np.nanpercentile(valid_bu, 98))
         cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label('Normalized Yield', fontsize=7)
+        cbar.set_label('Yield (bu/acre)', fontsize=7)
         cbar.ax.tick_params(labelsize=6)
 
         field_id = fname.replace('.npy', '')
@@ -1539,9 +1477,8 @@ def fig18_yield_maps():
         ax.set_xlabel('Pixel Column', fontsize=7.5)
         ax.set_ylabel('Pixel Row', fontsize=7.5)
 
-        # Stats inset
-        valid = arr[(~np.isnan(arr)) & (arr > 0)]
-        txt = f'$\mu$={valid.mean():.2f}\n$\sigma$={valid.std():.2f}\nn={len(valid):,} px'
+        # Stats inset (in bu/acre)
+        txt = f'$\mu$={valid_bu.mean():.1f} bu/ac\n$\sigma$={valid_bu.std():.1f} bu/ac\nn={len(valid_bu):,} px'
         ax.text(0.03, 0.97, txt, transform=ax.transAxes, fontsize=6,
                 va='top', ha='left',
                 bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.85,
