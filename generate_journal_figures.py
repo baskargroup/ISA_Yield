@@ -25,18 +25,33 @@ import seaborn as sns
 warnings.filterwarnings('ignore')
 
 # ============================================================================
+# JOURNAL-STANDARD FONT SIZES (consistent across all figures)
+# ============================================================================
+SUPTITLE_SIZE = 10     # figure-level titles (suptitle)
+TITLE_SIZE = 9         # subplot titles
+LABEL_SIZE = 8         # axis labels (xlabel, ylabel, colorbar)
+TICK_SIZE = 7          # tick labels
+LEGEND_SIZE = 7        # legends
+ANNOT_SIZE = 6.5       # value annotations on bars, data points
+INSET_SIZE = 6.5       # stats inset text boxes
+# Dense grid plots (e.g. fig5 with many small subplots)
+SMALL_TITLE_SIZE = 6
+SMALL_TICK_SIZE = 5.5
+SMALL_LABEL_SIZE = 5.5
+
+# ============================================================================
 # JOURNAL-STANDARD MATPLOTLIB RCPARAMS
 # ============================================================================
 mpl.rcParams.update({
     'font.family': 'sans-serif',
     'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'],
     'font.size': 8,
-    'axes.labelsize': 9,
-    'axes.titlesize': 10,
-    'xtick.labelsize': 7.5,
-    'ytick.labelsize': 7.5,
-    'legend.fontsize': 7.5,
-    'figure.titlesize': 11,
+    'axes.labelsize': LABEL_SIZE,
+    'axes.titlesize': TITLE_SIZE,
+    'xtick.labelsize': TICK_SIZE,
+    'ytick.labelsize': TICK_SIZE,
+    'legend.fontsize': LEGEND_SIZE,
+    'figure.titlesize': SUPTITLE_SIZE,
     'axes.linewidth': 0.6,
     'grid.linewidth': 0.4,
     'lines.linewidth': 0.8,
@@ -175,7 +190,7 @@ def fig1a_yield_distributions_corn():
         if not os.path.exists(ppath):
             ax.set_title(str(yr), fontweight='bold', pad=3)
             ax.text(0.5, 0.5, 'No data', transform=ax.transAxes,
-                    ha='center', va='center', fontsize=7, color='gray')
+                    ha='center', va='center', fontsize=ANNOT_SIZE, color='gray')
             continue
 
         df = pd.read_parquet(ppath)
@@ -191,7 +206,7 @@ def fig1a_yield_distributions_corn():
 
         if len(corn) > 0:
             txt = f'$\\mu$={corn.mean():.0f}\n$\\sigma$={corn.std():.0f}\nn={len(corn)}'
-            ax.text(0.97, 0.95, txt, transform=ax.transAxes, fontsize=6,
+            ax.text(0.97, 0.95, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
                     va='top', ha='right',
                     bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8, ec='gray', lw=0.4))
 
@@ -203,7 +218,7 @@ def fig1a_yield_distributions_corn():
     for j in range(ncols):
         axes[-1, j].set_xlabel('Yield (bu/acre)')
 
-    fig.suptitle('Corn — Field-Level Yield Distributions', fontweight='bold', fontsize=9, y=1.01)
+    fig.suptitle('Corn — Field-Level Yield Distributions', fontweight='bold', fontsize=SUPTITLE_SIZE, y=1.01)
     fig.tight_layout(h_pad=0.5, w_pad=0.3)
     save_fig(fig, 'fig1a_yield_distributions_corn')
 
@@ -229,7 +244,7 @@ def fig1b_yield_distributions_soybean():
         if not os.path.exists(ppath):
             ax.set_title(str(yr), fontweight='bold', pad=3)
             ax.text(0.5, 0.5, 'No data', transform=ax.transAxes,
-                    ha='center', va='center', fontsize=7, color='gray')
+                    ha='center', va='center', fontsize=ANNOT_SIZE, color='gray')
             continue
 
         df = pd.read_parquet(ppath)
@@ -245,7 +260,7 @@ def fig1b_yield_distributions_soybean():
 
         if len(soy) > 0:
             txt = f'$\\mu$={soy.mean():.0f}\n$\\sigma$={soy.std():.0f}\nn={len(soy)}'
-            ax.text(0.97, 0.95, txt, transform=ax.transAxes, fontsize=6,
+            ax.text(0.97, 0.95, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
                     va='top', ha='right',
                     bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8, ec='gray', lw=0.4))
 
@@ -257,7 +272,7 @@ def fig1b_yield_distributions_soybean():
     for j in range(ncols):
         axes[-1, j].set_xlabel('Yield (bu/acre)')
 
-    fig.suptitle('Soybean — Field-Level Yield Distributions', fontweight='bold', fontsize=9, y=1.01)
+    fig.suptitle('Soybean — Field-Level Yield Distributions', fontweight='bold', fontsize=SUPTITLE_SIZE, y=1.01)
     fig.tight_layout(h_pad=0.5, w_pad=0.3)
     save_fig(fig, 'fig1b_yield_distributions_soybean')
 
@@ -334,10 +349,10 @@ def fig2_modality_band_statistics():
                       alpha=0.8, edgecolor='black', linewidth=0.3,
                       error_kw={'linewidth': 0.5, 'capthick': 0.5})
         ax.set_xticks(x)
-        ax.set_xticklabels(names, rotation=45, ha='right', fontsize=5.5)
-        ax.set_title(data['info']['label'], fontweight='bold', fontsize=8, pad=3)
-        ax.set_ylabel(data['info']['ylabel'], fontsize=7)
-        ax.tick_params(axis='both', labelsize=6)
+        ax.set_xticklabels(names, rotation=45, ha='right', fontsize=TICK_SIZE)
+        ax.set_title(data['info']['label'], fontweight='bold', fontsize=TITLE_SIZE, pad=3)
+        ax.set_ylabel(data['info']['ylabel'], fontsize=LABEL_SIZE)
+        ax.tick_params(axis='both', labelsize=TICK_SIZE)
 
         # Use log scale for panels where value ranges span orders of magnitude
         if mod_name in ('WEATHER', 'SOIL'):
@@ -383,11 +398,11 @@ def fig3_m3_modality_ablation():
     for i, (_, row) in enumerate(corn_df.iterrows()):
         ax_a.text(row['R2'] + 0.005, i,
                   f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
-                  va='center', fontsize=5.5)
+                  va='center', fontsize=ANNOT_SIZE)
     ax_a.set_yticks(y_pos)
-    ax_a.set_yticklabels(corn_df['Modal'], fontsize=6.5)
+    ax_a.set_yticklabels(corn_df['Modal'], fontsize=TICK_SIZE)
     ax_a.set_xlabel('$R^2$')
-    ax_a.set_title('(a) Corn — $R^2$ by Modality', fontweight='bold', fontsize=8)
+    ax_a.set_title('(a) Corn — $R^2$ by Modality', fontweight='bold', fontsize=TITLE_SIZE)
     ax_a.set_xlim(0, corn_df['R2'].max() * 1.35)
 
     # Panel (b): Soybean R²
@@ -398,11 +413,11 @@ def fig3_m3_modality_ablation():
     for i, (_, row) in enumerate(soy_df.iterrows()):
         ax_b.text(row['R2'] + 0.005, i,
                   f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
-                  va='center', fontsize=5.5)
+                  va='center', fontsize=ANNOT_SIZE)
     ax_b.set_yticks(y_pos)
-    ax_b.set_yticklabels(soy_df['Modal'], fontsize=6.5)
+    ax_b.set_yticklabels(soy_df['Modal'], fontsize=TICK_SIZE)
     ax_b.set_xlabel('$R^2$')
-    ax_b.set_title('(b) Soybean — $R^2$ by Modality', fontweight='bold', fontsize=8)
+    ax_b.set_title('(b) Soybean — $R^2$ by Modality', fontweight='bold', fontsize=TITLE_SIZE)
     ax_b.set_xlim(0, soy_df['R2'].max() * 1.35)
 
     fig.tight_layout(w_pad=1.0)
@@ -487,16 +502,16 @@ def fig4_m3_scatter_best():
                f'MAE = {metrics["MAE"]:.1f} bu/ac\n'
                f'RMSE = {metrics["RMSE"]:.1f} bu/ac\n'
                f'n = {metrics["N"]}')
-        ax.text(0.04, 0.96, txt, transform=ax.transAxes, fontsize=6.5,
+        ax.text(0.04, 0.96, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
                 va='top', ha='left',
                 bbox=dict(boxstyle='round,pad=0.3', fc='white', alpha=0.9,
                           ec='gray', lw=0.4))
 
         letter = chr(97 + idx)
-        ax.set_title(f'({letter}) {modal} — {crop}', fontweight='bold', fontsize=8, pad=3)
-        ax.set_xlabel('Observed Yield (bu/acre)', fontsize=7.5)
-        ax.set_ylabel('Predicted Yield (bu/acre)', fontsize=7.5)
-        ax.legend(loc='lower right', fontsize=6, framealpha=0.9)
+        ax.set_title(f'({letter}) {modal} — {crop}', fontweight='bold', fontsize=TITLE_SIZE, pad=3)
+        ax.set_xlabel('Observed Yield (bu/acre)', fontsize=LABEL_SIZE)
+        ax.set_ylabel('Predicted Yield (bu/acre)', fontsize=LABEL_SIZE)
+        ax.legend(loc='lower right', fontsize=LEGEND_SIZE, framealpha=0.9)
         ax.grid(True, alpha=0.2, linewidth=0.3, zorder=1)
 
     fig.tight_layout(h_pad=0.8, w_pad=0.8)
@@ -548,13 +563,13 @@ def fig5_m3_scatter_all():
         ax.set_ylim(lims)
         ax.set_aspect('equal', adjustable='box')
 
-        ax.set_title(f'{modal} {crop}\n$R^2$={metrics["R2"]:.3f}', fontsize=5.5, pad=2)
-        ax.tick_params(labelsize=5)
+        ax.set_title(f'{modal} {crop}\n$R^2$={metrics["R2"]:.3f}', fontsize=SMALL_TITLE_SIZE, pad=2)
+        ax.tick_params(labelsize=SMALL_TICK_SIZE)
 
         if idx % ncols == 0:
-            ax.set_ylabel('Pred', fontsize=5.5)
+            ax.set_ylabel('Pred', fontsize=SMALL_LABEL_SIZE)
         if idx >= (nrows - 1) * ncols:
-            ax.set_xlabel('Obs', fontsize=5.5)
+            ax.set_xlabel('Obs', fontsize=SMALL_LABEL_SIZE)
 
     # Hide unused axes
     for i in range(n_files, len(axes_flat)):
@@ -594,17 +609,17 @@ def fig6_yearwise_performance():
     # Value labels
     for bar, val in zip(bars1, df['R-square']):
         ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                 f'{val:.3f}', ha='center', va='bottom', fontsize=6, color=NEUTRAL_BLUE,
+                 f'{val:.3f}', ha='center', va='bottom', fontsize=ANNOT_SIZE, color=NEUTRAL_BLUE,
                  fontweight='bold')
     for bar, val in zip(bars2, df['MAE']):
         ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.3,
-                 f'{val:.1f}', ha='center', va='bottom', fontsize=6, color=ACCENT_RED,
+                 f'{val:.1f}', ha='center', va='bottom', fontsize=ANNOT_SIZE, color=ACCENT_RED,
                  fontweight='bold')
 
     # Combined legend
     lines1, l1 = ax1.get_legend_handles_labels()
     lines2, l2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2, l1 + l2, loc='upper left', fontsize=7, framealpha=0.9)
+    ax1.legend(lines1 + lines2, l1 + l2, loc='upper left', fontsize=LEGEND_SIZE, framealpha=0.9)
 
     ax1.set_ylim(0, df['R-square'].max() * 1.25)
     ax2.set_ylim(0, df['MAE'].max() * 1.25)
@@ -639,8 +654,8 @@ def fig7_classical_ml_temporal():
 
     ax1.set_xlabel('Week')
     ax1.set_ylabel('Test $R^2$')
-    ax1.set_title('(a) Test $R^2$ by Week', fontweight='bold', fontsize=8)
-    ax1.legend(fontsize=7, framealpha=0.9)
+    ax1.set_title('(a) Test $R^2$ by Week', fontweight='bold', fontsize=TITLE_SIZE)
+    ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax1.grid(True, alpha=0.2, linewidth=0.3)
     ax1.axhline(y=0, color='gray', linewidth=0.5, linestyle='--')
 
@@ -652,8 +667,8 @@ def fig7_classical_ml_temporal():
 
     ax2.set_xlabel('Week')
     ax2.set_ylabel('Test MAE')
-    ax2.set_title('(b) Test MAE by Week', fontweight='bold', fontsize=8)
-    ax2.legend(fontsize=7, framealpha=0.9)
+    ax2.set_title('(b) Test MAE by Week', fontweight='bold', fontsize=TITLE_SIZE)
+    ax2.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax2.grid(True, alpha=0.2, linewidth=0.3)
 
     fig.tight_layout(w_pad=1.0)
@@ -706,18 +721,18 @@ def fig8_classical_vs_terramind():
                       alpha=0.85, zorder=3)
         for bar, val in zip(bars, r2_vals):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                    f'{val:.3f}', ha='center', va='bottom', fontsize=6, fontweight='bold')
+                    f'{val:.3f}', ha='center', va='bottom', fontsize=ANNOT_SIZE, fontweight='bold')
         ax.set_xticks(x)
-        ax.set_xticklabels(models, rotation=30, ha='right', fontsize=6.5)
+        ax.set_xticklabels(models, rotation=30, ha='right', fontsize=TICK_SIZE)
         ax.set_ylabel('Test $R^2$')
         letter = '(a)' if crop_name == 'Corn' else '(b)'
-        ax.set_title(f'{letter} {crop_name} — $R^2$ Comparison', fontweight='bold', fontsize=8)
+        ax.set_title(f'{letter} {crop_name} — $R^2$ Comparison', fontweight='bold', fontsize=TITLE_SIZE)
         ax.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
         ax.set_ylim(0, max(r2_vals) * 1.2)
 
     # Note about classical ML
     ax1.text(0.02, 0.02, '* Classical ML trained on\n  combined normalized yield',
-             transform=ax1.transAxes, fontsize=5, style='italic',
+             transform=ax1.transAxes, fontsize=INSET_SIZE, style='italic',
              bbox=dict(boxstyle='round,pad=0.2', fc='lightyellow', ec='orange', lw=0.3))
 
     fig.tight_layout(w_pad=1.0)
@@ -792,7 +807,7 @@ def fig9_m4_temporal_ablation():
                      color=MODEL_COLORS['M4'])
     ax1.set_xlabel('Observation Window (weeks)')
     ax1.set_ylabel('Validation $R^2$')
-    ax1.set_title('(a) $R^2$ vs Temporal Window', fontweight='bold', fontsize=8)
+    ax1.set_title('(a) $R^2$ vs Temporal Window', fontweight='bold', fontsize=TITLE_SIZE)
     ax1.grid(True, alpha=0.2, linewidth=0.3)
     ax1.axhline(y=0, color='gray', linewidth=0.5, linestyle='--')
 
@@ -801,7 +816,7 @@ def fig9_m4_temporal_ablation():
     ax1.annotate(f"Best: wk {int(best_row['week'])}\n$R^2$={best_row['val_R2']:.3f}",
                  xy=(best_row['week'], best_row['val_R2']),
                  xytext=(best_row['week']-2, best_row['val_R2']-0.1),
-                 fontsize=6, arrowprops=dict(arrowstyle='->', color='black', lw=0.6),
+                 fontsize=ANNOT_SIZE, arrowprops=dict(arrowstyle='->', color='black', lw=0.6),
                  bbox=dict(boxstyle='round,pad=0.2', fc='lightyellow', ec='gray', lw=0.4))
 
     # MAE vs week
@@ -811,7 +826,7 @@ def fig9_m4_temporal_ablation():
                      color=ACCENT_RED)
     ax2.set_xlabel('Observation Window (weeks)')
     ax2.set_ylabel('Validation MAE')
-    ax2.set_title('(b) MAE vs Temporal Window', fontweight='bold', fontsize=8)
+    ax2.set_title('(b) MAE vs Temporal Window', fontweight='bold', fontsize=TITLE_SIZE)
     ax2.grid(True, alpha=0.2, linewidth=0.3)
 
     fig.tight_layout(w_pad=1.0)
@@ -872,12 +887,12 @@ def fig10_m5_normalization():
     ax.bar(x, m5df['val_R2'], color=colors, edgecolor='black', linewidth=0.4,
            alpha=0.85, zorder=3)
     for i, val in enumerate(m5df['val_R2']):
-        ax.text(i, val + 0.01, f'{val:.3f}', ha='center', va='bottom', fontsize=6.5, fontweight='bold')
+        ax.text(i, val + 0.01, f'{val:.3f}', ha='center', va='bottom', fontsize=ANNOT_SIZE, fontweight='bold')
 
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, fontsize=7)
+    ax.set_xticklabels(labels, fontsize=TICK_SIZE)
     ax.set_ylabel('Validation $R^2$')
-    ax.set_title('M5: Different Normalization Experiments', fontweight='bold', fontsize=8)
+    ax.set_title('M5: Different Normalization Experiments', fontweight='bold', fontsize=TITLE_SIZE)
     ax.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
     fig.tight_layout()
@@ -1002,12 +1017,12 @@ def fig11_model_summary():
     bars1 = ax1.barh(y, summary['R2'], color=colors, edgecolor='black',
                      linewidth=0.4, height=0.6, alpha=0.9, zorder=3)
     for i, val in enumerate(summary['R2']):
-        ax1.text(val + 0.01, i, f'{val:.3f}', va='center', fontsize=7, fontweight='bold')
+        ax1.text(val + 0.01, i, f'{val:.3f}', va='center', fontsize=ANNOT_SIZE, fontweight='bold')
     ax1.set_yticks(y)
     labels = [f"{row['Model']} {row['Crop']}\n{row['Config']}" for _, row in summary.iterrows()]
-    ax1.set_yticklabels(labels, fontsize=6)
+    ax1.set_yticklabels(labels, fontsize=TICK_SIZE)
     ax1.set_xlabel('$R^2$ Score')
-    ax1.set_title('(a) $R^2$ Comparison', fontweight='bold', fontsize=8)
+    ax1.set_title('(a) $R^2$ Comparison', fontweight='bold', fontsize=TITLE_SIZE)
     ax1.grid(axis='x', alpha=0.2, linewidth=0.3, zorder=0)
     ax1.set_xlim(0, summary['R2'].max() * 1.2)
 
@@ -1016,9 +1031,9 @@ def fig11_model_summary():
                      linewidth=0.4, height=0.6, alpha=0.9, zorder=3)
     for i, val in enumerate(summary['MAE']):
         label = f'{val:.2f}' if val < 1 else f'{val:.1f}'
-        ax2.text(val + max(summary['MAE'])*0.02, i, label, va='center', fontsize=7, fontweight='bold')
+        ax2.text(val + max(summary['MAE'])*0.02, i, label, va='center', fontsize=ANNOT_SIZE, fontweight='bold')
     ax2.set_xlabel('MAE')
-    ax2.set_title('(b) MAE Comparison', fontweight='bold', fontsize=8)
+    ax2.set_title('(b) MAE Comparison', fontweight='bold', fontsize=TITLE_SIZE)
     ax2.grid(axis='x', alpha=0.2, linewidth=0.3, zorder=0)
 
     fig.tight_layout(w_pad=1.5)
@@ -1065,17 +1080,17 @@ def fig12_weather_distributions():
         vals_clipped = vals[(vals >= p1) & (vals <= p99)]
         ax.hist(vals_clipped, bins=60, color=colors[idx], alpha=0.8, edgecolor='white',
                 linewidth=0.2, density=True)
-        ax.set_title(name, fontweight='bold', fontsize=7.5, pad=2)
-        ax.tick_params(labelsize=5.5)
+        ax.set_title(name, fontweight='bold', fontsize=TITLE_SIZE, pad=2)
+        ax.tick_params(labelsize=TICK_SIZE)
         txt = f'$\\mu$={vals_clipped.mean():.1f}\n$\\sigma$={vals_clipped.std():.1f}'
-        ax.text(0.95, 0.95, txt, transform=ax.transAxes, fontsize=5.5,
+        ax.text(0.95, 0.95, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
                 va='top', ha='right',
                 bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8, ec='gray', lw=0.3))
 
     # Hide last unused axis
     axes[7].set_visible(False)
 
-    fig.suptitle('Weather Band Distributions (Weekly Data)', fontweight='bold', fontsize=9, y=1.01)
+    fig.suptitle('Weather Band Distributions (Weekly Data)', fontweight='bold', fontsize=SUPTITLE_SIZE, y=1.01)
     fig.tight_layout(h_pad=0.6, w_pad=0.5)
     save_fig(fig, 'fig12_weather_distributions')
 
@@ -1122,8 +1137,8 @@ def fig13_ndvi_temporal():
 
     ax.set_xlabel('Week')
     ax.set_ylabel('Mean NDVI')
-    ax.set_title('NDVI Temporal Profile', fontweight='bold', fontsize=8)
-    ax.legend(fontsize=7, framealpha=0.9)
+    ax.set_title('NDVI Temporal Profile', fontweight='bold', fontsize=TITLE_SIZE)
+    ax.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
     ax.set_xlim(1, 24)
 
@@ -1184,14 +1199,14 @@ def fig14_data_splits():
             linewidth=0.4, label='Soybean', alpha=0.85)
 
     for i, (c, s) in enumerate(zip(corn_counts, soy_counts)):
-        ax1.text(i - w/2, c + 1, str(c), ha='center', va='bottom', fontsize=6.5, fontweight='bold')
-        ax1.text(i + w/2, s + 1, str(s), ha='center', va='bottom', fontsize=6.5, fontweight='bold')
+        ax1.text(i - w/2, c + 1, str(c), ha='center', va='bottom', fontsize=ANNOT_SIZE, fontweight='bold')
+        ax1.text(i + w/2, s + 1, str(s), ha='center', va='bottom', fontsize=ANNOT_SIZE, fontweight='bold')
 
     ax1.set_xticks(x)
     ax1.set_xticklabels(splits_ordered)
     ax1.set_ylabel('Number of Fields')
-    ax1.set_title('(a) Train/Val/Test Split', fontweight='bold', fontsize=8)
-    ax1.legend(fontsize=7, framealpha=0.9)
+    ax1.set_title('(a) Train/Val/Test Split', fontweight='bold', fontsize=TITLE_SIZE)
+    ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax1.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
     # Panel (b): Year distribution in training set
@@ -1205,10 +1220,10 @@ def fig14_data_splits():
     ax2.bar(x2 + w/2, soy_by_year, w, color=SOYBEAN_COLOR, edgecolor='black',
             linewidth=0.4, label='Soybean', alpha=0.85)
     ax2.set_xticks(x2)
-    ax2.set_xticklabels(years, rotation=45, ha='right', fontsize=7)
+    ax2.set_xticklabels(years, rotation=45, ha='right', fontsize=TICK_SIZE)
     ax2.set_ylabel('Number of Fields')
-    ax2.set_title('(b) Training Data by Year', fontweight='bold', fontsize=8)
-    ax2.legend(fontsize=7, framealpha=0.9)
+    ax2.set_title('(b) Training Data by Year', fontweight='bold', fontsize=TITLE_SIZE)
+    ax2.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax2.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
     fig.tight_layout(w_pad=1.0)
@@ -1249,9 +1264,9 @@ def fig15_m3_modality_heatmap():
     im = ax.imshow(matrix, cmap='RdYlGn', aspect='auto', vmin=0, vmax=1)
 
     ax.set_xticks(range(len(crops)))
-    ax.set_xticklabels(crops, fontsize=7.5)
+    ax.set_xticklabels(crops, fontsize=TICK_SIZE)
     ax.set_yticks(range(len(modalities)))
-    ax.set_yticklabels(modalities, fontsize=7)
+    ax.set_yticklabels(modalities, fontsize=TICK_SIZE)
 
     # Annotate cells
     for i in range(len(modalities)):
@@ -1260,13 +1275,13 @@ def fig15_m3_modality_heatmap():
             if not np.isnan(val):
                 color = 'white' if val < 0.3 or val > 0.85 else 'black'
                 ax.text(j, i, f'{val:.3f}', ha='center', va='center',
-                        fontsize=6.5, color=color, fontweight='bold')
+                        fontsize=ANNOT_SIZE, color=color, fontweight='bold')
 
     cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-    cbar.set_label('$R^2$ Score', fontsize=8)
-    cbar.ax.tick_params(labelsize=6.5)
+    cbar.set_label('$R^2$ Score', fontsize=LABEL_SIZE)
+    cbar.ax.tick_params(labelsize=TICK_SIZE)
 
-    ax.set_title('M3: Modality Ablation $R^2$ Heatmap', fontweight='bold', fontsize=8, pad=8)
+    ax.set_title('M3: Modality Ablation $R^2$ Heatmap', fontweight='bold', fontsize=TITLE_SIZE, pad=8)
 
     fig.tight_layout()
     save_fig(fig, 'fig15_m3_modality_heatmap')
@@ -1323,10 +1338,10 @@ def fig16_yield_statistics():
             color=SOYBEAN_COLOR, edgecolor='black', linewidth=0.4,
             capsize=2, error_kw={'linewidth': 0.5}, label='Soybean', alpha=0.85)
     ax1.set_xticks(x)
-    ax1.set_xticklabels(sdf['Year'].astype(str), rotation=45, ha='right', fontsize=7)
+    ax1.set_xticklabels(sdf['Year'].astype(str), rotation=45, ha='right', fontsize=TICK_SIZE)
     ax1.set_ylabel('Mean Field Yield (bu/acre)')
-    ax1.set_title('(a) Mean Field Yield by Year and Crop', fontweight='bold', fontsize=8)
-    ax1.legend(fontsize=7, framealpha=0.9)
+    ax1.set_title('(a) Mean Field Yield by Year and Crop', fontweight='bold', fontsize=TITLE_SIZE)
+    ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax1.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
     # Panel (b): Number of fields
@@ -1335,13 +1350,13 @@ def fig16_yield_statistics():
     ax2.bar(x + w/2, sdf['n_soy'], w, color=SOYBEAN_COLOR, edgecolor='black',
             linewidth=0.4, label='Soybean', alpha=0.85)
     for i, (c, s) in enumerate(zip(sdf['n_corn'], sdf['n_soy'])):
-        ax2.text(i - w/2, c + 0.5, str(c), ha='center', va='bottom', fontsize=6, fontweight='bold')
-        ax2.text(i + w/2, s + 0.5, str(s), ha='center', va='bottom', fontsize=6, fontweight='bold')
+        ax2.text(i - w/2, c + 0.5, str(c), ha='center', va='bottom', fontsize=ANNOT_SIZE, fontweight='bold')
+        ax2.text(i + w/2, s + 0.5, str(s), ha='center', va='bottom', fontsize=ANNOT_SIZE, fontweight='bold')
     ax2.set_xticks(x)
-    ax2.set_xticklabels(sdf['Year'].astype(str), rotation=45, ha='right', fontsize=7)
+    ax2.set_xticklabels(sdf['Year'].astype(str), rotation=45, ha='right', fontsize=TICK_SIZE)
     ax2.set_ylabel('Number of Fields')
-    ax2.set_title('(b) Number of Fields by Year', fontweight='bold', fontsize=8)
-    ax2.legend(fontsize=7, framealpha=0.9)
+    ax2.set_title('(b) Number of Fields by Year', fontweight='bold', fontsize=TITLE_SIZE)
+    ax2.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax2.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
     fig.tight_layout(w_pad=1.0)
@@ -1387,10 +1402,10 @@ def fig17_residual_analysis():
         ax.scatter(y_pred[mask], residuals[mask], alpha=0.6, s=20, color=color,
                    edgecolors='black', linewidths=0.3, label=crop, zorder=3)
     ax.axhline(y=0, color='black', linewidth=0.6, linestyle='--', zorder=2)
-    ax.set_xlabel('Predicted (bu/acre)', fontsize=7.5)
-    ax.set_ylabel('Residual (bu/acre)', fontsize=7.5)
-    ax.set_title(f'(a) Residual vs Predicted', fontweight='bold', fontsize=7.5)
-    ax.legend(fontsize=6, framealpha=0.9)
+    ax.set_xlabel('Predicted (bu/acre)', fontsize=LABEL_SIZE)
+    ax.set_ylabel('Residual (bu/acre)', fontsize=LABEL_SIZE)
+    ax.set_title(f'(a) Residual vs Predicted', fontweight='bold', fontsize=TITLE_SIZE)
+    ax.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
 
     # (b) Residual histogram
@@ -1398,11 +1413,11 @@ def fig17_residual_analysis():
     ax.hist(residuals, bins=30, color=NEUTRAL_BLUE, alpha=0.8, edgecolor='white',
             linewidth=0.3, density=True)
     ax.axvline(x=0, color='black', linewidth=0.6, linestyle='--')
-    ax.set_xlabel('Residual (bu/acre)', fontsize=7.5)
-    ax.set_ylabel('Density', fontsize=7.5)
-    ax.set_title('(b) Residual Distribution', fontweight='bold', fontsize=7.5)
+    ax.set_xlabel('Residual (bu/acre)', fontsize=LABEL_SIZE)
+    ax.set_ylabel('Density', fontsize=LABEL_SIZE)
+    ax.set_title('(b) Residual Distribution', fontweight='bold', fontsize=TITLE_SIZE)
     txt = f'$\\mu$={np.mean(residuals):.1f}\n$\\sigma$={np.std(residuals):.1f}'
-    ax.text(0.95, 0.95, txt, transform=ax.transAxes, fontsize=6.5,
+    ax.text(0.95, 0.95, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
             va='top', ha='right',
             bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8, ec='gray', lw=0.3))
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
@@ -1417,12 +1432,12 @@ def fig17_residual_analysis():
     # Reference line
     slope, intercept = np.polyfit(theoretical_q, sorted_res, 1)
     ax.plot(theoretical_q, slope * theoretical_q + intercept, 'r--', linewidth=0.8, zorder=2)
-    ax.set_xlabel('Theoretical Quantiles', fontsize=7.5)
-    ax.set_ylabel('Sample Quantiles', fontsize=7.5)
-    ax.set_title('(c) Q-Q Plot', fontweight='bold', fontsize=7.5)
+    ax.set_xlabel('Theoretical Quantiles', fontsize=LABEL_SIZE)
+    ax.set_ylabel('Sample Quantiles', fontsize=LABEL_SIZE)
+    ax.set_title('(c) Q-Q Plot', fontweight='bold', fontsize=TITLE_SIZE)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
 
-    fig.suptitle(f'Residual Analysis — Best M3 Config ({modal_name})', fontweight='bold', fontsize=9, y=1.03)
+    fig.suptitle(f'Residual Analysis — Best M3 Config ({modal_name})', fontweight='bold', fontsize=SUPTITLE_SIZE, y=1.03)
     fig.tight_layout(w_pad=0.8)
     save_fig(fig, 'fig17_residual_analysis')
 
@@ -1477,17 +1492,17 @@ def fig18_yield_maps():
                        vmin=np.nanpercentile(valid_bu, 2),
                        vmax=np.nanpercentile(valid_bu, 98))
         cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label('Yield (bu/acre)', fontsize=7)
-        cbar.ax.tick_params(labelsize=6)
+        cbar.set_label('Yield (bu/acre)', fontsize=LABEL_SIZE)
+        cbar.ax.tick_params(labelsize=TICK_SIZE)
 
         field_id = fname.replace('.npy', '')
-        ax.set_title(f'{crop} — {field_id}', fontweight='bold', fontsize=8, pad=4)
-        ax.set_xlabel('Pixel Column', fontsize=7.5)
-        ax.set_ylabel('Pixel Row', fontsize=7.5)
+        ax.set_title(f'{crop} — {field_id}', fontweight='bold', fontsize=TITLE_SIZE, pad=4)
+        ax.set_xlabel('Pixel Column', fontsize=LABEL_SIZE)
+        ax.set_ylabel('Pixel Row', fontsize=LABEL_SIZE)
 
         # Stats inset (in bu/acre)
         txt = f'$\mu$={valid_bu.mean():.1f} bu/ac\n$\sigma$={valid_bu.std():.1f} bu/ac\nn={len(valid_bu):,} px'
-        ax.text(0.03, 0.97, txt, transform=ax.transAxes, fontsize=6,
+        ax.text(0.03, 0.97, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
                 va='top', ha='left',
                 bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.85,
                           ec='gray', lw=0.4))
