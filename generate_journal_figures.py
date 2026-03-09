@@ -1392,9 +1392,6 @@ def fig16_yield_statistics():
             linewidth=0.4, label='Corn', alpha=0.85)
     ax2.bar(x + w/2, sdf['n_soy'], w, color=SOYBEAN_COLOR, edgecolor='black',
             linewidth=0.4, label='Soybean', alpha=0.85)
-    for i, (c, s) in enumerate(zip(sdf['n_corn'], sdf['n_soy'])):
-        ax2.text(i - w/2, c + 0.5, str(c), ha='center', va='bottom', fontsize=ANNOT_SIZE, fontweight='bold')
-        ax2.text(i + w/2, s + 0.5, str(s), ha='center', va='bottom', fontsize=ANNOT_SIZE, fontweight='bold')
     ax2.set_xticks(x)
     ax2.set_xticklabels(sdf['Year'].astype(str), rotation=45, ha='right', fontsize=TICK_SIZE)
     ax2.set_ylabel('Number of Fields')
