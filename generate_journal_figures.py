@@ -1494,6 +1494,64 @@ def fig17_residual_analysis():
 
 
 # ============================================================================
+# FIGURE 18: Yield map for one corn and one soybean field
+# ============================================================================
+def fig18_yield_maps():
+    """Spatial yield maps for one representative corn and one soybean field."""
+    print('Figure 18: Yield maps (corn & soybean)...')
+
+    yield_dir = 'processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs'
+
+    # Pick fields with high valid-pixel coverage for visual clarity
+    def pick_best_field(crop_keyword, n_candidates=30):
+        files = sorted([f for f in os.listdir(yield_dir) if crop_keyword in f])
+        best_file, best_coverage = None, 0
+        for f in files[:n_candidates]:
+            arr = np.load(os.path.join(yield_dir, f))[0]
+            valid = np.sum((~np.isnan(arr)) & (arr > 0))
+            if valid > best_coverage:
+                best_coverage = valid
+                best_file = f
+        return best_file
+
+    corn_file = pick_best_field('Corn')
+    soy_file = pick_best_field('Soybean')
+
+    fig, axes = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.5))
+
+    for ax, fname, crop, cmap_color in [
+        (axes[0], corn_file, 'Corn', 'YlOrBr'),
+        (axes[1], soy_file, 'Soybean', 'YlGn'),
+    ]:
+        arr = np.load(os.path.join(yield_dir, fname))[0]  # (224, 224)
+        # Mask zero / NaN pixels
+        masked = np.ma.masked_where(np.isnan(arr) | (arr <= 0), arr)
+
+        im = ax.imshow(masked, cmap=cmap_color, interpolation='nearest',
+                       vmin=np.nanpercentile(arr[arr > 0], 2),
+                       vmax=np.nanpercentile(arr[arr > 0], 98))
+        cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+        cbar.set_label('Normalized Yield', fontsize=7)
+        cbar.ax.tick_params(labelsize=6)
+
+        field_id = fname.replace('.npy', '')
+        ax.set_title(f'{crop} — {field_id}', fontweight='bold', fontsize=8, pad=4)
+        ax.set_xlabel('Pixel Column', fontsize=7.5)
+        ax.set_ylabel('Pixel Row', fontsize=7.5)
+
+        # Stats inset
+        valid = arr[(~np.isnan(arr)) & (arr > 0)]
+        txt = f'$\mu$={valid.mean():.2f}\n$\sigma$={valid.std():.2f}\nn={len(valid):,} px'
+        ax.text(0.03, 0.97, txt, transform=ax.transAxes, fontsize=6,
+                va='top', ha='left',
+                bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.85,
+                          ec='gray', lw=0.4))
+
+    fig.tight_layout(w_pad=1.0)
+    save_fig(fig, 'fig18_yield_maps')
+
+
+# ============================================================================
 # MAIN
 # ============================================================================
 def main():
@@ -1520,6 +1578,7 @@ def main():
     fig15_m3_modality_heatmap()
     fig16_yield_statistics()
     fig17_residual_analysis()
+    fig18_yield_maps()
 
     print('\n' + '=' * 70)
     print(f'ALL FIGURES SAVED TO: {OUTPUT_DIR}/')
@@ -1547,6 +1606,7 @@ def main():
     print('Fig 15: M3 modality heatmap')
     print('Fig 16: Yield statistics by year')
     print('Fig 17: Residual analysis')
+    print('Fig 18: Yield maps (corn & soybean)')
 
 
 if __name__ == '__main__':
