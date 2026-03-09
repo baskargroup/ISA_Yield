@@ -28,7 +28,7 @@ warnings.filterwarnings('ignore')
 # JOURNAL-STANDARD FONT SIZES (consistent across all figures)
 # ============================================================================
 # Uniform font size across all figure elements
-FONT_SIZE = 8
+FONT_SIZE = 10
 SUPTITLE_SIZE = FONT_SIZE
 TITLE_SIZE = FONT_SIZE
 LABEL_SIZE = FONT_SIZE
@@ -669,7 +669,6 @@ def fig7_classical_ml_temporal():
     ax2.set_xlabel('Week')
     ax2.set_ylabel('Test MAE')
     ax2.set_title('(b) Test MAE by Week', fontweight='bold', fontsize=TITLE_SIZE)
-    ax2.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax2.grid(True, alpha=0.2, linewidth=0.3)
 
     fig.tight_layout(w_pad=1.0)
@@ -1057,23 +1056,22 @@ def fig12_weather_distributions():
         'VP': 'Pa', 'SWE': 'kg/m²', 'DAYL': 's/day',
     }
 
-    # Sample files for efficient computation
+    # Use ALL files for field-level distributions
     all_files = sorted(os.listdir(base))
-    sample_files = all_files[::max(1, len(all_files)//50)]  # ~50 files
 
     band_data = {name: [] for name in band_names}
 
-    for fname in sample_files:
+    for fname in all_files:
         fpath = os.path.join(base, fname)
-        arr = np.load(fpath)  # (24, 7, 224, 224)
+        arr = np.load(fpath, mmap_mode='r')  # (24, 7, 224, 224)
+        # Weather is broadcast: all pixels identical. Read one pixel across weeks.
+        pixel_ts = np.array(arr[:, :, 0, 0])  # (24, 7) — force read into memory
         for b, name in enumerate(band_names):
-            if b < arr.shape[1]:
-                vals = arr[:, b].flatten()
-                valid = vals[~np.isnan(vals)]
-                # Subsample to keep memory manageable
-                if len(valid) > 5000:
-                    valid = np.random.choice(valid, 5000, replace=False)
-                band_data[name].extend(valid.tolist())
+            if b < pixel_ts.shape[1]:
+                week_vals = pixel_ts[:, b]
+                valid = week_vals[~np.isnan(week_vals)]
+                if len(valid) > 0:
+                    band_data[name].append(float(np.mean(valid)))
 
     fig, axes = plt.subplots(2, 4, figsize=(DOUBLE_COL, 3.8))
     axes = axes.flatten()
@@ -1082,21 +1080,55 @@ def fig12_weather_distributions():
     for idx, (name, vals) in enumerate(band_data.items()):
         ax = axes[idx]
         vals = np.array(vals)
-        # Clip outliers using 1st–99th percentiles
-        p1, p99 = np.percentile(vals, [1, 99])
-        vals_clipped = vals[(vals >= p1) & (vals <= p99)]
-        ax.hist(vals_clipped, bins=60, color=colors[idx], alpha=0.8, edgecolor='white',
-                linewidth=0.2, density=True)
+        # Use tighter percentile clipping for skewed bands
+        if name == 'SWE':
+            lo_pct, hi_pct = 0, 80  # heavily zero-inflated
+        else:
+            lo_pct, hi_pct = 2, 98
+        p_lo, p_hi = np.percentile(vals, [lo_pct, hi_pct])
+        vals_clipped = vals[(vals >= p_lo) & (vals <= p_hi)]
+        span = p_hi - p_lo
+        margin = span * 0.03
+        n_bins = 25 if name == 'SWE' else 50
+        ax.hist(vals_clipped, bins=n_bins, color=colors[idx], alpha=0.8, edgecolor='white',
+                linewidth=0.2, density=False, range=(p_lo, p_hi))
+        ax.set_xlim(p_lo - margin, p_hi + margin)
+        # SWE: log y-scale because the zero-bin dominates (~45% of fields)
+        if name == 'SWE':
+            ax.set_yscale('log')
+            ax.set_ylim(bottom=0.8)  # avoid log(0)
+            ax.yaxis.set_major_formatter(plt.ScalarFormatter())
+            ax.yaxis.get_major_formatter().set_scientific(False)
+            ax.set_yticks([1, 10, 100])
         unit = band_units[name]
-        ax.set_title(f'{name} ({unit})', fontweight='bold', fontsize=TITLE_SIZE, pad=2)
+        ax.set_title(f'{name} ({unit})', fontweight='bold', fontsize=TITLE_SIZE, pad=6)
         ax.tick_params(labelsize=TICK_SIZE)
         # Clean up tick formatting
-        ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=5))
-        ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
-        ax.ticklabel_format(axis='both', style='sci', scilimits=(-3, 4), useMathText=True)
-        ax.xaxis.get_offset_text().set_fontsize(TICK_SIZE - 1)
-        ax.yaxis.get_offset_text().set_fontsize(TICK_SIZE - 1)
-        txt = f'$\\mu$={vals_clipped.mean():.1f}\n$\\sigma$={vals_clipped.std():.1f}'
+        if name != 'SWE':
+            ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=4, integer=True))
+        # Per-band x-axis formatting to avoid overlapping / duplicate labels
+        if name == 'VP':
+            # Range ~1300-1700: use plain integers with 4 ticks
+            ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=4, integer=True))
+            ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{int(x)}'))
+        elif name == 'DAYL':
+            # Range ~49600-50200: show ×10³ s with 4 ticks
+            from matplotlib.ticker import FuncFormatter
+            ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=4))
+            ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: f'{x/1000:.1f}'))
+            ax.set_xlabel('×10³', fontsize=TICK_SIZE, labelpad=1)
+        else:
+            ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=5))
+            ax.ticklabel_format(axis='x', style='plain')
+        # Use K notation for y-axis counts if large
+        ax.yaxis.set_major_formatter(plt.FuncFormatter(
+            lambda y, _: f'{y/1000:.0f}K' if y >= 1000 else f'{int(y)}'))
+        mu = vals_clipped.mean()
+        sigma = vals_clipped.std()
+        if mu >= 1000:
+            txt = f'$\\mu$={mu/1000:.1f}K\n$\\sigma$={sigma/1000:.1f}K'
+        else:
+            txt = f'$\\mu$={mu:.1f}\n$\\sigma$={sigma:.1f}'
         ax.text(0.95, 0.95, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
                 va='top', ha='right',
                 bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8, ec='gray', lw=0.3))
@@ -1104,7 +1136,7 @@ def fig12_weather_distributions():
     # Hide last unused axis
     axes[7].set_visible(False)
 
-    fig.tight_layout(h_pad=0.6, w_pad=0.5)
+    fig.tight_layout(h_pad=1.0, w_pad=0.5)
     save_fig(fig, 'fig12_weather_distributions')
 
 
@@ -1237,7 +1269,6 @@ def fig14_data_splits():
     ax2.set_xticklabels(years, rotation=45, ha='right', fontsize=TICK_SIZE)
     ax2.set_ylabel('Number of Fields')
     ax2.set_title('(b) Training Data by Year', fontweight='bold', fontsize=TITLE_SIZE)
-    ax2.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax2.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
     fig.tight_layout(w_pad=1.0)
@@ -1370,7 +1401,6 @@ def fig16_yield_statistics():
     ax2.set_xticklabels(sdf['Year'].astype(str), rotation=45, ha='right', fontsize=TICK_SIZE)
     ax2.set_ylabel('Number of Fields')
     ax2.set_title('(b) Number of Fields by Year', fontweight='bold', fontsize=TITLE_SIZE)
-    ax2.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax2.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
     fig.tight_layout(w_pad=1.0)
