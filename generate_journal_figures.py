@@ -1253,10 +1253,14 @@ def fig14_data_splits():
     ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax1.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
-    # Panel (b): Year distribution in training set
-    years = sorted(set(yr for (_, _, yr) in year_counts.keys()))
-    corn_by_year = [sum(year_counts.get(('Train', 'Corn', yr), 0) for _ in [1]) for yr in years]
-    soy_by_year = [sum(year_counts.get(('Train', 'Soybean', yr), 0) for _ in [1]) for yr in years]
+    # Panel (b): Year distribution in training set — exclude years with no training data
+    years_all = sorted(set(yr for (_, _, yr) in year_counts.keys()))
+    corn_all = [year_counts.get(('Train', 'Corn', yr), 0) for yr in years_all]
+    soy_all = [year_counts.get(('Train', 'Soybean', yr), 0) for yr in years_all]
+    # Filter to only years that have data
+    years = [yr for yr, c, s in zip(years_all, corn_all, soy_all) if c > 0 or s > 0]
+    corn_by_year = [c for c, s in zip(corn_all, soy_all) if c > 0 or s > 0]
+    soy_by_year = [s for c, s in zip(corn_all, soy_all) if c > 0 or s > 0]
 
     x2 = np.arange(len(years))
     ax2.bar(x2 - w/2, corn_by_year, w, color=CORN_COLOR, edgecolor='black',
@@ -1264,7 +1268,8 @@ def fig14_data_splits():
     ax2.bar(x2 + w/2, soy_by_year, w, color=SOYBEAN_COLOR, edgecolor='black',
             linewidth=0.4, label='Soybean', alpha=0.85)
     ax2.set_xticks(x2)
-    ax2.set_xticklabels(years, rotation=45, ha='right', fontsize=TICK_SIZE)
+    ax2.set_xticklabels(years, fontsize=TICK_SIZE)
+    ax2.set_xlim(-0.5, len(years) - 0.5)
     ax2.set_ylabel('Number of Fields')
     ax2.set_title('(b) Training Data by Year', fontweight='bold', fontsize=TITLE_SIZE)
     ax2.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
@@ -1337,7 +1342,7 @@ def fig16_yield_statistics():
     """Yield statistics across years — field-level sample sizes, mean yield, variability."""
     print('Figure 16: Yield statistics by year...')
 
-    years = list(range(2017, 2025))
+    years = list(range(2017, 2026))
     stats = []
     for yr in years:
         ppath = f'Yield_{yr}_filtered.parquet'
@@ -1368,7 +1373,7 @@ def fig16_yield_statistics():
 
     sdf = pd.DataFrame(stats)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 2.8))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.0))
 
     x = np.arange(len(sdf))
     w = 0.35
@@ -1381,7 +1386,8 @@ def fig16_yield_statistics():
             color=SOYBEAN_COLOR, edgecolor='black', linewidth=0.4,
             capsize=2, error_kw={'linewidth': 0.5}, label='Soybean', alpha=0.85)
     ax1.set_xticks(x)
-    ax1.set_xticklabels(sdf['Year'].astype(str), rotation=45, ha='right', fontsize=TICK_SIZE)
+    ax1.set_xticklabels(sdf['Year'].astype(str), fontsize=TICK_SIZE)
+    ax1.set_xlim(-0.5, len(sdf) - 0.5)
     ax1.set_ylabel('Mean Field Yield (bu/acre)')
     ax1.set_title('(a) Mean Field Yield by Year and Crop', fontweight='bold', fontsize=TITLE_SIZE)
     ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
@@ -1393,7 +1399,8 @@ def fig16_yield_statistics():
     ax2.bar(x + w/2, sdf['n_soy'], w, color=SOYBEAN_COLOR, edgecolor='black',
             linewidth=0.4, label='Soybean', alpha=0.85)
     ax2.set_xticks(x)
-    ax2.set_xticklabels(sdf['Year'].astype(str), rotation=45, ha='right', fontsize=TICK_SIZE)
+    ax2.set_xticklabels(sdf['Year'].astype(str), fontsize=TICK_SIZE)
+    ax2.set_xlim(-0.5, len(sdf) - 0.5)
     ax2.set_ylabel('Number of Fields')
     ax2.set_title('(b) Number of Fields by Year', fontweight='bold', fontsize=TITLE_SIZE)
     ax2.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
