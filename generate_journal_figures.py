@@ -27,25 +27,28 @@ warnings.filterwarnings('ignore')
 # ============================================================================
 # JOURNAL-STANDARD FONT SIZES (consistent across all figures)
 # ============================================================================
-SUPTITLE_SIZE = 10     # figure-level titles (suptitle)
-TITLE_SIZE = 9         # subplot titles
-LABEL_SIZE = 8         # axis labels (xlabel, ylabel, colorbar)
-TICK_SIZE = 7          # tick labels
-LEGEND_SIZE = 7        # legends
-ANNOT_SIZE = 6.5       # value annotations on bars, data points
-INSET_SIZE = 6.5       # stats inset text boxes
+# Uniform font size across all figure elements
+FONT_SIZE = 8
+SUPTITLE_SIZE = FONT_SIZE
+TITLE_SIZE = FONT_SIZE
+LABEL_SIZE = FONT_SIZE
+TICK_SIZE = FONT_SIZE
+LEGEND_SIZE = FONT_SIZE
+ANNOT_SIZE = FONT_SIZE
+INSET_SIZE = FONT_SIZE
 # Dense grid plots (e.g. fig5 with many small subplots)
 SMALL_TITLE_SIZE = 6
-SMALL_TICK_SIZE = 5.5
-SMALL_LABEL_SIZE = 5.5
+SMALL_TICK_SIZE = 6
+SMALL_LABEL_SIZE = 6
 
 # ============================================================================
 # JOURNAL-STANDARD MATPLOTLIB RCPARAMS
 # ============================================================================
 mpl.rcParams.update({
-    'font.family': 'sans-serif',
-    'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'],
-    'font.size': 8,
+    'font.family': 'serif',
+    'font.serif': ['STIXGeneral', 'STIX', 'DejaVu Serif'],
+    'mathtext.fontset': 'stix',
+    'font.size': FONT_SIZE,
     'axes.labelsize': LABEL_SIZE,
     'axes.titlesize': TITLE_SIZE,
     'xtick.labelsize': TICK_SIZE,
@@ -218,7 +221,6 @@ def fig1a_yield_distributions_corn():
     for j in range(ncols):
         axes[-1, j].set_xlabel('Yield (bu/acre)')
 
-    fig.suptitle('Corn — Field-Level Yield Distributions', fontweight='bold', fontsize=SUPTITLE_SIZE, y=1.01)
     fig.tight_layout(h_pad=0.5, w_pad=0.3)
     save_fig(fig, 'fig1a_yield_distributions_corn')
 
@@ -272,7 +274,6 @@ def fig1b_yield_distributions_soybean():
     for j in range(ncols):
         axes[-1, j].set_xlabel('Yield (bu/acre)')
 
-    fig.suptitle('Soybean — Field-Level Yield Distributions', fontweight='bold', fontsize=SUPTITLE_SIZE, y=1.01)
     fig.tight_layout(h_pad=0.5, w_pad=0.3)
     save_fig(fig, 'fig1b_yield_distributions_soybean')
 
@@ -294,7 +295,7 @@ def fig2_modality_band_statistics():
         'DEM':   {'bands': 1, 'label': 'DEM', 'names': ['Elevation'],
                   'ylabel': 'Elevation (m)'},
         'WEATHER': {'bands': 7, 'label': 'Weather',
-                    'names': ['DAYL','PRCP','SRAD','SWE','TMAX','TMIN','VP'],
+                    'names': ['PRCP (mm/d)','TMAX (°C)','TMIN (°C)','SRAD (W/m²)','VP (Pa)','SWE (kg/m²)','DAYL (s/d)'],
                     'ylabel': 'Value (log scale)'},
         'SOIL':  {'bands': 10, 'label': 'Soil',
                   'names': ['aws100','aws150','aws999','nccpi3all','nccpi3corn',
@@ -1048,7 +1049,13 @@ def fig12_weather_distributions():
     print('Figure 12: Weather band distributions...')
 
     base = 'processed_data/weekly_24/processed_data_weekly_24/WEATHER'
-    band_names = ['DAYL', 'PRCP', 'SRAD', 'SWE', 'TMAX', 'TMIN', 'VP']
+    # Actual band order in .npy files (verified by physical ranges)
+    band_names = ['PRCP', 'TMAX', 'TMIN', 'SRAD', 'VP', 'SWE', 'DAYL']
+    # Daymet units for each band
+    band_units = {
+        'TMAX': '°C', 'PRCP': 'mm/day', 'TMIN': '°C', 'SRAD': 'W/m²',
+        'VP': 'Pa', 'SWE': 'kg/m²', 'DAYL': 's/day',
+    }
 
     # Sample files for efficient computation
     all_files = sorted(os.listdir(base))
@@ -1080,8 +1087,15 @@ def fig12_weather_distributions():
         vals_clipped = vals[(vals >= p1) & (vals <= p99)]
         ax.hist(vals_clipped, bins=60, color=colors[idx], alpha=0.8, edgecolor='white',
                 linewidth=0.2, density=True)
-        ax.set_title(name, fontweight='bold', fontsize=TITLE_SIZE, pad=2)
+        unit = band_units[name]
+        ax.set_title(f'{name} ({unit})', fontweight='bold', fontsize=TITLE_SIZE, pad=2)
         ax.tick_params(labelsize=TICK_SIZE)
+        # Clean up tick formatting
+        ax.xaxis.set_major_locator(plt.MaxNLocator(nbins=5))
+        ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=4))
+        ax.ticklabel_format(axis='both', style='sci', scilimits=(-3, 4), useMathText=True)
+        ax.xaxis.get_offset_text().set_fontsize(TICK_SIZE - 1)
+        ax.yaxis.get_offset_text().set_fontsize(TICK_SIZE - 1)
         txt = f'$\\mu$={vals_clipped.mean():.1f}\n$\\sigma$={vals_clipped.std():.1f}'
         ax.text(0.95, 0.95, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
                 va='top', ha='right',
@@ -1090,7 +1104,6 @@ def fig12_weather_distributions():
     # Hide last unused axis
     axes[7].set_visible(False)
 
-    fig.suptitle('Weather Band Distributions (Weekly Data)', fontweight='bold', fontsize=SUPTITLE_SIZE, y=1.01)
     fig.tight_layout(h_pad=0.6, w_pad=0.5)
     save_fig(fig, 'fig12_weather_distributions')
 
@@ -1126,7 +1139,7 @@ def fig13_ndvi_temporal():
 
     weeks = np.arange(1, 25)
 
-    fig, ax = plt.subplots(figsize=(SINGLE_COL, 2.8))
+    fig, ax = plt.subplots(figsize=(SINGLE_COL, 2.4))
 
     # Mean ± std
     for data, label, color in [(corn_ndvi, 'Corn', CORN_COLOR), (soy_ndvi, 'Soybean', SOYBEAN_COLOR)]:
@@ -1135,10 +1148,11 @@ def fig13_ndvi_temporal():
         ax.plot(weeks, mean, color=color, linewidth=1.2, label=label, zorder=3)
         ax.fill_between(weeks, mean - std, mean + std, alpha=0.2, color=color, zorder=2)
 
-    ax.set_xlabel('Week')
-    ax.set_ylabel('Mean NDVI')
+    ax.set_xlabel('Week', fontsize=LABEL_SIZE)
+    ax.set_ylabel('Mean NDVI', fontsize=LABEL_SIZE)
     ax.set_title('NDVI Temporal Profile', fontweight='bold', fontsize=TITLE_SIZE)
     ax.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
+    ax.tick_params(axis='both', labelsize=TICK_SIZE)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
     ax.set_xlim(1, 24)
 
@@ -1437,7 +1451,7 @@ def fig17_residual_analysis():
     ax.set_title('(c) Q-Q Plot', fontweight='bold', fontsize=TITLE_SIZE)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
 
-    fig.suptitle(f'Residual Analysis — Best M3 Config ({modal_name})', fontweight='bold', fontsize=SUPTITLE_SIZE, y=1.03)
+
     fig.tight_layout(w_pad=0.8)
     save_fig(fig, 'fig17_residual_analysis')
 
