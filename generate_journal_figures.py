@@ -272,7 +272,7 @@ def fig2_modality_band_statistics():
     base = 'processed_data/weekly_24/processed_data_weekly_24'
     modalities = {
         'S2L2A': {'bands': 12, 'label': 'Sentinel-2',
-                  'names': ['B2','B3','B4','B5','B6','B7','B8','B8A','B9','B11','B12','SCL'],
+                  'names': ['B01','B02','B03','B04','B05','B06','B07','B08','B8A','B09','B11','B12'],
                   'ylabel': 'Reflectance (×10⁴)'},
         'S1GRD': {'bands': 2, 'label': 'Sentinel-1', 'names': ['VV','VH'],
                   'ylabel': 'Backscatter (dB)'},
@@ -311,8 +311,16 @@ def fig2_modality_band_statistics():
             'info': mod_info,
         }
 
-    # Create multi-panel figure: one panel per modality (5 panels, no CDL)
-    fig, axes = plt.subplots(1, 5, figsize=(DOUBLE_COL, 2.8))
+    # Create multi-panel figure: 2 rows (3 top, 2 bottom centred)
+    fig = plt.figure(figsize=(DOUBLE_COL, 4.8))
+    gs = GridSpec(2, 6, figure=fig, hspace=0.55, wspace=0.65)
+    axes = [
+        fig.add_subplot(gs[0, 0:2]),  # Sentinel-2
+        fig.add_subplot(gs[0, 2:4]),  # Sentinel-1
+        fig.add_subplot(gs[0, 4:6]),  # DEM
+        fig.add_subplot(gs[1, 1:3]),  # Weather
+        fig.add_subplot(gs[1, 3:5]),  # Soil
+    ]
     colors = ['#4C72B0', '#DD8452', '#55A868', '#C44E52', '#8172B3']
 
     for idx, (mod_name, data) in enumerate(stats.items()):
