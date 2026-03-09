@@ -444,26 +444,24 @@ def fig4_m3_scatter_best():
         key = (modal, crop)
         modal_data[key] = df
 
-    # Select best overall + best per crop
-    # Use: S12dw (best reported), S12cdw, S12d, S12 as the 4 panels
-    target_configs = [
-        ('S12dw', 'Corn'), ('S12dw', 'Soybean'),
-        ('S12cdw', 'Corn'), ('S12cdw', 'Soybean'),
-    ]
+    # Find top-2 configs per crop by R²
+    from sklearn.metrics import r2_score
+    crop_scores = {}  # {crop: [(modal, r2), ...]}
+    for (modal, crop), df in modal_data.items():
+        y_true = df['YieldGT'].values
+        y_pred = df['Prediction'].values
+        ss_res = np.sum((y_true - y_pred) ** 2)
+        ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
+        r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 0
+        crop_scores.setdefault(crop, []).append((modal, r2))
+    for crop in crop_scores:
+        crop_scores[crop].sort(key=lambda x: -x[1])
 
-    # Fallback: find available configs
-    available = list(modal_data.keys())
+    # Best and 2nd-best per crop
     configs_to_plot = []
-    for tc in target_configs:
-        if tc in available:
-            configs_to_plot.append(tc)
-    if len(configs_to_plot) < 4:
-        # Fill with other available configs
-        for k in available:
-            if k not in configs_to_plot:
-                configs_to_plot.append(k)
-            if len(configs_to_plot) >= 4:
-                break
+    for crop in ['Corn', 'Soybean']:
+        for modal, _ in crop_scores.get(crop, [])[:2]:
+            configs_to_plot.append((modal, crop))
 
     fig, axes = plt.subplots(2, 2, figsize=(DOUBLE_COL, DOUBLE_COL))
     axes = axes.flatten()
@@ -501,7 +499,7 @@ def fig4_m3_scatter_best():
         # Metrics box
         txt = (f'$R^2$ = {metrics["R2"]:.3f}\n'
                f'MAE = {metrics["MAE"]:.1f} bu/ac\n'
-               f'RMSE = {metrics["RMSE"]:.1f} bu/ac\n'
+               f'MAPE = {metrics["MAPE"]:.1f}%\n'
                f'n = {metrics["N"]}')
         ax.text(0.04, 0.96, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
                 va='top', ha='left',
