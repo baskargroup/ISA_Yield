@@ -632,44 +632,69 @@ def fig6_yearwise_performance():
 
 
 # ============================================================================
-# FIGURE 7: Classical ML Temporal (Weekly) — R² progression by week
+# FIGURE 7: Classical ML Temporal (Weekly) — R² by week with M3 reference
 # ============================================================================
 def fig7_classical_ml_temporal():
-    """Classical ML weekly R² progression (XGBoost + PLSR) over 24 weeks."""
+    """Classical ML weekly R² per crop with TerraMind M3 best as reference."""
     print('Figure 7: Classical ML weekly temporal progression...')
 
-    df = pd.read_csv('classical_ml_results_s12wd.csv')
+    # --- M3 best test R² per crop ---
+    pred_dir = 'M3/predictions'
+    m3_crop = {}
+    for csv_file in sorted(Path(pred_dir).glob('*.csv')):
+        modal = extract_modal_code(csv_file.stem)
+        crop = extract_crop(csv_file.stem)
+        df = pd.read_csv(csv_file)
+        m3_crop[(modal, crop)] = r2_score(df['YieldGT'].values, df['Prediction'].values)
 
-    # Extract week number
-    df['week'] = df['biweek'].str.extract(r'weekly_(\d+)').astype(int)
-    df = df.sort_values('week')
+    best_m3 = {}
+    for crop_name in ['Corn', 'Soybean']:
+        crop_results = {k: v for k, v in m3_crop.items() if k[1] == crop_name}
+        if crop_results:
+            best_key = max(crop_results, key=crop_results.get)
+            best_m3[crop_name] = {'modal': best_key[0], 'R2': crop_results[best_key]}
+
+    # --- Per-crop classical ML results ---
+    crop_configs = [
+        ('Corn', 'classical_ml_results_corn_s12cdw.csv', CORN_COLOR),
+        ('Soybean', 'classical_ml_results_soybean_s12ds.csv', SOYBEAN_COLOR),
+    ]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 2.8), sharey=False)
 
-    # Panel (a): Test R²
-    for model, color, marker in [('XGBoost', NEUTRAL_BLUE, 'o'), ('PLSR', ACCENT_RED, 's')]:
-        sub = df[df['model'] == model]
-        ax1.plot(sub['week'], sub['test_r2'], color=color, marker=marker,
-                 markersize=3, linewidth=0.8, label=model, zorder=3)
-        ax1.fill_between(sub['week'], sub['test_r2'], alpha=0.1, color=color)
+    for ax, (crop_name, csv_path, crop_color) in zip([ax1, ax2], crop_configs):
+        letter = '(a)' if crop_name == 'Corn' else '(b)'
 
-    ax1.set_xlabel('Week')
-    ax1.set_ylabel('Test $R^2$')
-    ax1.set_title('(a) Test $R^2$ by Week', fontweight='bold', fontsize=TITLE_SIZE)
-    ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
-    ax1.grid(True, alpha=0.2, linewidth=0.3)
-    ax1.axhline(y=0, color='gray', linewidth=0.5, linestyle='--')
+        if not os.path.exists(csv_path):
+            ax.text(0.5, 0.5, f'{csv_path}\nnot found', ha='center', va='center',
+                    transform=ax.transAxes, fontsize=ANNOT_SIZE, color='gray')
+            ax.set_title(f'{letter} {crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
+            continue
 
-    # Panel (b): Test MAE
-    for model, color, marker in [('XGBoost', NEUTRAL_BLUE, 'o'), ('PLSR', ACCENT_RED, 's')]:
-        sub = df[df['model'] == model]
-        ax2.plot(sub['week'], sub['test_mae'], color=color, marker=marker,
-                 markersize=3, linewidth=0.8, label=model, zorder=3)
+        df = pd.read_csv(csv_path)
+        df['week'] = df['week'].str.extract(r'weekly_(\d+)').astype(int)
+        df = df.sort_values('week')
 
-    ax2.set_xlabel('Week')
-    ax2.set_ylabel('Test MAE')
-    ax2.set_title('(b) Test MAE by Week', fontweight='bold', fontsize=TITLE_SIZE)
-    ax2.grid(True, alpha=0.2, linewidth=0.3)
+        # XGBoost and PLSR curves
+        for model, marker, ls in [('XGBoost', 'o', '-'), ('PLSR', 's', '--')]:
+            sub = df[df['model'] == model]
+            ax.plot(sub['week'], sub['test_r2'], color=crop_color, marker=marker,
+                    markersize=3, linewidth=0.8, linestyle=ls, label=model, zorder=3)
+            ax.fill_between(sub['week'], sub['test_r2'], alpha=0.08, color=crop_color)
+
+        # M3 best horizontal reference
+        if crop_name in best_m3:
+            m3 = best_m3[crop_name]
+            ax.axhline(y=m3['R2'], color=ACCENT_RED, linewidth=1.0,
+                       linestyle='-.', zorder=4,
+                       label=f"TerraMind {m3['modal']} ($R^2$={m3['R2']:.3f})")
+
+        ax.set_xlabel('Week')
+        ax.set_ylabel('Test $R^2$')
+        ax.set_title(f'{letter} {crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
+        ax.legend(fontsize=LEGEND_SIZE - 1, framealpha=0.9, loc='lower right')
+        ax.grid(True, alpha=0.2, linewidth=0.3)
+        ax.axhline(y=0, color='gray', linewidth=0.4, linestyle='--', zorder=1)
 
     fig.tight_layout(w_pad=1.0)
     save_fig(fig, 'fig7_classical_ml_temporal_weekly')
@@ -679,15 +704,12 @@ def fig7_classical_ml_temporal():
 # FIGURE 8: Classical ML vs TerraMind Comparison
 # ============================================================================
 def fig8_classical_vs_terramind():
-    """Compare classical ML baselines with TerraMind deep learning models, per crop."""
+    """Bar chart: best classical ML (peak week) vs TerraMind M3 best, per crop."""
     print('Figure 8: Classical ML vs TerraMind comparison...')
 
-    # Classical ML best results (combined — no per-crop split available)
-    classical = pd.read_csv('classical_ml_summary_s12wd_biweek12.csv')
-
-    # Compute M3 test metrics per crop from prediction CSVs
+    # --- M3 test R² per crop ---
     pred_dir = 'M3/predictions'
-    m3_crop = {}  # {(modal, crop): {R2, MAE}}
+    m3_crop = {}
     for csv_file in sorted(Path(pred_dir).glob('*.csv')):
         modal = extract_modal_code(csv_file.stem)
         crop = extract_crop(csv_file.stem)
@@ -697,43 +719,53 @@ def fig8_classical_vs_terramind():
         m3_crop[(modal, crop)] = {'R2': r2_score(yt, yp),
                                   'MAE': mean_absolute_error(yt, yp)}
 
+    # --- Per-crop classical ML (best week per model) ---
+    crop_configs = [
+        ('Corn', 'classical_ml_results_corn_s12cdw.csv', CORN_COLOR),
+        ('Soybean', 'classical_ml_results_soybean_s12ds.csv', SOYBEAN_COLOR),
+    ]
+
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.5))
 
-    for ax, crop_name, crop_color in [
-        (ax1, 'Corn', CORN_COLOR), (ax2, 'Soybean', SOYBEAN_COLOR)
-    ]:
-        # Classical ML (combined data — shown as reference)
-        models = ['PLSR*', 'XGBoost*']
-        r2_vals = [classical[classical['model'] == m]['test_r2'].values[0]
-                   for m in ['PLSR', 'XGBoost']]
+    for ax, (crop_name, csv_path, crop_color) in zip([ax1, ax2], crop_configs):
+        letter = '(a)' if crop_name == 'Corn' else '(b)'
+        models = []
+        r2_vals = []
+        colors = []
 
-        # Top 3 M3 configs for this crop
+        # Classical ML best week
+        if os.path.exists(csv_path):
+            cdf = pd.read_csv(csv_path)
+            for ml_model in ['PLSR', 'XGBoost']:
+                sub = cdf[cdf['model'] == ml_model]
+                if not sub.empty:
+                    best_row = sub.loc[sub['test_r2'].idxmax()]
+                    models.append(ml_model)
+                    r2_vals.append(best_row['test_r2'])
+                    colors.append(NEUTRAL_BLUE if ml_model == 'XGBoost' else ACCENT_PURPLE)
+
+        # Top M3 configs for this crop
         crop_results = {k: v for k, v in m3_crop.items() if k[1] == crop_name}
         sorted_crop = sorted(crop_results.items(), key=lambda x: x[1]['R2'], reverse=True)[:3]
         for (modal, _), met in sorted_crop:
             models.append(f'TM-{modal}')
             r2_vals.append(met['R2'])
+            colors.append(crop_color)
 
         x = np.arange(len(models))
-        colors = [ACCENT_RED, NEUTRAL_BLUE] + [crop_color] * len(sorted_crop)
-
         bars = ax.bar(x, r2_vals, color=colors, edgecolor='black', linewidth=0.4,
                       alpha=0.85, zorder=3)
         for bar, val in zip(bars, r2_vals):
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                    f'{val:.3f}', ha='center', va='bottom', fontsize=ANNOT_SIZE, fontweight='bold')
+                    f'{val:.3f}', ha='center', va='bottom', fontsize=ANNOT_SIZE,
+                    fontweight='bold')
         ax.set_xticks(x)
         ax.set_xticklabels(models, rotation=30, ha='right', fontsize=TICK_SIZE)
         ax.set_ylabel('Test $R^2$')
-        letter = '(a)' if crop_name == 'Corn' else '(b)'
-        ax.set_title(f'{letter} {crop_name} — $R^2$ Comparison', fontweight='bold', fontsize=TITLE_SIZE)
+        ax.set_title(f'{letter} {crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
         ax.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
-        ax.set_ylim(0, max(r2_vals) * 1.2)
-
-    # Note about classical ML
-    ax1.text(0.02, 0.02, '* Classical ML trained on\n  combined normalized yield',
-             transform=ax1.transAxes, fontsize=INSET_SIZE, style='italic',
-             bbox=dict(boxstyle='round,pad=0.2', fc='lightyellow', ec='orange', lw=0.3))
+        if r2_vals:
+            ax.set_ylim(0, max(r2_vals) * 1.2)
 
     fig.tight_layout(w_pad=1.0)
     save_fig(fig, 'fig8_classical_vs_terramind')

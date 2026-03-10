@@ -10,18 +10,24 @@ try:
     use_cupy = True
 except ImportError:
     use_cupy = False
-# List all processed_data_biweekly_* folders
-all_biweek_folders = sorted([f for f in os.listdir('/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/processed_data/weekly_24') if f.startswith('processed_data_weekly') and os.path.isdir(f) and not f.endswith('_selected')])
+# List all processed_data_weekly_* folders
+DATA_ROOT = 'processed_data/weekly_24'
+all_biweek_folders = sorted([os.path.join(DATA_ROOT, f) for f in os.listdir(DATA_ROOT)
+                            if f.startswith('processed_data_weekly') and
+                            os.path.isdir(os.path.join(DATA_ROOT, f)) and
+                            not f.endswith('_selected') and not f.endswith('_selected_8')])
 modalities = ["S2L2A", 
               "S1GRD",
-              "DEM", 
-            #   "WEATHER",
+              "CDL",
+              "DEM",
+              "WEATHER",
               ]
 
-_code = "s12d"
+_code = "s12cdw"
 label_folder = "yield_geotiffs"
 
 results = []
+file_level_results = []
 
 def read_split(split_path):
     with open(split_path) as f:
@@ -91,7 +97,8 @@ def build_X_y(file_names, modal_paths, label_path):
     return X, y, file_labels
 
 for biweek_folder in all_biweek_folders:
-    print(f"\n=== Processing {biweek_folder} ===")
+    week_name = os.path.basename(biweek_folder)
+    print(f"\n=== Processing {week_name} ===")
     # Prepare paths
     splits = {}
     for split in ["train", "val", "test"]:
@@ -126,7 +133,7 @@ for biweek_folder in all_biweek_folders:
     y_pred_test_xgb = xgb.predict(X_test)
     
     results.append({
-        "biweek": biweek_folder,
+        "week": week_name,
         "model": "XGBoost",
         "train_r2": r2_score(y_train, y_pred_train_xgb),
         "test_r2": r2_score(y_test, y_pred_test_xgb),
@@ -138,6 +145,13 @@ for biweek_folder in all_biweek_folders:
         "test_mape": mean_absolute_percentage_error(y_test, y_pred_test_xgb)
     })
 
+    # Save field-level XGBoost predictions
+    for fname, yt, yp in zip(test_labels, y_test, y_pred_test_xgb):
+        file_level_results.append({
+            "week": week_name, "model": "XGBoost", "file": fname,
+            "y_true": yt, "y_pred": yp,
+        })
+
     # --- PLSR ---
     n_components = min(20, X_train.shape[1])
     plsr = PLSRegression(n_components=n_components)
@@ -145,7 +159,7 @@ for biweek_folder in all_biweek_folders:
     y_pred_train_pls = plsr.predict(X_train).ravel()
     y_pred_test_pls = plsr.predict(X_test).ravel()
     results.append({
-        "biweek": biweek_folder,
+        "week": week_name,
         "model": "PLSR",
         "train_r2": r2_score(y_train, y_pred_train_pls),
         "test_r2": r2_score(y_test, y_pred_test_pls),
@@ -157,7 +171,19 @@ for biweek_folder in all_biweek_folders:
         "test_mape": mean_absolute_percentage_error(y_test, y_pred_test_pls)
     })
 
-# Save results as a table
+    # Save field-level PLSR predictions
+    for fname, yt, yp in zip(test_labels, y_test, y_pred_test_pls):
+        file_level_results.append({
+            "week": week_name, "model": "PLSR", "file": fname,
+            "y_true": yt, "y_pred": yp,
+        })
+
+# Save results
 df_results = pd.DataFrame(results)
 print(df_results)
-df_results.to_csv(f"classical_ml_results_{_code}.csv", index=False)
+df_results.to_csv(f"classical_ml_results_corn_{_code}.csv", index=False)
+
+# Save field-level predictions
+df_file = pd.DataFrame(file_level_results)
+df_file.to_csv(f"classical_ml_field_level_corn_{_code}.csv", index=False)
+print(f"\nSaved {len(df_results)} aggregate rows, {len(df_file)} field-level rows")
