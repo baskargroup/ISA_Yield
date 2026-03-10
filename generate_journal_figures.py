@@ -83,42 +83,44 @@ SINGLE_COL = 3.5    # ~89 mm
 ONE_HALF_COL = 5.5  # ~140 mm
 DOUBLE_COL = 7.2    # ~183 mm
 
-# Color palettes
-CORN_COLOR = '#E8A838'
-SOYBEAN_COLOR = '#56A764'
-NEUTRAL_BLUE = '#2E86AB'
-ACCENT_RED = '#D64045'
-ACCENT_PURPLE = '#7B68EE'
-SCATTER_COLOR = '#3A7CA5'
+# Color palettes — Wong (2011) colorblind-safe palette
+# Reference: Bang Wong, Nature Methods 8, 441 (2011)
+CB_BLUE    = '#0072B2'
+CB_ORANGE  = '#E69F00'
+CB_GREEN   = '#009E73'
+CB_RED     = '#D55E00'
+CB_PURPLE  = '#CC79A7'
+CB_CYAN    = '#56B4E9'
+CB_YELLOW  = '#F0E442'
+CB_BLACK   = '#000000'
+
+CORN_COLOR = CB_ORANGE
+SOYBEAN_COLOR = CB_GREEN
+NEUTRAL_BLUE = CB_BLUE
+ACCENT_RED = CB_RED
+ACCENT_PURPLE = CB_PURPLE
+SCATTER_COLOR = CB_BLUE
 DARK_GRAY = '#333333'
 
-# Model-specific colors
+# Model-specific colors (colorblind-safe)
 MODEL_COLORS = {
-    'M1': '#4C72B0',
-    'M2': '#DD8452',
-    'M3': '#55A868',
-    'M4': '#C44E52',
-    'M5': '#8172B3',
+    'M1': CB_BLUE,
+    'M2': CB_ORANGE,
+    'M3': CB_GREEN,
+    'M4': CB_RED,
+    'M5': CB_PURPLE,
 }
 
-# Modality colors for M3 ablation
+# Modality colors for M3 ablation (colorblind-safe cycling)
+_MOD_CB_CYCLE = [CB_BLUE, CB_ORANGE, CB_GREEN, CB_RED, CB_PURPLE,
+                 CB_CYAN, CB_YELLOW, CB_BLACK,
+                 '#0072B2', '#E69F00', '#009E73', '#D55E00',
+                 '#CC79A7', '#56B4E9', '#F0E442', '#999999']
 MODALITY_COLORS = {
-    'S12': '#4C72B0',
-    'S12c': '#64B5F6',
-    'S12d': '#55A868',
-    'S12s': '#FF7043',
-    'S12w': '#AB47BC',
-    'S12cd': '#26A69A',
-    'S12cs': '#EF5350',
-    'S12cw': '#5C6BC0',
-    'S12ds': '#66BB6A',
-    'S12dw': '#FFA726',
-    'S12ws': '#EC407A',
-    'S12cdw': '#D4E157',
-    'S12cds': '#42A5F5',
-    'S12cws': '#26C6DA',
-    'S12dws': '#FFCA28',
-    'S12cdws': '#78909C',
+    k: _MOD_CB_CYCLE[i] for i, k in enumerate([
+        'S12', 'S12c', 'S12d', 'S12s', 'S12w', 'S12cd', 'S12cs', 'S12cw',
+        'S12ds', 'S12dw', 'S12ws', 'S12cdw', 'S12cds', 'S12cws', 'S12dws', 'S12cdws',
+    ])
 }
 
 OUTPUT_DIR = 'journal_figures'
@@ -337,7 +339,7 @@ def fig2_modality_band_statistics():
         fig.add_subplot(gs[1, 1:3]),  # Weather
         fig.add_subplot(gs[1, 3:5]),  # Soil
     ]
-    colors = ['#4C72B0', '#DD8452', '#55A868', '#C44E52', '#8172B3']
+    colors = [CB_BLUE, CB_ORANGE, CB_GREEN, CB_RED, CB_PURPLE]
 
     for idx, (mod_name, data) in enumerate(stats.items()):
         ax = axes[idx]
@@ -1073,7 +1075,7 @@ def fig12_weather_distributions():
 
     fig, axes = plt.subplots(2, 4, figsize=(DOUBLE_COL, 3.8))
     axes = axes.flatten()
-    colors = sns.color_palette('Set2', len(band_names))
+    colors = [CB_BLUE, CB_ORANGE, CB_GREEN, CB_RED, CB_PURPLE, CB_CYAN, CB_YELLOW, CB_BLACK][:len(band_names)]
 
     for idx, (name, vals) in enumerate(band_data.items()):
         ax = axes[idx]
@@ -1309,7 +1311,7 @@ def fig15_m3_modality_heatmap():
 
     fig, ax = plt.subplots(figsize=(SINGLE_COL + 0.5, max(2.5, len(modalities) * 0.35)))
 
-    im = ax.imshow(matrix, cmap='RdYlGn', aspect='auto', vmin=0, vmax=1)
+    im = ax.imshow(matrix, cmap='viridis', aspect='auto', vmin=0, vmax=1)
 
     ax.set_xticks(range(len(crops)))
     ax.set_xticklabels(crops, fontsize=TICK_SIZE)
@@ -1522,7 +1524,7 @@ def fig18_yield_maps():
 
     for ax, fname, crop, cmap_color in [
         (axes[0], corn_file, 'Corn', 'YlOrBr'),
-        (axes[1], soy_file, 'Soybean', 'YlGn'),
+        (axes[1], soy_file, 'Soybean', 'cividis'),
     ]:
         arr = np.load(os.path.join(yield_dir, fname))[0]  # (224, 224)
 
@@ -1558,6 +1560,280 @@ def fig18_yield_maps():
 
 
 # ============================================================================
+# FIGURE 19: Weekly data availability heatmap (S2L2A, S1GRD, WEATHER)
+# ============================================================================
+def fig19_weekly_availability():
+    """Heatmap of weekly data availability (present/imputed/absent) per modality."""
+    print('Figure 19: Weekly data availability heatmap...')
+
+    import re as _re
+    from collections import defaultdict
+
+    log_path = 'chloe_dataset/dates_log.txt'
+    if not os.path.exists(log_path):
+        print(f'  {log_path} not found, skipping.')
+        return
+
+    # ---- Parse dates_log.txt ----
+    used_dates = {}  # {filename: {modality: [dates]}}
+    current_file = None
+    current_mod = None
+    with open(log_path) as f:
+        for line in f:
+            line = line.rstrip()
+            if line.startswith('='):
+                continue
+            if line and not line.startswith(' ') and '.tif' in line:
+                current_file = line.split(' ')[0].strip()
+                used_dates[current_file] = {}
+                current_mod = None
+                continue
+            if current_file and ':' in line and 'dates' in line:
+                current_mod = line.strip().split(':')[0].strip()
+                used_dates[current_file][current_mod] = []
+                continue
+            if current_file and current_mod and line.strip():
+                dates = [d.strip() for d in line.strip().split(',') if d.strip()]
+                used_dates[current_file][current_mod].extend(dates)
+
+    # ---- Map dates to weekly bins (24 weeks: Apr W1 – Sep W4) ----
+    def dates_to_week_mask(dates):
+        """Return a 24-element bool array: True if at least one date falls in that week."""
+        mask = [False] * 24
+        for d in dates:
+            m = int(d[5:7])
+            day = int(d[8:10])
+            if 4 <= m <= 9:
+                week_in_month = min((day - 1) // 7, 3)
+                week = (m - 4) * 4 + week_in_month
+                mask[week] = True
+        return mask
+
+    # ---- Compute availability percentage per modality per week ----
+    modalities = ['S2L2A', 'S1GRD', 'WEATHER']
+    # present_pct[modality] = array(24,) percentage of fields with data that week
+    present_pct = {}
+    for mod in modalities:
+        week_present = np.zeros(24)
+        week_total = np.zeros(24)
+        for fname, mods in used_dates.items():
+            if mod not in mods:
+                continue
+            mask = dates_to_week_mask(mods[mod])
+            for w in range(24):
+                week_total[w] += 1
+                if mask[w]:
+                    week_present[w] += 1
+        with np.errstate(divide='ignore', invalid='ignore'):
+            pct = np.where(week_total > 0, week_present / week_total * 100, 0)
+        present_pct[mod] = pct
+
+    # ---- Build matrix (3 modalities x 24 weeks) ----
+    matrix = np.array([present_pct[m] for m in modalities])
+
+    # ---- Week labels: W1-W24 with month name at first week of each month ----
+    month_abbr = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']
+    week_labels = []
+    for i in range(24):
+        m_idx = i // 4
+        w_in_month = i % 4
+        if w_in_month == 0:  # first week of month
+            week_labels.append(f'{month_abbr[m_idx]} (W{i+1})')
+        else:
+            week_labels.append(f'W{i+1}')
+
+    # ---- Plot ----
+    fig, ax = plt.subplots(figsize=(DOUBLE_COL, 1.6))
+
+    im = ax.imshow(matrix, cmap='viridis', aspect='auto', vmin=0, vmax=100)
+
+    # Ticks
+    ax.set_xticks(range(24))
+    ax.set_xticklabels(week_labels, rotation=45, ha='right', fontsize=SMALL_TICK_SIZE)
+    ax.set_yticks(range(len(modalities)))
+    ax.set_yticklabels(modalities, fontsize=TICK_SIZE)
+
+    # Annotate cells with percentage values
+    for i in range(len(modalities)):
+        for j in range(24):
+            val = matrix[i, j]
+            color = 'white' if val < 40 or val > 85 else 'black'
+            ax.text(j, i, f'{val:.0f}', ha='center', va='center',
+                    fontsize=SMALL_TICK_SIZE, color=color, fontweight='bold')
+
+    # Colorbar
+    cbar = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.04, aspect=12)
+    cbar.set_label('Fields with\ndata (%)', fontsize=TICK_SIZE)
+    cbar.ax.tick_params(labelsize=SMALL_TICK_SIZE)
+
+    ax.set_xlabel('Week', fontsize=LABEL_SIZE)
+
+    fig.tight_layout(pad=0.5)
+    save_fig(fig, 'fig19_weekly_availability')
+
+
+# ============================================================================
+# FIG 20: GEOGRAPHIC FIELD SPLIT MAPS (separate Corn & Soybean)
+# ============================================================================
+def _load_split_centroids():
+    """Load field centroids and merge with split assignments (shared helper)."""
+    import re as _re
+
+    RAW_YIELD_DIR = Path('raw_yield')
+    SPLIT_DIR = Path('processed_data/weekly_24/processed_data_weekly_24')
+
+    # Load centroids from all yearly CSVs
+    frames = []
+    for csv_path in sorted(RAW_YIELD_DIR.glob('Crop_Classification_*.csv')):
+        year_match = _re.search(r'(\d{4})$', csv_path.stem)
+        if year_match is None:
+            continue
+        df = pd.read_csv(csv_path)
+        df.columns = df.columns.str.strip().str.strip('"')
+        if not {'Layer_ID', 'X_cent', 'Y_cent', 'Crop'}.issubset(df.columns):
+            continue
+        sub = df[['Layer_ID', 'X_cent', 'Y_cent', 'Crop']].copy()
+        sub['Layer_ID'] = sub['Layer_ID'].astype(str).str.replace('"', '', regex=False)
+        sub['Crop'] = sub['Crop'].astype(str).str.replace('"', '', regex=False)
+        sub['crop_norm'] = sub['Crop'].str.strip().str.lower()
+        sub['lat'] = pd.to_numeric(sub['Y_cent'], errors='coerce')
+        sub['lon'] = pd.to_numeric(sub['X_cent'], errors='coerce')
+        sub['year'] = int(year_match.group(1))
+        sub = sub.dropna(subset=['lat', 'lon'])
+        frames.append(sub[['Layer_ID', 'crop_norm', 'year', 'lat', 'lon']])
+    centroids = pd.concat(frames, ignore_index=True).drop_duplicates(
+        subset=['Layer_ID', 'crop_norm', 'year'], keep='first')
+
+    def _load_split_merged(crop_lower):
+        split_frames = []
+        for split_name in ['train', 'val', 'test']:
+            fpath = SPLIT_DIR / f'{split_name}_{crop_lower}.txt'
+            rows = []
+            with open(fpath) as f:
+                for line in f:
+                    val = line.strip()
+                    if not val:
+                        continue
+                    if '_' in val:
+                        lid, crop_in = val.rsplit('_', 1)
+                    else:
+                        lid, crop_in = val, crop_lower
+                    year_m = _re.match(r'^ST(\d{4})', lid)
+                    rows.append({
+                        'Layer_ID': lid,
+                        'crop_norm': crop_in.strip().lower(),
+                        'year': int(year_m.group(1)) if year_m else None,
+                        'split': split_name,
+                    })
+            split_frames.append(pd.DataFrame(rows))
+        split_df = pd.concat(split_frames, ignore_index=True)
+        pts = centroids[centroids['crop_norm'] == crop_lower].copy()
+        merged = split_df.merge(pts, on=['Layer_ID', 'crop_norm', 'year'], how='left')
+        return merged.dropna(subset=['lat', 'lon']).copy()
+
+    return _load_split_merged
+
+
+def _build_geo_split_figure(merged, crop_label, fig_name):
+    """Build a single high-res geographic split map using cartopy with basemap."""
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    import cartopy.io.shapereader as shpreader
+    from shapely.geometry import box as shapely_box
+
+    SPLIT_COLORS = {'train': CB_BLUE, 'val': CB_ORANGE, 'test': CB_RED}
+    SPLIT_MARKERS = {'train': 'o', 'val': '^', 'test': 's'}
+    SPLIT_LABELS = {'train': 'Train', 'val': 'Val', 'test': 'Test'}
+
+    proj = ccrs.PlateCarree()
+    fig, ax = plt.subplots(figsize=(SINGLE_COL + 1.0, 3.8),
+                           subplot_kw={'projection': proj})
+
+    # Iowa extent with padding
+    extent = [-97.0, -89.8, 40.15, 43.75]
+    ax.set_extent(extent, crs=proj)
+    view_box = shapely_box(extent[0], extent[2], extent[1], extent[3])
+
+    # --- Basemap layers ---
+    # Land & ocean background
+    ax.add_feature(cfeature.NaturalEarthFeature('physical', 'land', '10m',
+                   facecolor='#f0ede4', edgecolor='none'), zorder=0)
+    ax.add_feature(cfeature.NaturalEarthFeature('physical', 'ocean', '10m',
+                   facecolor='#dae8f5', edgecolor='none'), zorder=0)
+
+    # State polygons (neighboring states slightly muted, Iowa distinct)
+    states_shp = shpreader.natural_earth(resolution='10m', category='cultural',
+                                         name='admin_1_states_provinces')
+    for record in shpreader.Reader(states_shp).records():
+        name = record.attributes.get('name', '')
+        geom = record.geometry
+        if not geom.intersects(view_box):
+            continue
+        if name == 'Iowa':
+            ax.add_geometries([geom], proj, facecolor='#e8e4d8',
+                              edgecolor='#333333', linewidth=1.2, zorder=3)
+        else:
+            ax.add_geometries([geom], proj, facecolor='#f0ede4',
+                              edgecolor='#999999', linewidth=0.4, zorder=1)
+
+    # County boundaries within Iowa
+    counties_shp = shpreader.natural_earth(resolution='10m', category='cultural',
+                                           name='admin_2_counties')
+    for record in shpreader.Reader(counties_shp).records():
+        geom = record.geometry
+        if not geom.intersects(view_box):
+            continue
+        ax.add_geometries([geom], proj, facecolor='none',
+                          edgecolor='#c0b8a8', linewidth=0.2, zorder=2)
+
+    # Lakes & rivers
+    ax.add_feature(cfeature.NaturalEarthFeature('physical', 'lakes', '10m',
+                   facecolor='#c6dced', edgecolor='#9ab5cc', linewidth=0.3), zorder=2)
+    ax.add_feature(cfeature.NaturalEarthFeature('physical', 'rivers_lake_centerlines', '10m',
+                   facecolor='none', edgecolor='#9ab5cc', linewidth=0.3), zorder=2)
+
+    # --- Plot field locations by split (distinct shapes & colors) ---
+    for split_name in ['train', 'val', 'test']:
+        sp = merged[merged['split'] == split_name]
+        ax.scatter(
+            sp['lon'].values, sp['lat'].values,
+            s=18,
+            marker=SPLIT_MARKERS[split_name],
+            color=SPLIT_COLORS[split_name],
+            edgecolors='white',
+            linewidths=0.3,
+            alpha=0.88,
+            zorder=5 + ['train', 'val', 'test'].index(split_name),
+            transform=proj,
+            label=f"{SPLIT_LABELS[split_name]} (n={len(sp)})",
+        )
+
+    # Legend
+    ax.legend(loc='lower left', frameon=True, framealpha=0.92,
+              edgecolor='#cccccc', markerscale=1.4, fontsize=FONT_SIZE)
+
+    # Remove all axes — pure geographic map
+    ax.axis('off')
+
+    fig.tight_layout(pad=0.3)
+    save_fig(fig, fig_name)
+
+
+def fig20a_field_split_map_corn():
+    """Geographic field split map — Corn."""
+    loader = _load_split_centroids()
+    merged = loader('corn')
+    _build_geo_split_figure(merged, 'Corn', 'fig20a_field_split_map_corn')
+
+
+def fig20b_field_split_map_soybean():
+    """Geographic field split map — Soybean."""
+    loader = _load_split_centroids()
+    merged = loader('soybean')
+    _build_geo_split_figure(merged, 'Soybean', 'fig20b_field_split_map_soybean')
+
+
+# ============================================================================
 # MAIN
 # ============================================================================
 def main():
@@ -1585,6 +1861,9 @@ def main():
     fig16_yield_statistics()
     fig17_residual_analysis()
     fig18_yield_maps()
+    fig19_weekly_availability()
+    fig20a_field_split_map_corn()
+    fig20b_field_split_map_soybean()
 
     print('\n' + '=' * 70)
     print(f'ALL FIGURES SAVED TO: {OUTPUT_DIR}/')
@@ -1613,6 +1892,9 @@ def main():
     print('Fig 16: Yield statistics by year')
     print('Fig 17: Residual analysis')
     print('Fig 18: Yield maps (corn & soybean)')
+    print('Fig 19: Weekly data availability heatmap')
+    print('Fig 20a: Geographic field split map — Corn')
+    print('Fig 20b: Geographic field split map — Soybean')
 
 
 if __name__ == '__main__':
