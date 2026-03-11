@@ -35,7 +35,10 @@ def combine_geoparquets(input_folder, output_file):
 
 def filter_data(year):
     full_data = gpd.read_parquet(f'Yield_{year}.parquet')
-    full_data = full_data.iloc[:,1:]
+    # Drop unnamed index columns if present (e.g. '', 'Unnamed: 0')
+    unnamed_cols = [c for c in full_data.columns if c == '' or c.startswith('Unnamed')]
+    if unnamed_cols:
+        full_data = full_data.drop(columns=unnamed_cols)
     full_data = full_data.drop_duplicates(subset='geometry', keep='first')
     crop_class = pd.read_csv(f'./raw_yield/Crop_Classification_{year}.csv')
     crop_class = crop_class.rename(columns={'X_cent': 'x', 'Y_cent': 'y'})

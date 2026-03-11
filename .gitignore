@@ -6,7 +6,6 @@
 *.log
 *.err
 *.out
-*.pdf
 *.npy
 *.png
 chloe_dataset/
