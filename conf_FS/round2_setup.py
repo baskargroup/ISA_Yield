@@ -5,7 +5,8 @@ from multiprocessing import Pool
 
 BEST_WEEKS = [16]
 MODALITIES = ['S2L2A', 'S1GRD', 'CDL', 'DEM', 'WEATHER']
-REMAINING = [w for w in range(1, 25) if w not in BEST_WEEKS]
+# REMAINING = [w for w in range(1, 25) if w not in BEST_WEEKS]
+REMAINING = [20]  # 16+20만 생성
 
 def process_week(week):
     combo_name = f"processed_data_fs_16_{week}"
