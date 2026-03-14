@@ -7,11 +7,12 @@
 *.err
 *.out
 *.npy
+*.png
 chloe_dataset/
 yld_proc/raw_yield/
 wandb/
 native_corn_checkpoints/
 output/
 processed_data_weekly_*
-processed_data/
-processed_data_fs_*
+processed_data_fs_*/
+logs/
