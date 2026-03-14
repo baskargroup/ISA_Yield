@@ -720,29 +720,57 @@ def fig8_classical_vs_terramind():
                                   'MAE': mean_absolute_error(yt, yp)}
 
     # --- Per-crop classical ML (best week per model) ---
+    # For each crop, search all candidate files for XGBoost and PLSR results
     crop_configs = [
-        ('Corn', 'classical_ml_results_corn_s12cdw.csv', CORN_COLOR),
-        ('Soybean', 'classical_ml_results_soybean_s12ds.csv', SOYBEAN_COLOR),
+        (
+            'Corn',
+            [
+                'classical_ml_param_opt_corn_s12cdw_weekly23_xgb.csv',
+                'classical_ml_param_opt_corn_s12cdw_weekly19_plsr.csv',
+                'classical_ml_results_corn_s12cdw.csv',
+            ],
+            CORN_COLOR
+        ),
+        (
+            'Soybean',
+            [
+                'classical_ml_param_opt_soybean_s12ds_weekly21_xgb.csv',
+                'classical_ml_param_opt_soybean_s12ds_weekly13_plsr.csv',
+                'classical_ml_results_soybean_s12ds.csv',
+            ],
+            SOYBEAN_COLOR
+        ),
     ]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.5))
 
-    for ax, (crop_name, csv_path, crop_color) in zip([ax1, ax2], crop_configs):
+
+    for ax, (crop_name, candidate_files, crop_color) in zip([ax1, ax2], crop_configs):
         letter = '(a)' if crop_name == 'Corn' else '(b)'
         models = []
         r2_vals = []
         colors = []
 
-        # Classical ML best week
-        if os.path.exists(csv_path):
-            cdf = pd.read_csv(csv_path)
-            for ml_model in ['PLSR', 'XGBoost']:
-                sub = cdf[cdf['model'] == ml_model]
-                if not sub.empty:
-                    best_row = sub.loc[sub['test_r2'].idxmax()]
-                    models.append(ml_model)
-                    r2_vals.append(best_row['test_r2'])
-                    colors.append(NEUTRAL_BLUE if ml_model == 'XGBoost' else ACCENT_PURPLE)
+        # Find best XGBoost and PLSR results across all candidate files
+        for ml_model in ['PLSR', 'XGBoost']:
+            best_row = None
+            best_r2 = -np.inf
+            for f in candidate_files:
+                if os.path.exists(f):
+                    try:
+                        cdf = pd.read_csv(f)
+                        sub = cdf[cdf['model'] == ml_model]
+                        if not sub.empty:
+                            row = sub.loc[sub['test_r2'].idxmax()]
+                            if row['test_r2'] > best_r2:
+                                best_row = row
+                                best_r2 = row['test_r2']
+                    except Exception:
+                        continue
+            if best_row is not None:
+                models.append(ml_model)
+                r2_vals.append(best_row['test_r2'])
+                colors.append(NEUTRAL_BLUE if ml_model == 'XGBoost' else ACCENT_PURPLE)
 
         # Top M3 configs for this crop
         crop_results = {k: v for k, v in m3_crop.items() if k[1] == crop_name}
