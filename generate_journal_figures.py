@@ -1530,19 +1530,26 @@ def fig17_residual_analysis():
             bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8, ec='gray', lw=0.3))
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
 
-    # (c) QQ-like: sorted residuals
+    # (c) QQ-like: sorted residuals, crop-specific
     ax = axes[2]
     from scipy import stats
-    sorted_res = np.sort(residuals)
-    theoretical_q = stats.norm.ppf(np.linspace(0.01, 0.99, len(sorted_res)))
-    ax.scatter(theoretical_q, sorted_res, alpha=0.6, s=15, color=ACCENT_PURPLE,
-               edgecolors='black', linewidths=0.3, zorder=3)
-    # Reference line
-    slope, intercept = np.polyfit(theoretical_q, sorted_res, 1)
-    ax.plot(theoretical_q, slope * theoretical_q + intercept, 'r--', linewidth=0.8, zorder=2)
+    crop_colors = {'Corn': CORN_COLOR, 'Soybean': SOYBEAN_COLOR}
+    for crop in ['Corn', 'Soybean']:
+        mask = crops == crop
+        crop_res = residuals[mask]
+        if len(crop_res) < 2:
+            continue
+        sorted_res = np.sort(crop_res)
+        theoretical_q = stats.norm.ppf(np.linspace(0.01, 0.99, len(sorted_res)))
+        ax.scatter(theoretical_q, sorted_res, alpha=0.6, s=15, color=crop_colors[crop],
+                   edgecolors='black', linewidths=0.3, label=crop, zorder=3)
+        # Reference line for each crop
+        slope, intercept = np.polyfit(theoretical_q, sorted_res, 1)
+        ax.plot(theoretical_q, slope * theoretical_q + intercept, '--', color=crop_colors[crop], linewidth=0.8, zorder=2)
     ax.set_xlabel('Theoretical Quantiles', fontsize=LABEL_SIZE)
     ax.set_ylabel('Sample Quantiles', fontsize=LABEL_SIZE)
-    ax.set_title('(c) Q-Q Plot', fontweight='bold', fontsize=TITLE_SIZE)
+    ax.set_title('(c) Q-Q Plot (by crop)', fontweight='bold', fontsize=TITLE_SIZE)
+    ax.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
 
 
