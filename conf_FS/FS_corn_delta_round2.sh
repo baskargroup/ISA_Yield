@@ -34,4 +34,4 @@ for week in {1..24}; do
 
 done
 
-echo "🎉 Round 2 전체 완료!"
+echo "🎉 Round 2 total compltete!"

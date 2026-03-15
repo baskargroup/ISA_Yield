@@ -2,8 +2,8 @@ import yaml
 import copy
 import os
 
-# ✅ 매 라운드마다 여기만 수정!
-SELECTED_WEEKS = [16, 20]
+# ✅ modify only here!
+SELECTED_WEEKS = [16, 20, 1]
 
 selected_str = "_".join(map(str, SELECTED_WEEKS))
 round_num = len(SELECTED_WEEKS) + 1
@@ -43,4 +43,4 @@ for week in remaining_weeks:
         yaml.dump(config, f, default_flow_style=False)
     print(f"✅ {out_path}")
 
-print(f"🎉 Round {round_num} YAML 생성 완료!")
+print(f"🎉 Round {round_num} YAML generation complete!")

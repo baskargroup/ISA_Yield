@@ -1,38 +1,34 @@
 #!/bin/bash
-#SBATCH --time=24:00:00
+#SBATCH --time=6:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=128G
-#SBATCH --gpus-per-node=1
+#SBATCH --exclude=nova21-gpu-1,nova21-gpu-2
+#SBATCH --gres=gpu:a100:1
 #SBATCH --cpus-per-task=16
-#SBATCH --partition=gpuA100x4
-#SBATCH --account=bepk-delta-gpu
+#SBATCH --partition=nova
+#SBATCH --account=mech-ai
 #SBATCH --job-name="FS_Test"
 #SBATCH --mail-user=bgekim@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output="logs/fs_corn/test_all.out"
-#SBATCH --error="logs/fs_corn/test_all.err"
+#SBATCH --output="logs/fs_corn/test_round4.out"
+#SBATCH --error="logs/fs_corn/test_round4.err"
 
-# ✅ 매 라운드마다 여기만 수정!
-SELECTED=(16 20)
+# ✅ only modify here per each round!
+SELECTED=(16 20 1)
 
-# ========== 자동 계산 ==========
+# ========== Automatic Calculation ==========
 selected_str=$(IFS=_; echo "${SELECTED[*]}")
 round=$((${#SELECTED[@]} + 1))
 yaml_dir="fs_yamls_corn_round${round}"
 
 echo "🔄 Round ${round} Testing: weeks (${SELECTED[*]}) + remaining"
 
-source ~/.bashrc
+source /work/mech-ai-scratch/bgekim/miniconda3/etc/profile.d/conda.sh
 conda activate isa_yield_env
 
-unset PROJ_DATA
-unset PROJ_LIB
-unset SLURM_NTASKS
-
-# remaining weeks 루프
+# remaining weeks loop
 for week in {1..24}; do
-    # SELECTED에 포함된 week이면 skip
     skip=0
     for sw in "${SELECTED[@]}"; do
         if [ "$week" -eq "$sw" ]; then skip=1; break; fi
@@ -63,11 +59,19 @@ for week in {1..24}; do
     echo "🚀 Testing week ${combo}: $(date)"
     terratorch test --config "${yaml_path}" --ckpt_path "${CKPT}"
 
+    if [ $? -ne 0 ]; then
+        echo "❌ terratorch failed for week ${combo}, skip"
+        sleep 10
+        continue
+    fi
+
     # CSV rename
     OLD_CSV=$(ls predictions/*_Corn.csv 2>/dev/null | tail -1)
     if [ -n "$OLD_CSV" ]; then
         mv "$OLD_CSV" "${out_csv}"
         echo "📄 Saved: ${out_csv}"
+    else
+        echo "⚠️  No CSV found for week ${combo}"
     fi
 
     # Plot rename

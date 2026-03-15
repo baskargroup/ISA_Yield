@@ -12,6 +12,7 @@ from multiprocessing import Pool
 def create_single_week_dataset(args):
     week, input_dir, output_base_dir = args
     output_dir = f"{output_base_dir}_{week}"
+    os.makedirs(output_dir, exist_ok=True)
     
     modalities = ['S2L2A', 'S1GRD', 'DEM', 'WEATHER', 'CDL', 'SOIL']
     
@@ -22,19 +23,31 @@ def create_single_week_dataset(args):
         dst_folder = os.path.join(output_dir, modality)
         os.makedirs(dst_folder, exist_ok=True)
         
-        src_files = set(os.listdir(src_folder))
-        dst_files = set(os.listdir(dst_folder)) if os.path.exists(dst_folder) else set()
-        remaining = src_files - dst_files  # 아직 안 된 파일만!
-        
-        for filename in remaining:
+        for filename in os.listdir(src_folder):
             data = np.load(os.path.join(src_folder, filename))
             idx = week - 1
             selected_data = data[idx:idx+1, ...]
             np.save(os.path.join(dst_folder, filename), selected_data)
-            
+    
+    # yield_geotiffs 복사
+    yield_src = os.path.join(input_dir, "yield_geotiffs")
+    yield_dst = os.path.join(output_dir, "yield_geotiffs")
+    if os.path.exists(yield_src):
+        if os.path.exists(yield_dst):
+            shutil.rmtree(yield_dst)
+        shutil.copytree(yield_src, yield_dst)
+    
+    # txt 파일 복사
+    for txt_file in os.listdir(input_dir):
+        if txt_file.endswith('.txt'):
+            shutil.copy(os.path.join(input_dir, txt_file),
+                       os.path.join(output_dir, txt_file))
+    
+    print(f"✅ Week {week} 완료!")
+
 
 def main():
-    input_dir = "/scratch/bepk/bkim2/ISA_Yield/processed_data_weekly_24"
+    input_dir = "processed_data_weekly_24"
     output_base = "processed_data_fs"
     weeks_to_create = list(range(1, 25))
     
@@ -47,7 +60,7 @@ def main():
     
     args = [(w, input_dir, output_base) for w in weeks_to_create]
     
-    with Pool(processes=16) as pool:
+    with Pool(processes=8) as pool:
         pool.map(create_single_week_dataset, args)
     
     print("=" * 50)

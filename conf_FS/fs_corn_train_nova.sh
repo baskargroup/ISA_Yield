@@ -1,31 +1,28 @@
 #!/bin/bash
-#SBATCH --time=14:00:00
+#SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mem=128G
-#SBATCH --gpus-per-node=1
+#SBATCH --mem=256G
+#SBATCH --gres=gpu:a100:1
+#SBATCH --exclude=nova21-gpu-2
 #SBATCH --cpus-per-task=16
-#SBATCH --partition=gpuH200x8
-#SBATCH --account=bepk-delta-gpu
+#SBATCH --partition=nova
+#SBATCH --account=mech-ai
 #SBATCH --job-name="FS_Train"
 #SBATCH --mail-user=bgekim@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output="logs/fs_corn/train_all.out"
-#SBATCH --error="logs/fs_corn/train_all.err"
+#SBATCH --output="logs/fs_corn/train_round3.out"
+#SBATCH --error="logs/fs_corn/train_round3.err"
 
-# ✅ 매 라운드마다 여기만 수정!
-SELECTED=(16 20)
+# ✅ only modify here per each round!
+SELECTED=(16 20 1)
 
-# ========== 자동 계산 ==========
 selected_str=$(IFS=_; echo "${SELECTED[*]}")
 round=$((${#SELECTED[@]} + 1))
 
-source ~/.bashrc
+source /work/mech-ai-scratch/bgekim/miniconda3/etc/profile.d/conda.sh
 conda activate isa_yield_env
 
-unset PROJ_DATA
-unset PROJ_LIB
-unset SLURM_NTASKS
 
 for week in {1..24}; do
     skip=0
@@ -37,15 +34,15 @@ for week in {1..24}; do
     CKPT_DIR="output/corn/FS_S12CDW/week_${selected_str}_${week}/checkpoints"
 
     echo "======================================"
-    echo "Week ${selected_str}+${week} 시작: $(date)"
+    echo "Week ${selected_str}+${week} start: $(date)"
     echo "======================================"
 
     if [ -f "${CKPT_DIR}/last.ckpt" ]; then
-        echo "⏭️ Week ${selected_str}+${week} 이미 완료, skip!"
+        echo "⏭️ Week ${selected_str}+${week} already completed, skip!"
     else
         terratorch fit --config fs_yamls_corn_round${round}/config_fs_corn_week_${selected_str}_${week}.yaml
         echo "✅ Finished Week ${selected_str}+${week}: $(date)"
     fi
 done
 
-echo "🎉 Round ${round} 전체 완료!"
+echo "🎉 Round ${round} total test complete!"

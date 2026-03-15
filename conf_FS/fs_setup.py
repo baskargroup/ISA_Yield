@@ -2,13 +2,13 @@ import numpy as np
 import os
 import shutil
 from multiprocessing import Pool
+ 
+# ✅ modify only here!
+SELECTED_WEEKS = [16, 18]
 
-# ✅ 여기만 수정!
-SELECTED_WEEKS = [16, 20]
-
-MODALITIES = ['S2L2A', 'S1GRD', 'CDL', 'DEM', 'WEATHER']
+MODALITIES = ['S2L2A', 'S1GRD', 'CDL', 'DEM', 'WEATHER', 'SOIL']
 selected_str = "_".join(map(str, SELECTED_WEEKS))
-BASE_DIR = f"processed_data_fs_{selected_str}"  # processed_data_fs_16_20
+BASE_DIR = f"processed_data_fs_{selected_str}"  # processed_data_fs_16_20_1_
 REMAINING = [w for w in range(1, 25) if w not in SELECTED_WEEKS]
 
 def process_week(week):
@@ -28,15 +28,17 @@ def process_week(week):
             merged = np.concatenate([data_base, data_new], axis=0) # (3, 12, 224, 224)
             np.save(f"{combo_name}/{mod}/{fname}", merged)
     
-    for txt in ['train_corn.txt', 'val_corn.txt', 'test_corn.txt']:
+    for txt in ['train_soybean.txt', 'val_soybean.txt', 'test_soybean.txt']:
         shutil.copy(f"{BASE_DIR}/{txt}", f"{combo_name}/{txt}")
     
-    if not os.path.exists(f"{combo_name}/yield_geotiffs"):
+    if os.path.exists(f"{BASE_DIR}/yield_geotiffs"):
+        if os.path.exists(f"{combo_name}/yield_geotiffs"):
+            shutil.rmtree(f"{combo_name}/yield_geotiffs")
         shutil.copytree(f"{BASE_DIR}/yield_geotiffs", f"{combo_name}/yield_geotiffs")
     
-    print(f"✅ {combo_name} 완료!")
+    print(f"✅ {combo_name} Complete!")
 
 if __name__ == '__main__':
     with Pool(processes=8) as pool:
         pool.map(process_week, REMAINING)
-    print("🎉 Round 3 데이터 준비 완료!")
+    print("🎉 Round 4 Dataset preparation complete!")

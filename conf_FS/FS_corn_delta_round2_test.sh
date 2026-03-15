@@ -26,19 +26,19 @@ for week in {1..24}; do
     CKPT_DIR="output/corn/FS_S12CDW/week_16_${week}/checkpoints"
 
     echo "======================================"
-    echo "Test Week 16+${week} 시작: $(date)"
+    echo "Test Week 16+${week} start: $(date)"
     echo "======================================"
 
-    # 이미 완료된 경우 skip
+    # already complete, skip!
     if [ -f "predictions/S12cdw_Corn_week_16_${week}.csv" ]; then
-        echo "⏭️ Week 16+${week} test 이미 완료, skip!"
+        echo "⏭️ Week 16+${week} test already completed, skip!"
         continue
     fi
 
-    # best checkpoint 없으면 skip
+    # if best checkpoint not here, skip!
     CKPT=$(ls ${CKPT_DIR}/best-*.ckpt 2>/dev/null)
     if [ -z "$CKPT" ]; then
-        echo "❌ Week 16+${week} best checkpoint 없음, skip!"
+        echo "❌ Week 16+${week} best checkpoint not here, skip!"
         continue
     fi
 
@@ -48,17 +48,17 @@ for week in {1..24}; do
     OLD_CSV=$(ls predictions/*_Corn.csv 2>/dev/null | tail -1)
     if [ -n "$OLD_CSV" ]; then
         mv "$OLD_CSV" "predictions/S12cdw_Corn_week_16_${week}.csv"
-        echo "✅ CSV 저장: predictions/S12cdw_Corn_week_16_${week}.csv"
+        echo "✅ Save CSV: predictions/S12cdw_Corn_week_16_${week}.csv"
     fi
 
     # Plot rename
     OLD_PLOT=$(ls plots/*_r2_plot.png 2>/dev/null | tail -1)
     if [ -n "$OLD_PLOT" ]; then
         mv "$OLD_PLOT" "plots/S12cdw_Corn_week_16_${week}.png"
-        echo "✅ Plot 저장: plots/S12cdw_Corn_week_16_${week}.png"
+        echo "✅ Save Plot: plots/S12cdw_Corn_week_16_${week}.png"
     fi
 
     echo "✅ Finished Test Week 16+${week}: $(date)"
 done
 
-echo "🎉 Round 2 Test 전체 완료!"
+echo "🎉 Round 2 Test total complete!"
