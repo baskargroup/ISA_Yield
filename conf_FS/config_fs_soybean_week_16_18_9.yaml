@@ -1,14 +1,7 @@
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
   init_args:
-    allow_missing_modalities: false
-    allow_substring_file_names: true
     batch_size: 4
-    channel_position: -3
-    check_stackability: true
-    concat_bands: false
-    data_with_sample_dim: false
-    drop_last: true
     expand_temporal_dimension: false
     means:
       DEM:
@@ -45,19 +38,14 @@ data:
     - S1GRD
     - SOIL
     - DEM
-    no_data_replace: 0.0
+    no_data_replace: 0
     no_label_replace: 0.0
     num_workers: 8
-    pin_memory: false
-    reduce_zero_label: false
     rgb_indices:
     - 3
     - 2
     - 1
     rgb_modality: S2L2A
-    sample_replace: false
-    shared_transforms: true
-    skip_file_checks: false
     stds:
       DEM:
       - 57.13
@@ -110,16 +98,20 @@ data:
       SOIL: processed_data_fs_16_18_9/SOIL
     val_label_data_root: processed_data_fs_16_18_9/yield_geotiffs
     val_split: processed_data_fs_16_18_9/val_soybean.txt
-deploy_config_file: true
+lr_scheduler:
+  class_path: ReduceLROnPlateau
+  init_args:
+    factor: 0.8
+    min_lr: 1.0e-06
+    monitor: val/loss
+    patience: 25
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
   init_args:
     freeze_backbone: false
     freeze_decoder: false
-    freeze_head: false
     ignore_index: -1
     loss: mse
-    lr: 0.001
     model_args:
       backbone: terramind_v1_base
       backbone_merge_method: mean
@@ -128,7 +120,7 @@ model:
       - S1GRD
       - SOIL: 10
       - DEM
-      backbone_pretrained: false
+      backbone_pretrained: true
       decoder: UNetDecoder
       decoder_channels:
       - 512
@@ -147,27 +139,42 @@ model:
         remove_cls_token: false
       - name: LearnedInterpolateToPyramidal
     model_factory: EncoderDecoderFactory
-    plot_on_val: 10
-out_dtype: int16
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 1e-4
 seed_everything: 42
 trainer:
   accelerator: auto
   accumulate_grad_batches: 8
-  barebones: false
-  check_val_every_n_epoch: 1
-  detect_anomaly: false
+  callbacks:
+  - class_path: ModelCheckpoint
+    init_args:
+      dirpath: output/soybean/FS_S12SD/week_16_18_9/checkpoints
+      filename: best-{epoch:03d}
+      mode: min
+      monitor: val/loss
+      save_last: true
+      save_top_k: 1
+  - class_path: EarlyStopping
+    init_args:
+      min_delta: 0.0001
+      mode: min
+      monitor: val/loss
+      patience: 75
+      verbose: true
+  - class_path: LearningRateMonitor
+    init_args:
+      logging_interval: epoch
+  - class_path: RichProgressBar
   devices: auto
-  enable_autolog_hparams: true
-  fast_dev_run: false
-  inference_mode: true
   log_every_n_steps: 1
-  logger: false
+  logger:
+  - class_path: WandbLogger
+    init_args:
+      name: FS_Soybean_S12SD_week_16_18_9
+      project: M4_Soybean
   max_epochs: 1000
-  max_steps: -1
   num_nodes: 1
-  overfit_batches: 0.0
   precision: 16-mixed
-  reload_dataloaders_every_n_epochs: 0
   strategy: auto
-  sync_batchnorm: false
-  use_distributed_sampler: true
