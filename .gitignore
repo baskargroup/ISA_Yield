@@ -16,3 +16,5 @@ output/
 processed_data_weekly_*
 processed_data_fs_*/
 logs/
+plots/
+predictions/
