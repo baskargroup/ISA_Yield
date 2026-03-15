@@ -158,6 +158,11 @@ print("\nBest XGBoost parameters found:")
 print(xgb_search.best_params_)
 print(f"Best CV RMSE: {-xgb_search.best_score_:.4f}")
 
+# Save all XGBoost parameter settings and their CV results
+xgb_cv_results = xgb_search.cv_results_
+xgb_param_results = pd.DataFrame(xgb_cv_results)
+xgb_param_results.to_csv(f"xgb_param_opt_all_params_biweek{BIWEEK_NUMBER}.csv", index=False)
+
 # Train final model with best parameters
 print("\nTraining XGBoost with best parameters...")
 xgb = xgb_search.best_estimator_
@@ -209,6 +214,15 @@ plsr_search.fit(X_train, y_train)
 print("\nBest PLSR parameters found:")
 print(plsr_search.best_params_)
 print(f"Best CV RMSE: {-plsr_search.best_score_:.4f}")
+
+# Save all PLSR parameter settings and their CV results
+plsr_cv_results = plsr_search.cv_results_
+plsr_param_results = pd.DataFrame({
+    'n_components': plsr_cv_results['param_n_components'],
+    'mean_test_rmse': -plsr_cv_results['mean_test_score'],
+    'std_test_rmse': plsr_cv_results['std_test_score']
+})
+plsr_param_results.to_csv(f"plsr_param_opt_all_params_biweek{BIWEEK_NUMBER}.csv", index=False)
 
 # Train final model with best parameters
 print("\nTraining PLSR with best parameters...")
