@@ -720,29 +720,57 @@ def fig8_classical_vs_terramind():
                                   'MAE': mean_absolute_error(yt, yp)}
 
     # --- Per-crop classical ML (best week per model) ---
+    # For each crop, search all candidate files for XGBoost and PLSR results
     crop_configs = [
-        ('Corn', 'classical_ml_results_corn_s12cdw.csv', CORN_COLOR),
-        ('Soybean', 'classical_ml_results_soybean_s12ds.csv', SOYBEAN_COLOR),
+        (
+            'Corn',
+            [
+                'classical_ml_param_opt_corn_s12cdw_weekly23_xgb.csv',
+                'classical_ml_param_opt_corn_s12cdw_weekly19_plsr.csv',
+                'classical_ml_results_corn_s12cdw.csv',
+            ],
+            CORN_COLOR
+        ),
+        (
+            'Soybean',
+            [
+                'classical_ml_param_opt_soybean_s12ds_weekly21_xgb.csv',
+                'classical_ml_param_opt_soybean_s12ds_weekly13_plsr.csv',
+                'classical_ml_results_soybean_s12ds.csv',
+            ],
+            SOYBEAN_COLOR
+        ),
     ]
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.5))
 
-    for ax, (crop_name, csv_path, crop_color) in zip([ax1, ax2], crop_configs):
+
+    for ax, (crop_name, candidate_files, crop_color) in zip([ax1, ax2], crop_configs):
         letter = '(a)' if crop_name == 'Corn' else '(b)'
         models = []
         r2_vals = []
         colors = []
 
-        # Classical ML best week
-        if os.path.exists(csv_path):
-            cdf = pd.read_csv(csv_path)
-            for ml_model in ['PLSR', 'XGBoost']:
-                sub = cdf[cdf['model'] == ml_model]
-                if not sub.empty:
-                    best_row = sub.loc[sub['test_r2'].idxmax()]
-                    models.append(ml_model)
-                    r2_vals.append(best_row['test_r2'])
-                    colors.append(NEUTRAL_BLUE if ml_model == 'XGBoost' else ACCENT_PURPLE)
+        # Find best XGBoost and PLSR results across all candidate files
+        for ml_model in ['PLSR', 'XGBoost']:
+            best_row = None
+            best_r2 = -np.inf
+            for f in candidate_files:
+                if os.path.exists(f):
+                    try:
+                        cdf = pd.read_csv(f)
+                        sub = cdf[cdf['model'] == ml_model]
+                        if not sub.empty:
+                            row = sub.loc[sub['test_r2'].idxmax()]
+                            if row['test_r2'] > best_r2:
+                                best_row = row
+                                best_r2 = row['test_r2']
+                    except Exception:
+                        continue
+            if best_row is not None:
+                models.append(ml_model)
+                r2_vals.append(best_row['test_r2'])
+                colors.append(NEUTRAL_BLUE if ml_model == 'XGBoost' else ACCENT_PURPLE)
 
         # Top M3 configs for this crop
         crop_results = {k: v for k, v in m3_crop.items() if k[1] == crop_name}
@@ -1502,19 +1530,26 @@ def fig17_residual_analysis():
             bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8, ec='gray', lw=0.3))
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
 
-    # (c) QQ-like: sorted residuals
+    # (c) QQ-like: sorted residuals, crop-specific
     ax = axes[2]
     from scipy import stats
-    sorted_res = np.sort(residuals)
-    theoretical_q = stats.norm.ppf(np.linspace(0.01, 0.99, len(sorted_res)))
-    ax.scatter(theoretical_q, sorted_res, alpha=0.6, s=15, color=ACCENT_PURPLE,
-               edgecolors='black', linewidths=0.3, zorder=3)
-    # Reference line
-    slope, intercept = np.polyfit(theoretical_q, sorted_res, 1)
-    ax.plot(theoretical_q, slope * theoretical_q + intercept, 'r--', linewidth=0.8, zorder=2)
+    crop_colors = {'Corn': CORN_COLOR, 'Soybean': SOYBEAN_COLOR}
+    for crop in ['Corn', 'Soybean']:
+        mask = crops == crop
+        crop_res = residuals[mask]
+        if len(crop_res) < 2:
+            continue
+        sorted_res = np.sort(crop_res)
+        theoretical_q = stats.norm.ppf(np.linspace(0.01, 0.99, len(sorted_res)))
+        ax.scatter(theoretical_q, sorted_res, alpha=0.6, s=15, color=crop_colors[crop],
+                   edgecolors='black', linewidths=0.3, label=crop, zorder=3)
+        # Reference line for each crop
+        slope, intercept = np.polyfit(theoretical_q, sorted_res, 1)
+        ax.plot(theoretical_q, slope * theoretical_q + intercept, '--', color=crop_colors[crop], linewidth=0.8, zorder=2)
     ax.set_xlabel('Theoretical Quantiles', fontsize=LABEL_SIZE)
     ax.set_ylabel('Sample Quantiles', fontsize=LABEL_SIZE)
-    ax.set_title('(c) Q-Q Plot', fontweight='bold', fontsize=TITLE_SIZE)
+    ax.set_title('(c) Q-Q Plot (by crop)', fontweight='bold', fontsize=TITLE_SIZE)
+    ax.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
 
 
