@@ -1712,7 +1712,7 @@ def fig19_weekly_availability():
     # ---- Plot ----
     fig, ax = plt.subplots(figsize=(DOUBLE_COL, 1.6))
 
-    im = ax.imshow(matrix, cmap='viridis', aspect='auto', vmin=0, vmax=100)
+    im = ax.imshow(matrix, cmap='Blues', aspect='auto', vmin=0, vmax=100)
 
     # Ticks
     ax.set_xticks(range(24))
@@ -1724,7 +1724,7 @@ def fig19_weekly_availability():
     for i in range(len(modalities)):
         for j in range(24):
             val = matrix[i, j]
-            color = 'white' if val < 40 or val > 85 else 'black'
+            color = 'white' if val >= 50 else 'black'
             ax.text(j, i, f'{val:.0f}', ha='center', va='center',
                     fontsize=SMALL_TICK_SIZE, color=color, fontweight='bold')
 
