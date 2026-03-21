@@ -1630,15 +1630,20 @@ def fig18_yield_maps():
     save_fig(fig, 'fig18_yield_maps')
 
     # --- Grayscale versions without statistics annotations ---
+    # Sized so two panels fit side-by-side in a single journal column
+    _gw = SINGLE_COL / 2  # ~1.75 in each
+    _gh = _gw * 1.1       # slightly taller than wide for axis labels
     for fname, crop, masked, valid_bu in crop_data:
-        fig_g, ax_g = plt.subplots(1, 1, figsize=(DOUBLE_COL / 2, 3.5))
+        fig_g, ax_g = plt.subplots(1, 1, figsize=(_gw, _gh))
         im_g = ax_g.imshow(masked, cmap='gray', interpolation='nearest',
                            vmin=np.nanpercentile(valid_bu, 2),
                            vmax=np.nanpercentile(valid_bu, 98))
         field_id = fname.replace('.npy', '')
-        ax_g.set_title(f'{crop} — {field_id}', fontweight='bold', fontsize=TITLE_SIZE, pad=4)
-        ax_g.set_xlabel('Pixel Column', fontsize=LABEL_SIZE)
-        ax_g.set_ylabel('Pixel Row', fontsize=LABEL_SIZE)
+        ax_g.set_title(f'{crop} — {field_id}', fontweight='bold',
+                        fontsize=SMALL_TITLE_SIZE, pad=2)
+        ax_g.set_xlabel('Pixel Column', fontsize=SMALL_LABEL_SIZE)
+        ax_g.set_ylabel('Pixel Row', fontsize=SMALL_LABEL_SIZE)
+        ax_g.tick_params(axis='both', labelsize=SMALL_TICK_SIZE)
         fig_g.tight_layout()
         save_fig(fig_g, f'fig18_yield_maps_gray_{crop.lower()}')
 
