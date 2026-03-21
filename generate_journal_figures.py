@@ -1638,9 +1638,6 @@ def fig18_yield_maps():
         im_g = ax_g.imshow(masked, cmap='gray', interpolation='nearest',
                            vmin=np.nanpercentile(valid_bu, 2),
                            vmax=np.nanpercentile(valid_bu, 98))
-        field_id = fname.replace('.npy', '')
-        ax_g.set_title(f'{crop} — {field_id}', fontweight='bold',
-                        fontsize=SMALL_TITLE_SIZE, pad=2)
         ax_g.set_xlabel('Pixel Column', fontsize=SMALL_LABEL_SIZE)
         ax_g.set_ylabel('Pixel Row', fontsize=SMALL_LABEL_SIZE)
         ax_g.tick_params(axis='both', labelsize=SMALL_TICK_SIZE)
