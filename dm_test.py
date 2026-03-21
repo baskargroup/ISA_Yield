@@ -5,15 +5,13 @@ vs Best TerraMind M3 configuration, per crop.
 
 Strategy:
   1. Load M3 predictions (already in bu/acre) to get the target field set.
-  2. Train classical ML (XGBoost, saved best params) on the current train split
-     using normalised yields from processed_data/weekly_24.
-  3. Predict on the same fields that M3 was evaluated on (these span the
-     current val + test splits because M3 was trained before splits were
-     regenerated).
-  4. Denormalise classical ML predictions back to bu/acre using the crop-
-     specific min-max parameters from process_ts_weekly_chloe.py.
-  5. Use M3's YieldGT (bu/acre) as the common ground truth for both models.
-  6. Run HLN-corrected DM test on paired squared errors.
+  2. Load classical ML field-level predictions from saved CSVs produced by
+     `classical_ml_parameter_opt_{corn,soybean}.py`.  If the CSV contains
+     `y_pred_buacre` (denormalised), use it directly.  Otherwise denormalise
+     the normalised `y_pred` column.
+  3. If no saved CSV is found, fall back to re-training XGBoost from scratch.
+  4. Use M3's YieldGT (bu/acre) as the common ground truth for both models.
+  5. Run HLN-corrected DM test on paired squared errors.
 
 Normalisation (process_ts_weekly_chloe.py):
   Corn:    norm = (raw - 50) / (370 - 50)   →  denorm: raw = norm * 320 + 50
@@ -58,6 +56,7 @@ CORN_CONFIG = dict(
     modalities=['S2L2A', 'S1GRD', 'CDL', 'DEM', 'WEATHER'],
     split_crop_key='corn',
     best_params_csv='classical_ml_param_opt_corn_s12cdw_weekly23_xgb.csv',
+    field_level_csv='classical_ml_param_opt_field_level_corn_s12cdw.csv',
 )
 
 SOY_CONFIG = dict(
@@ -66,6 +65,7 @@ SOY_CONFIG = dict(
     modalities=['S2L2A', 'S1GRD', 'DEM', 'SOIL'],
     split_crop_key='soybean',
     best_params_csv='classical_ml_param_opt_soybean_s12ds_weekly21_xgb.csv',
+    field_level_csv='classical_ml_param_opt_field_level_soybean_s12ds.csv',
 )
 
 M3_PRED_DIR = 'M3/predictions'
@@ -154,8 +154,41 @@ def build_X_only(file_names, modal_paths, modalities):
 
 
 # ============================================================================
-# Classical ML: train on train split, predict on M3 target fields
+# Classical ML: load saved predictions or retrain
 # ============================================================================
+
+def load_classical_predictions(cfg):
+    """
+    Load field-level XGBoost predictions (bu/acre) from the saved CSV produced
+    by classical_ml_parameter_opt_{crop}.py.  Filters for the best week and
+    model='XGBoost'.
+
+    Returns
+    -------
+    pd.DataFrame  with columns: file, y_pred_cml_buacre
+    None          if the CSV does not exist
+    """
+    csv_path = cfg['field_level_csv']
+    if not os.path.exists(csv_path):
+        return None
+
+    df = pd.read_csv(csv_path)
+    # Filter to best week + XGBoost
+    week = cfg['week']
+    mask = (df['week'] == week) & (df['model'] == 'XGBoost')
+    sub = df.loc[mask].copy()
+    if sub.empty:
+        return None
+
+    key = cfg['split_crop_key']
+    if 'y_pred_buacre' in sub.columns:
+        sub = sub.rename(columns={'y_pred_buacre': 'y_pred_cml_buacre'})
+    else:
+        # Denormalise from normalised y_pred
+        sub['y_pred_cml_buacre'] = denormalize(sub['y_pred'].values, key)
+
+    return sub[['file', 'y_pred_cml_buacre']].reset_index(drop=True)
+
 
 def get_classical_predictions(cfg, target_field_names):
     """
@@ -301,9 +334,14 @@ def run_dm_tests():
         print(f'  M3 best config : {m3_modal}  (R²={m3_r2:.4f})')
         print(f'  M3 test fields : {len(m3_df)}')
 
-        # --- Classical ML: train on train split, predict on M3 fields ---
+        # --- Classical ML: load saved predictions or retrain ---
         m3_field_names = m3_df['file'].tolist()
-        cml_df = get_classical_predictions(cfg, m3_field_names)
+        cml_df = load_classical_predictions(cfg)
+        if cml_df is not None:
+            print(f'  Loaded {len(cml_df)} CML predictions from {cfg["field_level_csv"]}')
+        else:
+            print(f'  No saved predictions found, re-training from scratch…')
+            cml_df = get_classical_predictions(cfg, m3_field_names)
         print(f'  CML predicted fields: {len(cml_df)}')
 
         # --- Merge on shared field names ---

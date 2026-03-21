@@ -1589,6 +1589,8 @@ def fig18_yield_maps():
         'Soybean': {'data_min': 30.0, 'data_max': 120.0},   # range 90
     }
 
+    crop_data = []  # store (fname, crop, masked, valid_bu) for grayscale pass
+
     for ax, fname, crop, cmap_color in [
         (axes[0], corn_file, 'Corn', 'YlOrBr'),
         (axes[1], soy_file, 'Soybean', 'cividis'),
@@ -1622,8 +1624,23 @@ def fig18_yield_maps():
                 bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.85,
                           ec='gray', lw=0.4))
 
+        crop_data.append((fname, crop, masked, valid_bu))
+
     fig.tight_layout(w_pad=1.0)
     save_fig(fig, 'fig18_yield_maps')
+
+    # --- Grayscale versions without statistics annotations ---
+    for fname, crop, masked, valid_bu in crop_data:
+        fig_g, ax_g = plt.subplots(1, 1, figsize=(DOUBLE_COL / 2, 3.5))
+        im_g = ax_g.imshow(masked, cmap='gray', interpolation='nearest',
+                           vmin=np.nanpercentile(valid_bu, 2),
+                           vmax=np.nanpercentile(valid_bu, 98))
+        field_id = fname.replace('.npy', '')
+        ax_g.set_title(f'{crop} — {field_id}', fontweight='bold', fontsize=TITLE_SIZE, pad=4)
+        ax_g.set_xlabel('Pixel Column', fontsize=LABEL_SIZE)
+        ax_g.set_ylabel('Pixel Row', fontsize=LABEL_SIZE)
+        fig_g.tight_layout()
+        save_fig(fig_g, f'fig18_yield_maps_gray_{crop.lower()}')
 
 
 # ============================================================================
