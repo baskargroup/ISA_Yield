@@ -1,2 +1,0 @@
-model,week,best_params,best_cv_rmse,train_r2,test_r2,train_rmse,test_rmse,train_mae,test_mae,train_mape,test_mape
-XGBoost,processed_data_weekly_23,"{'subsample': 0.7, 'reg_lambda': 2.0, 'reg_alpha': 0.0, 'n_estimators': 300, 'max_depth': 6, 'learning_rate': 0.01, 'colsample_bytree': 0.7}",0.1909612685441971,0.9344018697738647,0.3499605655670166,0.06146010756492615,0.2828843593597412,0.04003624618053436,0.20675966143608093,0.4939301908016205,2.175920248031616

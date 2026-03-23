@@ -707,78 +707,62 @@ def fig8_classical_vs_terramind():
     """Bar chart: best classical ML (peak week) vs TerraMind M3 best, per crop."""
     print('Figure 8: Classical ML vs TerraMind comparison...')
 
-    # --- M3 test R² per crop ---
-    pred_dir = 'M3/predictions'
-    m3_crop = {}
-    for csv_file in sorted(Path(pred_dir).glob('*.csv')):
-        modal = extract_modal_code(csv_file.stem)
-        crop = extract_crop(csv_file.stem)
-        df = pd.read_csv(csv_file)
-        yt = df['YieldGT'].values
-        yp = df['Prediction'].values
-        m3_crop[(modal, crop)] = {'R2': r2_score(yt, yp),
-                                  'MAE': mean_absolute_error(yt, yp)}
-
-    # --- Per-crop classical ML (best week per model) ---
-    # For each crop, search all candidate files for XGBoost and PLSR results
+    # --- Classical ML result files per crop ---
     crop_configs = [
         (
             'Corn',
             [
-                'classical_ml_param_opt_corn_s12cdw_weekly23_xgb.csv',
-                'classical_ml_param_opt_corn_s12cdw_weekly19_plsr.csv',
-                'classical_ml_results_corn_s12cdw.csv',
+                'classical_ml_param_opt_corn_s12cdw_xgb.csv',
+                'classical_ml_param_opt_corn_s12cdw_plsr.csv',
+                'classical_ml_param_opt_corn_s12cdw_xgb_vi.csv',
+                'classical_ml_param_opt_corn_s12cdw_plsr_vi.csv',
             ],
-            CORN_COLOR
+            CORN_COLOR,
+            0.748,  # TM-S12cdw R²
         ),
         (
             'Soybean',
             [
-                'classical_ml_param_opt_soybean_s12ds_weekly21_xgb.csv',
-                'classical_ml_param_opt_soybean_s12ds_weekly13_plsr.csv',
-                'classical_ml_results_soybean_s12ds.csv',
+                'classical_ml_param_opt_soybean_s12ds_xgb.csv',
+                'classical_ml_param_opt_soybean_s12ds_plsr.csv',
+                'classical_ml_param_opt_soybean_s12ds_xgb_vi.csv',
+                'classical_ml_param_opt_soybean_s12ds_plsr_vi.csv',
             ],
-            SOYBEAN_COLOR
+            SOYBEAN_COLOR,
+            0.641,  # TM-S12ds R²
         ),
     ]
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.5))
-
-
-    for ax, (crop_name, candidate_files, crop_color) in zip([ax1, ax2], crop_configs):
-        letter = '(a)' if crop_name == 'Corn' else '(b)'
+    for crop_name, candidate_files, crop_color, tm_r2 in crop_configs:
+        fig, ax = plt.subplots(figsize=(SINGLE_COL, 3.5))
         models = []
         r2_vals = []
         colors = []
 
-        # Find best XGBoost and PLSR results across all candidate files
-        for ml_model in ['PLSR', 'XGBoost']:
-            best_row = None
-            best_r2 = -np.inf
-            for f in candidate_files:
-                if os.path.exists(f):
-                    try:
-                        cdf = pd.read_csv(f)
-                        sub = cdf[cdf['model'] == ml_model]
-                        if not sub.empty:
-                            row = sub.loc[sub['test_r2'].idxmax()]
-                            if row['test_r2'] > best_r2:
-                                best_row = row
-                                best_r2 = row['test_r2']
-                    except Exception:
-                        continue
-            if best_row is not None:
-                models.append(ml_model)
-                r2_vals.append(best_row['test_r2'])
-                colors.append(NEUTRAL_BLUE if ml_model == 'XGBoost' else ACCENT_PURPLE)
+        # Collect classical ML results from all candidate files
+        for f in candidate_files:
+            if os.path.exists(f):
+                try:
+                    cdf = pd.read_csv(f)
+                    for _, row in cdf.iterrows():
+                        model_name = row['model']
+                        test_r2 = row['test_r2']
+                        if test_r2 < 0:
+                            continue  # Skip models with negative R²
+                        models.append(model_name)
+                        r2_vals.append(test_r2)
+                        if 'XGBoost' in model_name:
+                            colors.append(NEUTRAL_BLUE)
+                        else:
+                            colors.append(ACCENT_PURPLE)
+                except Exception:
+                    continue
 
-        # Top M3 configs for this crop
-        crop_results = {k: v for k, v in m3_crop.items() if k[1] == crop_name}
-        sorted_crop = sorted(crop_results.items(), key=lambda x: x[1]['R2'], reverse=True)[:3]
-        for (modal, _), met in sorted_crop:
-            models.append(f'TM-{modal}')
-            r2_vals.append(met['R2'])
-            colors.append(crop_color)
+        # Add single TerraMind bar
+        modal_code = 'S12cdw' if crop_name == 'Corn' else 'S12ds'
+        models.append(f'TM-{modal_code}')
+        r2_vals.append(tm_r2)
+        colors.append(crop_color)
 
         x = np.arange(len(models))
         bars = ax.bar(x, r2_vals, color=colors, edgecolor='black', linewidth=0.4,
@@ -790,13 +774,12 @@ def fig8_classical_vs_terramind():
         ax.set_xticks(x)
         ax.set_xticklabels(models, rotation=30, ha='right', fontsize=TICK_SIZE)
         ax.set_ylabel('Test $R^2$')
-        ax.set_title(f'{letter} {crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
         ax.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
         if r2_vals:
             ax.set_ylim(0, max(r2_vals) * 1.2)
 
-    fig.tight_layout(w_pad=1.0)
-    save_fig(fig, 'fig8_classical_vs_terramind')
+        fig.tight_layout()
+        save_fig(fig, f'fig8_classical_vs_terramind_{crop_name.lower()}')
 
 
 # ============================================================================

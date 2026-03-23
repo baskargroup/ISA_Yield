@@ -30,6 +30,12 @@ modalities = ["S2L2A",
 _code = "s12cdw"
 label_folder = "yield_geotiffs"
 
+# Denormalization: norm = (raw - data_min) / (data_max - data_min)
+DATA_MIN, DATA_MAX = 50.0, 370.0
+
+def denormalize(y_norm):
+    return y_norm * (DATA_MAX - DATA_MIN) + DATA_MIN
+
 results = []
 file_level_results = []
 
@@ -185,6 +191,8 @@ for biweek_folder in all_biweek_folders:
         file_level_results.append({
             "week": week_name, "model": "XGBoost", "file": fname,
             "y_true": yt, "y_pred": yp,
+            "y_true_buacre": denormalize(yt),
+            "y_pred_buacre": denormalize(yp),
         })
 
     # ============ PLSR Parameter Search ============
@@ -245,6 +253,8 @@ for biweek_folder in all_biweek_folders:
         file_level_results.append({
             "week": week_name, "model": "PLSR", "file": fname,
             "y_true": yt, "y_pred": yp,
+            "y_true_buacre": denormalize(yt),
+            "y_pred_buacre": denormalize(yp),
         })
 
 # Save results
