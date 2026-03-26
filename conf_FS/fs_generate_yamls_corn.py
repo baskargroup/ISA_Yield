@@ -3,7 +3,7 @@ import copy
 import os
 
 # ✅ modify only here!
-SELECTED_WEEKS = [16, 20, 1]
+SELECTED_WEEKS = [16, 20, 1, 12, 18, 19, 17, 15, 5]
 
 selected_str = "_".join(map(str, SELECTED_WEEKS))
 round_num = len(SELECTED_WEEKS) + 1

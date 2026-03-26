@@ -36,7 +36,6 @@ data:
     modalities:
     - S2L2A
     - S1GRD
-    - SOIL
     - DEM
     no_data_replace: 0
     no_label_replace: 0.0
@@ -108,7 +107,7 @@ lr_scheduler:
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
   init_args:
-    freeze_backbone: false
+    freeze_backbone: true
     freeze_decoder: false
     ignore_index: -1
     loss: mse
@@ -118,7 +117,6 @@ model:
       backbone_modalities:
       - S2L2A
       - S1GRD
-      - SOIL: 10
       - DEM
       backbone_pretrained: true
       decoder: UNetDecoder
@@ -150,7 +148,7 @@ trainer:
   callbacks:
   - class_path: ModelCheckpoint
     init_args:
-      dirpath: output/soybean/FS_S12SD/week_16_18_1/checkpoints
+      dirpath: output/soybean/M5_S12SD/week_16_18_1/checkpoints
       filename: best-{epoch:03d}
       mode: min
       monitor: val/loss
@@ -172,8 +170,8 @@ trainer:
   logger:
   - class_path: WandbLogger
     init_args:
-      name: FS_Soybean_S12SD_week_16_18_1
-      project: M4_Soybean
+      name: M5_Soybean_S12SD_week_16_18_1
+      project: M5
   max_epochs: 1000
   num_nodes: 1
   precision: 16-mixed
