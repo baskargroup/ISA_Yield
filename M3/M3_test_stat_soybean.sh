@@ -24,7 +24,13 @@ conda activate isa_yield_env
 
 echo "Job is starting on `hostname` for M3_test_stat_soybean"
 
-for yaml_file in conf_M3_stat/*soybean_test.yaml; do
+for yaml_file in \
+    conf_M3_stat/s12w_24_soybean_test.yaml \
+    conf_M3_stat/s12c_24_soybean_test.yaml \
+    conf_M3_stat/s12ws_24_soybean_test.yaml \
+    conf_M3_stat/s12dc_24_soybean_test.yaml \
+    conf_M3_stat/s12wds_24_soybean_test.yaml \
+    conf_M3_stat/s12wsc_24_soybean_test.yaml; do
     echo "Running $yaml_file"
     
     # Extract the base config name (e.g., s12_24_corn from s12_24_corn_test.yaml)

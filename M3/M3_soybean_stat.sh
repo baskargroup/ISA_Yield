@@ -24,12 +24,15 @@ conda activate isa_yield_env
 
 echo "Job is starting on `hostname` for M3_Soybean_stat"
 
-for yaml_file in conf_M3_stat/*_soybean.yaml; do
+for yaml_file in \
+    conf_M3_stat/s12w_24_soybean.yaml \
+    conf_M3_stat/s12c_24_soybean.yaml \
+    conf_M3_stat/s12ws_24_soybean.yaml \
+    conf_M3_stat/s12dc_24_soybean.yaml \
+    conf_M3_stat/s12wds_24_soybean.yaml \
+    conf_M3_stat/s12wsc_24_soybean.yaml; do
     echo "Running $yaml_file"
     terratorch fit -c "$yaml_file"
 done
-
-# terratorch fit -c conf_M3_lre4/s12cdws_24_soybean.yaml
-
 
 echo "Job finished for M3_Soybean_stat"
