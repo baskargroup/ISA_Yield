@@ -8,14 +8,14 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --partition=nova
 #SBATCH --account=mech-ai
-#SBATCH --job-name="FS_Test"
+#SBATCH --job-name="FS_Test_Corn"
 #SBATCH --mail-user=bgekim@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output="logs/fs_corn/test_round4.out"
-#SBATCH --error="logs/fs_corn/test_round4.err"
+#SBATCH --output="logs/fs_corn/test_round10.out"
+#SBATCH --error="logs/fs_corn/test_round10.err"
 
 # ✅ only modify here per each round!
-SELECTED=(16 20 1)
+SELECTED=(16 20 1 12 18 19 17 15 5)
 
 # ========== Automatic Calculation ==========
 selected_str=$(IFS=_; echo "${SELECTED[*]}")

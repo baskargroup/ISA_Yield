@@ -2,20 +2,20 @@
 #SBATCH --time=24:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mem=256G
+#SBATCH --mem=128G
 #SBATCH --gres=gpu:a100:1
-#SBATCH --exclude=nova21-gpu-2
+#SBATCH --exclude=nova21-gpu-1,nova21-gpu-2
 #SBATCH --cpus-per-task=16
 #SBATCH --partition=nova
 #SBATCH --account=mech-ai
-#SBATCH --job-name="FS_Train"
+#SBATCH --job-name="FS_Train_Corn"
 #SBATCH --mail-user=bgekim@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output="logs/fs_corn/train_round3.out"
-#SBATCH --error="logs/fs_corn/train_round3.err"
+#SBATCH --output="logs/fs_corn/train_round10.out"
+#SBATCH --error="logs/fs_corn/train_round10.err"
 
 # ✅ only modify here per each round!
-SELECTED=(16 20 1)
+SELECTED=(16 20 1 12 18 19 17 15 5)
 
 selected_str=$(IFS=_; echo "${SELECTED[*]}")
 round=$((${#SELECTED[@]} + 1))

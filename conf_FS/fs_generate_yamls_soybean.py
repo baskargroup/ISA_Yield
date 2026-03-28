@@ -3,7 +3,7 @@ import copy
 import os
 
 # ✅ modify only here per each round!
-SELECTED_WEEKS = [16, 18]  # shoould be empty for round1
+SELECTED_WEEKS = [16, 18, 1, 3, 24, 15, 23, 6, 7]  # shoould be empty for round1
 MODALITIES = ['S2L2A', 'S1GRD', 'SOIL', 'DEM']
 
 selected_str = "_".join(map(str, SELECTED_WEEKS))

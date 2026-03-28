@@ -4,9 +4,11 @@ import shutil
 from multiprocessing import Pool
  
 # ✅ modify only here!
-SELECTED_WEEKS = [16, 18]
+# SELECTED_WEEKS = [16, 20, 1, 12, 18, 19, 17, 15, 5] #for corn
+SELECTED_WEEKS = [16, 18, 1, 3, 24, 15, 23, 6, 7] #for soybean
 
-MODALITIES = ['S2L2A', 'S1GRD', 'CDL', 'DEM', 'WEATHER', 'SOIL']
+# MODALITIES = ['S2L2A', 'S1GRD', 'CDL', 'DEM', 'WEATHER'] # for corn
+MODALITIES = ['S2L2A', 'S1GRD', 'DEM', 'SOIL'] #for soybean
 selected_str = "_".join(map(str, SELECTED_WEEKS))
 BASE_DIR = f"processed_data_fs_{selected_str}"  # processed_data_fs_16_20_1_
 REMAINING = [w for w in range(1, 25) if w not in SELECTED_WEEKS]
@@ -41,4 +43,4 @@ def process_week(week):
 if __name__ == '__main__':
     with Pool(processes=8) as pool:
         pool.map(process_week, REMAINING)
-    print("🎉 Round 4 Dataset preparation complete!")
+    print("🎉 Round 5 Dataset preparation complete!")
