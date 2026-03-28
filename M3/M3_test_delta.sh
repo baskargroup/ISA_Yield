@@ -1,31 +1,51 @@
 #!/bin/bash
 
-#SBATCH --time=168:00:00   # walltime limit (HH:MM:SS)
-#SBATCH --nodes=1   # number of nodes
-#SBATCH --ntasks-per-node=1   # 36 processor core(s) per node 
-#SBATCH --mem=369G   # maximum memory per node
-#SBATCH --gres=gpu:a100:1
+#SBATCH --time=12:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem=128G
+#SBATCH --gpus-per-node=1
 #SBATCH --cpus-per-task=16
-#SBATCH --partition=nova    # gpu node(s)
-#SBATCH --account=mech-ai
-#SBATCH --job-name="M3_test"
-#SBATCH --mail-user=aapowadi@iastate.edu   # email address
+#SBATCH --partition=gpuA100x4
+#SBATCH --account=bepk-delta-gpu
+#SBATCH --job-name="soybean_M3"
+#SBATCH --mail-user=bgekim@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output="M3_test%j.out" # job standard output file (%j replaced by job id)
-#SBATCH --error="M3_test%j.err" # job standard error file (%j replaced by job id)
+#SBATCH --output="soybean_M3_%j.out"
+#SBATCH --error="soybean_M3_%j.err"
 
-# SBATCH --cpus-per-task=16   # spread out to use 1 core per numa, set to 64 if tasks is 1
-# Environment setup
-
-
-# conda environment
-source /work/mech-ai-scratch/bgekim/miniconda3/etc/profile.d/conda.sh
+# Conda environment
+source /u/bkim2/miniforge3/etc/profile.d/conda.sh
 conda activate isa_yield_env
 
+# to avoid PROJ conflict
+unset PROJ_DATA
+unset PROJ_LIB
+unset SLURM_NTASKS
 
-echo "Job is starting on `hostname` for M3_test"
+echo "=========================================="
+echo "Job started on $(hostname) at $(date)"
+echo "=========================================="
 
-for yaml_file in conf_M3_stat_delta/*_test.yaml; do
+# Config files to run
+# CONFIGS=(
+#     "conf_M4/M4_2/delta_s12d_6_soybean.yaml"
+#     "conf_M4/M4_2/delta_s12d_8_soybean.yaml"
+#     "conf_M4/M4_2/delta_s12d_10_soybean.yaml"
+# )
+for yaml_file in \
+    conf_M3_stat/s12w_24_soybean_test.yaml \
+    conf_M3_stat/s12c_24_soybean_test.yaml \
+    conf_M3_stat/s12ws_24_soybean_test.yaml \
+    conf_M3_stat/s12dc_24_soybean_test.yaml \
+    conf_M3_stat/s12wds_24_soybean_test.yaml \
+    conf_M3_stat/s12wsc_24_soybean_test.yaml \
+    conf_M3_stat/s12w_24_corn_test.yaml \
+    conf_M3_stat/s12c_24_corn_test.yaml \
+    conf_M3_stat/s12ws_24_corn_test.yaml \
+    conf_M3_stat/s12dc_24_corn_test.yaml \
+    conf_M3_stat/s12wds_24_corn_test.yaml \
+    conf_M3_stat/s12wsc_24_corn_test.yaml; do
     echo "Running $yaml_file"
     
     # Extract the base config name (e.g., s12_24_corn from s12_24_corn_test.yaml)
@@ -42,7 +62,7 @@ for yaml_file in conf_M3_stat_delta/*_test.yaml; do
     fi
     
     # Find the checkpoint file
-    ckpt_file=$(find "output/$crop/M3/delta/${modality}_stat/checkpoints" -name "best-*.ckpt" 2>/dev/null | head -1)
+    ckpt_file=$(find "output/$crop/M3/differentnorm/${modality}_stat/checkpoints" -name "best-*.ckpt" 2>/dev/null | head -1)
     
     if [ -f "$ckpt_file" ]; then
         echo "Using checkpoint: $ckpt_file"
@@ -52,4 +72,6 @@ for yaml_file in conf_M3_stat_delta/*_test.yaml; do
     fi
 done
 
-echo "Job finished for M3_test"
+
+
+echo "Job finished for M3_test_stat"
