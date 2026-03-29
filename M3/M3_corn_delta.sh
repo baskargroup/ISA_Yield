@@ -6,7 +6,7 @@
 #SBATCH --mem=128G
 #SBATCH --gpus-per-node=1
 #SBATCH --cpus-per-task=16
-#SBATCH --partition=gpuA100x4
+#SBATCH --partition=gpuH200x8
 #SBATCH --account=bepk-delta-gpu
 #SBATCH --job-name="corn_M3"
 #SBATCH --mail-user=bgekim@iastate.edu
@@ -15,7 +15,7 @@
 #SBATCH --error="corn_M3_%j.err"
 
 # Conda environment
-source /u/bkim2/miniforge3/etc/profile.d/conda.sh
+source /u/apowadi/miniforge3/etc/profile.d/conda.sh
 conda activate isa_yield_env
 
 # to avoid PROJ conflict
@@ -34,10 +34,10 @@ echo "=========================================="
 #     "conf_M4/M4_2/delta_s12d_10_corn.yaml"
 # )
 CONFIGS=(
-    "conf_M3_stat/s12w_24_corn.yaml"
-    "conf_M3_stat/s12c_24_corn.yaml"
-    "conf_M3_stat/s12ws_24_corn.yaml"
-    "conf_M3_stat/s12dc_24_corn.yaml"
+    # "conf_M3_stat/s12w_24_corn.yaml"
+    # "conf_M3_stat/s12c_24_corn.yaml"
+    # "conf_M3_stat/s12ws_24_corn.yaml"
+    # "conf_M3_stat/s12dc_24_corn.yaml"
     "conf_M3_stat/s12wds_24_corn.yaml"
     "conf_M3_stat/s12wsc_24_corn.yaml"
 )
