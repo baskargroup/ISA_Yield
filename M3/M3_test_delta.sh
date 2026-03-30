@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=168:00:00   # walltime limit (HH:MM:SS)
+#SBATCH --time=1:00:00   # walltime limit (HH:MM:SS)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --ntasks-per-node=1   # 36 processor core(s) per node 
 #SBATCH --mem=369G   # maximum memory per node

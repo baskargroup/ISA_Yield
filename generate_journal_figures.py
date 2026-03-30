@@ -389,6 +389,7 @@ def fig3_m3_modality_ablation():
         results.append({'Modal': modal, 'Crop': crop, **metrics})
 
     rdf = pd.DataFrame(results)
+    rdf = rdf.drop_duplicates(subset=['Modal', 'Crop'])
 
     # ---- Figure: 2 panels (Corn R², Soybean R²) with MAE annotations ----
     fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 4.5))
