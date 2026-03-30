@@ -1,35 +1,62 @@
 #!/bin/bash
 
-#SBATCH --time=168:00:00   # walltime limit (HH:MM:SS)
-#SBATCH --nodes=1   # number of nodes
-#SBATCH --ntasks-per-node=1   # 36 processor core(s) per node 
-#SBATCH --mem=369G   # maximum memory per node
-#SBATCH --gres=gpu:a100:1
+#SBATCH --time=12:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem=128G
+#SBATCH --gpus-per-node=1
 #SBATCH --cpus-per-task=16
-#SBATCH --partition=nova    # gpu node(s)
-#SBATCH --account=mech-ai
-#SBATCH --job-name="M3_Soybean_stat"
-#SBATCH --mail-user=aapowadi@iastate.edu   # email address
+#SBATCH --partition=gpuH200x8
+#SBATCH --account=bepk-delta-gpu
+#SBATCH --job-name="soybean_M3"
+#SBATCH --mail-user=bgekim@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output="M3_Soybean_stat%j.out" # job standard output file (%j replaced by job id)
-#SBATCH --error="M3_Soybean_stat%j.err" # job standard error file (%j replaced by job id)
-# SBATCH --cpus-per-task=16   # spread out to use 1 core per numa, set to 64 if tasks is 1
-# Environment setup
+#SBATCH --output="soybean_M3_%j.out"
+#SBATCH --error="soybean_M3_%j.err"
 
-
-# conda environment
-source /work/mech-ai-scratch/bgekim/miniconda3/etc/profile.d/conda.sh
+# Conda environment
+source /u/apowadi/miniforge3/etc/profile.d/conda.sh
 conda activate isa_yield_env
 
+# to avoid PROJ conflict
+unset PROJ_DATA
+unset PROJ_LIB
+unset SLURM_NTASKS
 
-echo "Job is starting on `hostname` for M3_Soybean_stat"
+echo "=========================================="
+echo "Job started on $(hostname) at $(date)"
+echo "=========================================="
 
-for yaml_file in conf_M3_stat_delta/*_soybean.yaml; do
-    echo "Running $yaml_file"
-    terratorch fit -c "$yaml_file"
+# Config files to run
+# CONFIGS=(
+#     "conf_M4/M4_2/delta_s12d_6_soybean.yaml"
+#     "conf_M4/M4_2/delta_s12d_8_soybean.yaml"
+#     "conf_M4/M4_2/delta_s12d_10_soybean.yaml"
+# )
+CONFIGS=(
+    # "conf_M3_stat/s12w_24_soybean.yaml"
+    # "conf_M3_stat/s12c_24_soybean.yaml"
+    # "conf_M3_stat/s12ws_24_soybean.yaml"
+    # "conf_M3_stat/s12dc_24_soybean.yaml"
+    "conf_M3_stat/s12wds_24_soybean.yaml"
+    "conf_M3_stat/s12wsc_24_soybean.yaml"
+)
+
+
+# Run each config
+for config in "${CONFIGS[@]}"; do
+    echo ""
+    echo "=========================================="
+    echo "Running: $config"
+    echo "Start time: $(date)"
+    echo "=========================================="
+    
+    terratorch fit -c "$config"
+    
+    echo "Finished: $config at $(date)"
+    echo ""
 done
 
-# terratorch fit -c conf_M3_lre4/s12cdws_24_soybean.yaml
-
-
-echo "Job finished for M3_Soybean_stat"
+echo "=========================================="
+echo "All jobs completed at $(date)"
+echo "=========================================="
