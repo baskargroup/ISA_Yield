@@ -1647,24 +1647,32 @@ def fig18_yield_maps():
         # largest corn field; second-largest soybean field
         chosen[crop] = counts.index[0] if crop == 'Corn' else counts.index[1]
 
-    # --- rasterise & save each crop as a separate figure --------------------
+    # --- rasterise both crops ------------------------------------------------
+    raster_results = {}
     for crop in ['Corn', 'Soybean']:
         layer_id = chosen[crop]
         group = full_data[full_data['Layer_ID'] == layer_id]
         result = rasterise_field(group)
-        if result is None:
-            continue
-        data, width_m, height_m = result
+        if result is not None:
+            raster_results[crop] = result
 
+    # --- save each crop as a separate square figure -------------------------
+    sq = SINGLE_COL  # square figure size in inches
+    for crop in ['Corn', 'Soybean']:
+        if crop not in raster_results:
+            continue
+        data, width_m, height_m = raster_results[crop]
         masked = np.ma.masked_where(np.isnan(data), data)
         valid_bu = data[~np.isnan(data)]
 
-        fig, ax = plt.subplots(1, 1, figsize=(SINGLE_COL, SINGLE_COL))
+        fig, ax = plt.subplots(1, 1, figsize=(sq, sq))
         ax.imshow(masked, cmap='gray', interpolation='nearest',
-                  origin='upper',
+                  origin='upper', aspect='equal',
                   extent=[0, width_m, 0, height_m],
                   vmin=np.nanpercentile(valid_bu, 2),
                   vmax=np.nanpercentile(valid_bu, 98))
+        ax.set_xlim(0, width_m)
+        ax.set_ylim(0, height_m)
         ax.set_xlabel('Distance (m)', fontsize=LABEL_SIZE)
         ax.set_ylabel('Distance (m)', fontsize=LABEL_SIZE)
         ax.tick_params(labelsize=TICK_SIZE)
