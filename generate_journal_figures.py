@@ -1656,7 +1656,10 @@ def fig18_yield_maps():
         if result is not None:
             raster_results[crop] = result
 
-    # --- save each crop as a separate square figure -------------------------
+    # --- compute shared spatial extent so both figures are identical size ----
+    max_w = max(r[1] for r in raster_results.values())
+    max_h = max(r[2] for r in raster_results.values())
+
     sq = SINGLE_COL  # square figure size in inches
     for crop in ['Corn', 'Soybean']:
         if crop not in raster_results:
@@ -1665,14 +1668,18 @@ def fig18_yield_maps():
         masked = np.ma.masked_where(np.isnan(data), data)
         valid_bu = data[~np.isnan(data)]
 
+        # Centre the field within the shared extent
+        x_off = (max_w - width_m) / 2.0
+        y_off = (max_h - height_m) / 2.0
+
         fig, ax = plt.subplots(1, 1, figsize=(sq, sq))
         ax.imshow(masked, cmap='gray', interpolation='nearest',
                   origin='upper', aspect='equal',
-                  extent=[0, width_m, 0, height_m],
+                  extent=[x_off, x_off + width_m, y_off, y_off + height_m],
                   vmin=np.nanpercentile(valid_bu, 2),
                   vmax=np.nanpercentile(valid_bu, 98))
-        ax.set_xlim(0, width_m)
-        ax.set_ylim(0, height_m)
+        ax.set_xlim(0, max_w)
+        ax.set_ylim(0, max_h)
         ax.set_xlabel('Distance (m)', fontsize=LABEL_SIZE)
         ax.set_ylabel('Distance (m)', fontsize=LABEL_SIZE)
         ax.tick_params(labelsize=TICK_SIZE)
