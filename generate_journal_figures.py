@@ -377,19 +377,28 @@ def fig3_m3_modality_ablation():
     pred_dir = 'M3/predictions'
     csv_files = sorted(Path(pred_dir).glob('*.csv'))
 
+    # Keep only the latest file per (modality, crop) based on timestamp in filename
+    import re
+    latest_files = {}
+    for csv_file in csv_files:
+        modal = extract_modal_code(csv_file.stem)
+        crop = extract_crop(csv_file.stem)
+        ts_match = re.search(r'(\d{8}_\d{6})', csv_file.stem)
+        ts = ts_match.group(1) if ts_match else ''
+        key = (modal, crop)
+        if key not in latest_files or ts > latest_files[key][1]:
+            latest_files[key] = (csv_file, ts)
+
     # Compute metrics per crop per modality
     results = []
-    for csv_file in csv_files:
+    for (modal, crop), (csv_file, _) in latest_files.items():
         df = pd.read_csv(csv_file)
         y_true = df['YieldGT'].values
         y_pred = df['Prediction'].values
         metrics = calculate_metrics(y_true, y_pred)
-        modal = extract_modal_code(csv_file.stem)
-        crop = extract_crop(csv_file.stem)
         results.append({'Modal': modal, 'Crop': crop, **metrics})
 
     rdf = pd.DataFrame(results)
-    rdf = rdf.drop_duplicates(subset=['Modal', 'Crop'])
 
     # ---- Figure: 2 panels (Corn R², Soybean R²) with MAE annotations ----
     fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 4.5))
@@ -402,12 +411,12 @@ def fig3_m3_modality_ablation():
     for i, (_, row) in enumerate(corn_df.iterrows()):
         ax_a.text(row['R2'] + 0.005, i,
                   f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
-                  va='center', fontsize=ANNOT_SIZE)
+                  va='center', fontsize=ANNOT_SIZE, clip_on=True)
     ax_a.set_yticks(y_pos)
     ax_a.set_yticklabels(corn_df['Modal'], fontsize=TICK_SIZE)
     ax_a.set_xlabel('$R^2$')
     ax_a.set_title('(a) Corn — $R^2$ by Modality', fontweight='bold', fontsize=TITLE_SIZE)
-    ax_a.set_xlim(0, corn_df['R2'].max() * 1.35)
+    ax_a.set_xlim(0, 1.0)
 
     # Panel (b): Soybean R²
     soy_df = rdf[rdf['Crop'] == 'Soybean'].sort_values('R2', ascending=True)
@@ -417,12 +426,12 @@ def fig3_m3_modality_ablation():
     for i, (_, row) in enumerate(soy_df.iterrows()):
         ax_b.text(row['R2'] + 0.005, i,
                   f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
-                  va='center', fontsize=ANNOT_SIZE)
+                  va='center', fontsize=ANNOT_SIZE, clip_on=True)
     ax_b.set_yticks(y_pos)
     ax_b.set_yticklabels(soy_df['Modal'], fontsize=TICK_SIZE)
     ax_b.set_xlabel('$R^2$')
     ax_b.set_title('(b) Soybean — $R^2$ by Modality', fontweight='bold', fontsize=TITLE_SIZE)
-    ax_b.set_xlim(0, soy_df['R2'].max() * 1.35)
+    ax_b.set_xlim(0, 1.0)
 
     fig.tight_layout(w_pad=1.0)
     save_fig(fig, 'fig3_m3_modality_ablation')
