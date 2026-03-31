@@ -1598,7 +1598,9 @@ def fig18_yield_maps():
         distances, _ = tree.query(np.column_stack([x_grid.ravel(), y_grid.ravel()]))
         distances = distances.reshape((nrows, ncols))
         data = np.where(distances <= max_distance_m, interpolated, np.nan)
-        return data
+        width_m  = ncols * res_m
+        height_m = nrows * res_m
+        return data, width_m, height_m
 
     # --- pick one field per crop from 2020 data -----------------------------
     parquet_file = 'Yield_2020_filtered.parquet'
@@ -1615,9 +1617,10 @@ def fig18_yield_maps():
     for crop in ['Corn', 'Soybean']:
         layer_id = chosen[crop]
         group = full_data[full_data['Layer_ID'] == layer_id]
-        data = rasterise_field(group)
-        if data is None:
+        result = rasterise_field(group)
+        if result is None:
             continue
+        data, width_m, height_m = result
 
         masked = np.ma.masked_where(np.isnan(data), data)
         valid_bu = data[~np.isnan(data)]
@@ -1625,10 +1628,13 @@ def fig18_yield_maps():
         fig, ax = plt.subplots(1, 1, figsize=(SINGLE_COL, SINGLE_COL))
         ax.imshow(masked, cmap='gray', interpolation='nearest',
                   origin='upper',
+                  extent=[0, width_m, 0, height_m],
                   vmin=np.nanpercentile(valid_bu, 2),
                   vmax=np.nanpercentile(valid_bu, 98))
-        ax.set_axis_off()
-        fig.tight_layout(pad=0)
+        ax.set_xlabel('Distance (m)', fontsize=FONT_SIZE)
+        ax.set_ylabel('Distance (m)', fontsize=FONT_SIZE)
+        ax.tick_params(labelsize=TICK_SIZE)
+        fig.tight_layout()
         save_fig(fig, f'fig18_yield_map_{crop.lower()}')
 
 
