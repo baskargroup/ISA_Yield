@@ -1883,8 +1883,8 @@ def _build_geo_split_figure(merged, crop_label, fig_name):
     # Legend — placed below the map so it doesn't overlap
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.02),
               frameon=True, framealpha=0.92, edgecolor='#cccccc',
-              markerscale=1.0, fontsize=LEGEND_SIZE - 2, ncol=3,
-              handletextpad=0.3, columnspacing=0.8)
+              markerscale=1.0, fontsize=LEGEND_SIZE, ncol=3,
+              handletextpad=0.15, columnspacing=0.5, labelspacing=0.2)
 
     # Remove all axes — pure geographic map
     ax.axis('off')
