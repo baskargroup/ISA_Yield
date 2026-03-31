@@ -36,7 +36,9 @@ data:
     modalities:
     - S2L2A
     - S1GRD
+    - SOIL
     - DEM
+
     no_data_replace: 0
     no_label_replace: 0.0
     num_workers: 8
@@ -107,7 +109,7 @@ lr_scheduler:
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
   init_args:
-    freeze_backbone: true
+    freeze_backbone: false
     freeze_decoder: false
     ignore_index: -1
     loss: mse
@@ -117,6 +119,7 @@ model:
       backbone_modalities:
       - S2L2A
       - S1GRD
+      - SOIL: 10
       - DEM
       backbone_pretrained: true
       decoder: UNetDecoder

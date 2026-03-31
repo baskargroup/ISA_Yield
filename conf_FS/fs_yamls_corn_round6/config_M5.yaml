@@ -100,7 +100,7 @@ lr_scheduler:
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
   init_args:
-    freeze_backbone: false
+    freeze_backbone: true
     freeze_decoder: false
     ignore_index: -1
     loss: mse
