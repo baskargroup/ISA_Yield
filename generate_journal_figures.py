@@ -1277,9 +1277,7 @@ def fig14_data_splits():
                 key = (split, crop, yr)
                 year_counts[key] = year_counts.get(key, 0) + 1
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.0))
-
-    # Panel (a): Split counts
+    # Panel (a): Split counts — separate figure
     split_summary = {}
     for (split, crop), names in splits.items():
         if split not in split_summary:
@@ -1292,6 +1290,7 @@ def fig14_data_splits():
     corn_counts = [split_summary.get(s, {}).get('Corn', 0) for s in splits_ordered]
     soy_counts = [split_summary.get(s, {}).get('Soybean', 0) for s in splits_ordered]
 
+    fig_a, ax1 = plt.subplots(figsize=(DOUBLE_COL / 2, 3.0))
     ax1.bar(x - w/2, corn_counts, w, color=CORN_COLOR, edgecolor='black',
             linewidth=0.4, label='Corn', alpha=0.85)
     ax1.bar(x + w/2, soy_counts, w, color=SOYBEAN_COLOR, edgecolor='black',
@@ -1304,11 +1303,13 @@ def fig14_data_splits():
     ax1.set_xticks(x)
     ax1.set_xticklabels(splits_ordered)
     ax1.set_ylabel('Number of Fields')
-    ax1.set_title('(a) Train/Val/Test Split', fontweight='bold', fontsize=TITLE_SIZE)
     ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax1.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
-    # Panel (b): Year distribution in training set — exclude years with no training data
+    fig_a.tight_layout()
+    save_fig(fig_a, 'fig14a_data_splits')
+
+    # Panel (b): Year distribution in training set — separate figure
     years_all = sorted(set(yr for (_, _, yr) in year_counts.keys()))
     corn_all = [year_counts.get(('Train', 'Corn', yr), 0) for yr in years_all]
     soy_all = [year_counts.get(('Train', 'Soybean', yr), 0) for yr in years_all]
@@ -1318,6 +1319,7 @@ def fig14_data_splits():
     soy_by_year = [s for c, s in zip(corn_all, soy_all) if c > 0 or s > 0]
 
     x2 = np.arange(len(years))
+    fig_b, ax2 = plt.subplots(figsize=(DOUBLE_COL / 2, 3.0))
     ax2.bar(x2 - w/2, corn_by_year, w, color=CORN_COLOR, edgecolor='black',
             linewidth=0.4, label='Corn', alpha=0.85)
     ax2.bar(x2 + w/2, soy_by_year, w, color=SOYBEAN_COLOR, edgecolor='black',
@@ -1326,11 +1328,10 @@ def fig14_data_splits():
     ax2.set_xticklabels(years, fontsize=TICK_SIZE)
     ax2.set_xlim(-0.5, len(years) - 0.5)
     ax2.set_ylabel('Number of Fields')
-    ax2.set_title('(b) Training Data by Year', fontweight='bold', fontsize=TITLE_SIZE)
     ax2.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
-    fig.tight_layout(w_pad=1.0)
-    save_fig(fig, 'fig14_data_splits')
+    fig_b.tight_layout()
+    save_fig(fig_b, 'fig14b_data_splits_by_year')
 
 
 # ============================================================================
