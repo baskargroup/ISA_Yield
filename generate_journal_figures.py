@@ -400,41 +400,43 @@ def fig3_m3_modality_ablation():
 
     rdf = pd.DataFrame(results)
 
-    # ---- Figure: 2 panels (Corn R², Soybean R²) with MAE annotations ----
-    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 4.5))
+    half_w = DOUBLE_COL / 2
 
-    # Panel (a): Corn R²
+    # ---- Panel (a): Corn R² ----
     corn_df = rdf[rdf['Crop'] == 'Corn'].sort_values('R2', ascending=True)
+    fig_a, ax_a = plt.subplots(figsize=(half_w, 4.5))
     y_pos = np.arange(len(corn_df))
     ax_a.barh(y_pos, corn_df['R2'], color=CORN_COLOR, edgecolor='black',
               linewidth=0.3, height=0.7, alpha=0.9)
     for i, (_, row) in enumerate(corn_df.iterrows()):
         ax_a.text(row['R2'] + 0.005, i,
                   f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
-                  va='center', fontsize=ANNOT_SIZE, clip_on=True)
+                  va='center', fontsize=ANNOT_SIZE, clip_on=False)
     ax_a.set_yticks(y_pos)
     ax_a.set_yticklabels(corn_df['Modal'], fontsize=TICK_SIZE)
     ax_a.set_xlabel('$R^2$')
-    ax_a.set_title('(a) Corn — $R^2$ by Modality', fontweight='bold', fontsize=TITLE_SIZE)
     ax_a.set_xlim(0, 1.0)
+    fig_a.tight_layout()
+    fig_a.subplots_adjust(right=0.62)
+    save_fig(fig_a, 'fig3a_m3_modality_ablation_corn')
 
-    # Panel (b): Soybean R²
+    # ---- Panel (b): Soybean R² ----
     soy_df = rdf[rdf['Crop'] == 'Soybean'].sort_values('R2', ascending=True)
+    fig_b, ax_b = plt.subplots(figsize=(half_w, 4.5))
     y_pos = np.arange(len(soy_df))
     ax_b.barh(y_pos, soy_df['R2'], color=SOYBEAN_COLOR, edgecolor='black',
               linewidth=0.3, height=0.7, alpha=0.9)
     for i, (_, row) in enumerate(soy_df.iterrows()):
         ax_b.text(row['R2'] + 0.005, i,
                   f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
-                  va='center', fontsize=ANNOT_SIZE, clip_on=True)
+                  va='center', fontsize=ANNOT_SIZE, clip_on=False)
     ax_b.set_yticks(y_pos)
     ax_b.set_yticklabels(soy_df['Modal'], fontsize=TICK_SIZE)
     ax_b.set_xlabel('$R^2$')
-    ax_b.set_title('(b) Soybean — $R^2$ by Modality', fontweight='bold', fontsize=TITLE_SIZE)
     ax_b.set_xlim(0, 1.0)
-
-    fig.tight_layout(w_pad=1.0)
-    save_fig(fig, 'fig3_m3_modality_ablation')
+    fig_b.tight_layout()
+    fig_b.subplots_adjust(right=0.62)
+    save_fig(fig_b, 'fig3b_m3_modality_ablation_soybean')
 
 
 # ============================================================================
