@@ -1676,7 +1676,7 @@ def fig18_yield_maps():
         ax.set_xlabel('Distance (m)', fontsize=LABEL_SIZE)
         ax.set_ylabel('Distance (m)', fontsize=LABEL_SIZE)
         ax.tick_params(labelsize=TICK_SIZE)
-        fig.tight_layout()
+        fig.subplots_adjust(left=0.18, right=0.95, bottom=0.13, top=0.95)
         save_fig(fig, f'fig18_yield_map_{crop.lower()}')
 
 
