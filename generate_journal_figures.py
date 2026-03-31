@@ -1554,88 +1554,81 @@ def fig17_residual_analysis():
 # FIGURE 18: Yield map for one corn and one soybean field
 # ============================================================================
 def fig18_yield_maps():
-    """Spatial yield maps for one representative corn and one soybean field."""
+    """Spatial yield maps for one representative corn and one soybean field
+    rasterised from raw filtered-parquet point data (no pre-processed .npy).
+    Saves each crop as a separate grayscale figure with no axes or colorbar."""
     print('Figure 18: Yield maps (corn & soybean)...')
 
-    yield_dir = 'processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs'
+    from scipy.interpolate import griddata
+    from scipy.spatial import cKDTree
+    from pyproj import Transformer
+    import geopandas as gpd
 
-    # Pick fields with high valid-pixel coverage for visual clarity
-    def pick_best_field(crop_keyword, n_candidates=30):
-        files = sorted([f for f in os.listdir(yield_dir) if crop_keyword in f])
-        best_file, best_coverage = None, 0
-        for f in files[:n_candidates]:
-            arr = np.load(os.path.join(yield_dir, f))[0]
-            valid = np.sum((~np.isnan(arr)) & (arr > 0))
-            if valid > best_coverage:
-                best_coverage = valid
-                best_file = f
-        return best_file
+    res_m = 10.0
+    utm_epsg = 'EPSG:32615'
+    max_distance_m = 3 * res_m  # 30 m mask radius
 
-    corn_file = pick_best_field('Corn')
-    soy_file = pick_best_field('Soybean')
+    # --- helper: rasterise a single field from parquet points ---------------
+    def rasterise_field(group):
+        transformer = Transformer.from_crs('EPSG:4326', utm_epsg, always_xy=True)
+        lon = group['x'].to_numpy()
+        lat = group['y'].to_numpy()
+        x_utm, y_utm = transformer.transform(lon, lat)
+        points = np.column_stack([x_utm, y_utm])
+        values = group['Yield'].to_numpy()
 
-    fig, axes = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.5))
+        left   = np.floor(np.min(x_utm) / res_m) * res_m
+        right  = np.ceil(np.max(x_utm) / res_m) * res_m
+        bottom = np.floor(np.min(y_utm) / res_m) * res_m
+        top    = np.ceil(np.max(y_utm) / res_m) * res_m
 
-    # Crop-specific denormalization: normalized = (yield - data_min) / (data_max - data_min)
-    denorm = {
-        'Corn':    {'data_min': 50.0, 'data_max': 370.0},   # range 320
-        'Soybean': {'data_min': 30.0, 'data_max': 120.0},   # range 90
-    }
+        ncols = int(round((right - left) / res_m))
+        nrows = int(round((top - bottom) / res_m))
+        if ncols <= 0 or nrows <= 0:
+            return None
 
-    crop_data = []  # store (fname, crop, masked, valid_bu) for grayscale pass
+        x_centers = left + (np.arange(ncols) + 0.5) * res_m
+        y_centers = top  - (np.arange(nrows) + 0.5) * res_m
+        x_grid, y_grid = np.meshgrid(x_centers, y_centers)
 
-    for ax, fname, crop, cmap_color in [
-        (axes[0], corn_file, 'Corn', 'YlOrBr'),
-        (axes[1], soy_file, 'Soybean', 'cividis'),
-    ]:
-        arr = np.load(os.path.join(yield_dir, fname))[0]  # (224, 224)
+        interpolated = griddata(points, values, (x_grid, y_grid), method='linear')
 
-        # Convert normalized yield back to bu/acre
-        d = denorm[crop]
-        arr_bu = arr * (d['data_max'] - d['data_min']) + d['data_min']
+        tree = cKDTree(points)
+        distances, _ = tree.query(np.column_stack([x_grid.ravel(), y_grid.ravel()]))
+        distances = distances.reshape((nrows, ncols))
+        data = np.where(distances <= max_distance_m, interpolated, np.nan)
+        return data
 
-        # Mask invalid pixels (originally <=0 in normalized space)
-        masked = np.ma.masked_where(np.isnan(arr) | (arr <= 0), arr_bu)
+    # --- pick one field per crop from 2020 data -----------------------------
+    parquet_file = 'Yield_2020_filtered.parquet'
+    full_data = gpd.read_parquet(parquet_file)
 
-        valid_bu = arr_bu[(~np.isnan(arr)) & (arr > 0)]
-        im = ax.imshow(masked, cmap=cmap_color, interpolation='nearest',
-                       vmin=np.nanpercentile(valid_bu, 2),
-                       vmax=np.nanpercentile(valid_bu, 98))
-        cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label('Yield (bu/acre)', fontsize=LABEL_SIZE)
-        cbar.ax.tick_params(labelsize=TICK_SIZE)
+    chosen = {}
+    for crop in ['Corn', 'Soybean']:
+        sub = full_data[full_data['Crop'] == crop]
+        counts = sub.groupby('Layer_ID').size().sort_values(ascending=False)
+        # largest corn field; second-largest soybean field
+        chosen[crop] = counts.index[0] if crop == 'Corn' else counts.index[1]
 
-        field_id = fname.replace('.npy', '')
-        ax.set_title(f'{crop} — {field_id}', fontweight='bold', fontsize=TITLE_SIZE, pad=4)
-        ax.set_xlabel('Pixel Column', fontsize=LABEL_SIZE)
-        ax.set_ylabel('Pixel Row', fontsize=LABEL_SIZE)
+    # --- rasterise & save each crop as a separate figure --------------------
+    for crop in ['Corn', 'Soybean']:
+        layer_id = chosen[crop]
+        group = full_data[full_data['Layer_ID'] == layer_id]
+        data = rasterise_field(group)
+        if data is None:
+            continue
 
-        # Stats inset (in bu/acre)
-        txt = f'$\mu$={valid_bu.mean():.1f} bu/ac\n$\sigma$={valid_bu.std():.1f} bu/ac\nn={len(valid_bu):,} px'
-        ax.text(0.03, 0.97, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
-                va='top', ha='left',
-                bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.85,
-                          ec='gray', lw=0.4))
+        masked = np.ma.masked_where(np.isnan(data), data)
+        valid_bu = data[~np.isnan(data)]
 
-        crop_data.append((fname, crop, masked, valid_bu))
-
-    fig.tight_layout(w_pad=1.0)
-    save_fig(fig, 'fig18_yield_maps')
-
-    # --- Grayscale versions without statistics annotations ---
-    # Sized so two panels fit side-by-side in a single journal column
-    _gw = SINGLE_COL / 2  # ~1.75 in each
-    _gh = _gw * 1.1       # slightly taller than wide for axis labels
-    for fname, crop, masked, valid_bu in crop_data:
-        fig_g, ax_g = plt.subplots(1, 1, figsize=(_gw, _gh))
-        im_g = ax_g.imshow(masked, cmap='gray', interpolation='nearest',
-                           vmin=np.nanpercentile(valid_bu, 2),
-                           vmax=np.nanpercentile(valid_bu, 98))
-        ax_g.set_xlabel('Pixel Column', fontsize=SMALL_LABEL_SIZE)
-        ax_g.set_ylabel('Pixel Row', fontsize=SMALL_LABEL_SIZE)
-        ax_g.tick_params(axis='both', labelsize=SMALL_TICK_SIZE)
-        fig_g.tight_layout()
-        save_fig(fig_g, f'fig18_yield_maps_gray_{crop.lower()}')
+        fig, ax = plt.subplots(1, 1, figsize=(SINGLE_COL, SINGLE_COL))
+        ax.imshow(masked, cmap='gray', interpolation='nearest',
+                  origin='upper',
+                  vmin=np.nanpercentile(valid_bu, 2),
+                  vmax=np.nanpercentile(valid_bu, 98))
+        ax.set_axis_off()
+        fig.tight_layout(pad=0)
+        save_fig(fig, f'fig18_yield_map_{crop.lower()}')
 
 
 # ============================================================================
