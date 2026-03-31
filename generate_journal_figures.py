@@ -1818,7 +1818,7 @@ def _build_geo_split_figure(merged, crop_label, fig_name):
     SPLIT_LABELS = {'train': 'Train', 'val': 'Val', 'test': 'Test'}
 
     proj = ccrs.PlateCarree()
-    fig, ax = plt.subplots(figsize=(SINGLE_COL + 1.0, 3.8),
+    fig, ax = plt.subplots(figsize=(DOUBLE_COL / 2, 3.8),
                            subplot_kw={'projection': proj})
 
     # Iowa extent with padding
@@ -1880,14 +1880,17 @@ def _build_geo_split_figure(merged, crop_label, fig_name):
             label=f"{SPLIT_LABELS[split_name]} (n={len(sp)})",
         )
 
-    # Legend
-    ax.legend(loc='lower left', frameon=True, framealpha=0.92,
-              edgecolor='#cccccc', markerscale=1.4, fontsize=FONT_SIZE)
+    # Legend — placed below the map so it doesn't overlap
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.02),
+              frameon=True, framealpha=0.92, edgecolor='#cccccc',
+              markerscale=1.0, fontsize=LEGEND_SIZE - 2, ncol=3,
+              handletextpad=0.3, columnspacing=0.8)
 
     # Remove all axes — pure geographic map
     ax.axis('off')
 
     fig.tight_layout(pad=0.3)
+    fig.subplots_adjust(bottom=0.10)
     save_fig(fig, fig_name)
 
 
