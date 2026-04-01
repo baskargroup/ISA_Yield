@@ -143,7 +143,7 @@ trainer:
   callbacks:
   - class_path: ModelCheckpoint
     init_args:
-      dirpath: output/corn/M5/week_16_20_1_12_18_19/checkpoints
+      dirpath: output/corn/FS_S12CDW/week_16_20_1_12_18_19/checkpoints
       filename: best-{epoch:03d}
       mode: min
       monitor: val/loss
@@ -165,8 +165,8 @@ trainer:
   logger:
   - class_path: WandbLogger
     init_args:
-      name: M5_Corn_week_16_20_1_12_18_19
-      project: M5
+      name: FS_Corn_S12CDW_week_16_20_1_12_18_19
+      project: M4_Corn
   max_epochs: 1000
   num_nodes: 1
   precision: 16-mixed
