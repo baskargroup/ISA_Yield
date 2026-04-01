@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=168:00:00   # walltime limit (HH:MM:SS)
+#SBATCH --time=6:00:00   # walltime limit (HH:MM:SS)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --ntasks-per-node=1   # 36 processor core(s) per node 
 #SBATCH --mem=369G   # maximum memory per node
@@ -24,11 +24,14 @@ conda activate isa_yield_env
 
 echo "Job is starting on `hostname` for M3_Corn_stat"
 
+# for yaml_file in \
+#     conf_M3_stat/s12w_24_corn.yaml \
+#     conf_M3_stat/s12c_24_corn.yaml \
+#     conf_M3_stat/s12ws_24_corn.yaml \
+#     conf_M3_stat/s12dc_24_corn.yaml \
+#     conf_M3_stat/s12wds_24_corn.yaml \
+#     conf_M3_stat/s12wsc_24_corn.yaml; do
 for yaml_file in \
-    conf_M3_stat/s12w_24_corn.yaml \
-    conf_M3_stat/s12c_24_corn.yaml \
-    conf_M3_stat/s12ws_24_corn.yaml \
-    conf_M3_stat/s12dc_24_corn.yaml \
     conf_M3_stat/s12wds_24_corn.yaml \
     conf_M3_stat/s12wsc_24_corn.yaml; do
     echo "Running $yaml_file"

@@ -45,9 +45,15 @@ SMALL_LABEL_SIZE = 6
 # JOURNAL-STANDARD MATPLOTLIB RCPARAMS
 # ============================================================================
 mpl.rcParams.update({
+    # --- Font families (match journal LaTeX: STIX / Inconsolata / CM Sans) ---
     'font.family': 'serif',
-    'font.serif': ['STIXGeneral', 'STIX', 'DejaVu Serif'],
-    'mathtext.fontset': 'stix',
+    'font.serif': ['STIXGeneral', 'STIX', 'Times New Roman', 'DejaVu Serif'],
+    'font.sans-serif': ['cmss10', 'Computer Modern Sans Serif',
+                        'DejaVu Sans'],
+    'font.monospace': ['Inconsolata', 'DejaVu Sans Mono'],
+    'mathtext.fontset': 'stix',            # STIX math glyphs
+    'mathtext.default': 'regular',
+    # --- Sizes ---
     'font.size': FONT_SIZE,
     'axes.labelsize': LABEL_SIZE,
     'axes.titlesize': TITLE_SIZE,
@@ -55,6 +61,7 @@ mpl.rcParams.update({
     'ytick.labelsize': TICK_SIZE,
     'legend.fontsize': LEGEND_SIZE,
     'figure.titlesize': SUPTITLE_SIZE,
+    # --- Line / tick geometry ---
     'axes.linewidth': 0.6,
     'grid.linewidth': 0.4,
     'lines.linewidth': 0.8,
@@ -67,14 +74,16 @@ mpl.rcParams.update({
     'ytick.major.size': 3,
     'xtick.minor.size': 1.5,
     'ytick.minor.size': 1.5,
+    # --- Output ---
     'savefig.dpi': 600,
     'savefig.bbox': 'tight',
     'savefig.pad_inches': 0.02,
     'figure.dpi': 150,
-    'mathtext.default': 'regular',
+    # --- Spine style ---
     'axes.spines.top': False,
     'axes.spines.right': False,
-    'pdf.fonttype': 42,       # TrueType fonts in PDF
+    # --- Embed TrueType fonts in PDF/PS for portability ---
+    'pdf.fonttype': 42,
     'ps.fonttype': 42,
 })
 
@@ -219,9 +228,11 @@ def fig1a_yield_distributions_corn():
         axes_flat[j].set_visible(False)
 
     for j in range(nrows):
-        axes[j, 0].set_ylabel('No. of Fields')
+        axes[j, 0].set_ylabel('No. of Fields', fontsize=LABEL_SIZE)
     for j in range(ncols):
-        axes[-1, j].set_xlabel('Yield (bu/acre)')
+        axes[-1, j].set_xlabel('Yield (bu/acre)', fontsize=LABEL_SIZE)
+    for ax in axes_flat:
+        ax.tick_params(axis='both', labelsize=TICK_SIZE)
 
     fig.tight_layout(h_pad=0.5, w_pad=0.3)
     save_fig(fig, 'fig1a_yield_distributions_corn')
@@ -272,9 +283,11 @@ def fig1b_yield_distributions_soybean():
         axes_flat[j].set_visible(False)
 
     for j in range(nrows):
-        axes[j, 0].set_ylabel('No. of Fields')
+        axes[j, 0].set_ylabel('No. of Fields', fontsize=LABEL_SIZE)
     for j in range(ncols):
-        axes[-1, j].set_xlabel('Yield (bu/acre)')
+        axes[-1, j].set_xlabel('Yield (bu/acre)', fontsize=LABEL_SIZE)
+    for ax in axes_flat:
+        ax.tick_params(axis='both', labelsize=TICK_SIZE)
 
     fig.tight_layout(h_pad=0.5, w_pad=0.3)
     save_fig(fig, 'fig1b_yield_distributions_soybean')
@@ -377,54 +390,68 @@ def fig3_m3_modality_ablation():
     pred_dir = 'M3/predictions'
     csv_files = sorted(Path(pred_dir).glob('*.csv'))
 
+    # Keep only the latest file per (modality, crop) based on timestamp in filename
+    import re
+    latest_files = {}
+    for csv_file in csv_files:
+        modal = extract_modal_code(csv_file.stem)
+        crop = extract_crop(csv_file.stem)
+        ts_match = re.search(r'(\d{8}_\d{6})', csv_file.stem)
+        ts = ts_match.group(1) if ts_match else ''
+        key = (modal, crop)
+        if key not in latest_files or ts > latest_files[key][1]:
+            latest_files[key] = (csv_file, ts)
+
     # Compute metrics per crop per modality
     results = []
-    for csv_file in csv_files:
+    for (modal, crop), (csv_file, _) in latest_files.items():
         df = pd.read_csv(csv_file)
         y_true = df['YieldGT'].values
         y_pred = df['Prediction'].values
         metrics = calculate_metrics(y_true, y_pred)
-        modal = extract_modal_code(csv_file.stem)
-        crop = extract_crop(csv_file.stem)
         results.append({'Modal': modal, 'Crop': crop, **metrics})
 
     rdf = pd.DataFrame(results)
 
-    # ---- Figure: 2 panels (Corn R², Soybean R²) with MAE annotations ----
-    fig, (ax_a, ax_b) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 4.5))
+    half_w = DOUBLE_COL / 2
 
-    # Panel (a): Corn R²
+    # ---- Panel (a): Corn R² ----
     corn_df = rdf[rdf['Crop'] == 'Corn'].sort_values('R2', ascending=True)
+    fig_a, ax_a = plt.subplots(figsize=(half_w, 4.5))
     y_pos = np.arange(len(corn_df))
     ax_a.barh(y_pos, corn_df['R2'], color=CORN_COLOR, edgecolor='black',
               linewidth=0.3, height=0.7, alpha=0.9)
     for i, (_, row) in enumerate(corn_df.iterrows()):
         ax_a.text(row['R2'] + 0.005, i,
                   f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
-                  va='center', fontsize=ANNOT_SIZE)
+                  va='center', fontsize=ANNOT_SIZE, clip_on=False)
     ax_a.set_yticks(y_pos)
     ax_a.set_yticklabels(corn_df['Modal'], fontsize=TICK_SIZE)
-    ax_a.set_xlabel('$R^2$')
-    ax_a.set_title('(a) Corn — $R^2$ by Modality', fontweight='bold', fontsize=TITLE_SIZE)
-    ax_a.set_xlim(0, corn_df['R2'].max() * 1.35)
+    ax_a.set_xlabel('$R^2$', fontsize=LABEL_SIZE)
+    ax_a.tick_params(axis='both', labelsize=TICK_SIZE)
+    ax_a.set_xlim(0, 1.0)
+    fig_a.tight_layout()
+    fig_a.subplots_adjust(right=0.62)
+    save_fig(fig_a, 'fig3a_m3_modality_ablation_corn')
 
-    # Panel (b): Soybean R²
+    # ---- Panel (b): Soybean R² ----
     soy_df = rdf[rdf['Crop'] == 'Soybean'].sort_values('R2', ascending=True)
+    fig_b, ax_b = plt.subplots(figsize=(half_w, 4.5))
     y_pos = np.arange(len(soy_df))
     ax_b.barh(y_pos, soy_df['R2'], color=SOYBEAN_COLOR, edgecolor='black',
               linewidth=0.3, height=0.7, alpha=0.9)
     for i, (_, row) in enumerate(soy_df.iterrows()):
         ax_b.text(row['R2'] + 0.005, i,
                   f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
-                  va='center', fontsize=ANNOT_SIZE)
+                  va='center', fontsize=ANNOT_SIZE, clip_on=False)
     ax_b.set_yticks(y_pos)
     ax_b.set_yticklabels(soy_df['Modal'], fontsize=TICK_SIZE)
-    ax_b.set_xlabel('$R^2$')
-    ax_b.set_title('(b) Soybean — $R^2$ by Modality', fontweight='bold', fontsize=TITLE_SIZE)
-    ax_b.set_xlim(0, soy_df['R2'].max() * 1.35)
-
-    fig.tight_layout(w_pad=1.0)
-    save_fig(fig, 'fig3_m3_modality_ablation')
+    ax_b.set_xlabel('$R^2$', fontsize=LABEL_SIZE)
+    ax_b.tick_params(axis='both', labelsize=TICK_SIZE)
+    ax_b.set_xlim(0, 1.0)
+    fig_b.tight_layout()
+    fig_b.subplots_adjust(right=0.62)
+    save_fig(fig_b, 'fig3b_m3_modality_ablation_soybean')
 
 
 # ============================================================================
@@ -513,6 +540,7 @@ def fig4_m3_scatter_best():
         ax.set_xlabel('Observed Yield (bu/acre)', fontsize=LABEL_SIZE)
         ax.set_ylabel('Predicted Yield (bu/acre)', fontsize=LABEL_SIZE)
         ax.legend(loc='lower right', fontsize=LEGEND_SIZE, framealpha=0.9)
+        ax.tick_params(axis='both', labelsize=TICK_SIZE)
         ax.grid(True, alpha=0.2, linewidth=0.3, zorder=1)
 
     fig.tight_layout(h_pad=0.8, w_pad=0.8)
@@ -602,10 +630,12 @@ def fig6_yearwise_performance():
                     edgecolor='black', linewidth=0.4, label='MAE', zorder=3)
 
     ax1.set_xticks(x)
-    ax1.set_xticklabels(df['Exp'])
-    ax1.set_xlabel('Test Year')
-    ax1.set_ylabel('$R^2$ Score', color=NEUTRAL_BLUE)
-    ax2.set_ylabel('MAE (bu/acre)', color=ACCENT_RED)
+    ax1.set_xticklabels(df['Exp'], fontsize=TICK_SIZE)
+    ax1.set_xlabel('Test Year', fontsize=LABEL_SIZE)
+    ax1.set_ylabel('$R^2$ Score', color=NEUTRAL_BLUE, fontsize=LABEL_SIZE)
+    ax2.set_ylabel('MAE (bu/acre)', color=ACCENT_RED, fontsize=LABEL_SIZE)
+    ax1.tick_params(axis='both', labelsize=TICK_SIZE)
+    ax2.tick_params(axis='both', labelsize=TICK_SIZE)
 
     # Value labels
     for bar, val in zip(bars1, df['R-square']):
@@ -689,10 +719,11 @@ def fig7_classical_ml_temporal():
                        linestyle='-.', zorder=4,
                        label=f"TerraMind {m3['modal']} ($R^2$={m3['R2']:.3f})")
 
-        ax.set_xlabel('Week')
-        ax.set_ylabel('Test $R^2$')
+        ax.set_xlabel('Week', fontsize=LABEL_SIZE)
+        ax.set_ylabel('Test $R^2$', fontsize=LABEL_SIZE)
         ax.set_title(f'{letter} {crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
-        ax.legend(fontsize=LEGEND_SIZE - 1, framealpha=0.9, loc='lower right')
+        ax.legend(fontsize=LEGEND_SIZE, framealpha=0.9, loc='lower right')
+        ax.tick_params(axis='both', labelsize=TICK_SIZE)
         ax.grid(True, alpha=0.2, linewidth=0.3)
         ax.axhline(y=0, color='gray', linewidth=0.4, linestyle='--', zorder=1)
 
@@ -773,7 +804,8 @@ def fig8_classical_vs_terramind():
                     fontweight='bold')
         ax.set_xticks(x)
         ax.set_xticklabels(models, rotation=30, ha='right', fontsize=TICK_SIZE)
-        ax.set_ylabel('Test $R^2$')
+        ax.set_ylabel('Test $R^2$', fontsize=LABEL_SIZE)
+        ax.tick_params(axis='both', labelsize=TICK_SIZE)
         ax.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
         if r2_vals:
             ax.set_ylim(0, max(r2_vals) * 1.2)
@@ -848,9 +880,10 @@ def fig9_m4_temporal_ablation():
              marker='o', markersize=4, linewidth=1.2, zorder=3)
     ax1.fill_between(tdf_best['week'], tdf_best['val_R2'], alpha=0.15,
                      color=MODEL_COLORS['M4'])
-    ax1.set_xlabel('Observation Window (weeks)')
-    ax1.set_ylabel('Validation $R^2$')
+    ax1.set_xlabel('Observation Window (weeks)', fontsize=LABEL_SIZE)
+    ax1.set_ylabel('Validation $R^2$', fontsize=LABEL_SIZE)
     ax1.set_title('(a) $R^2$ vs Temporal Window', fontweight='bold', fontsize=TITLE_SIZE)
+    ax1.tick_params(axis='both', labelsize=TICK_SIZE)
     ax1.grid(True, alpha=0.2, linewidth=0.3)
     ax1.axhline(y=0, color='gray', linewidth=0.5, linestyle='--')
 
@@ -867,9 +900,10 @@ def fig9_m4_temporal_ablation():
              marker='s', markersize=4, linewidth=1.2, zorder=3)
     ax2.fill_between(tdf_best['week'], tdf_best['val_MAE'], alpha=0.15,
                      color=ACCENT_RED)
-    ax2.set_xlabel('Observation Window (weeks)')
-    ax2.set_ylabel('Validation MAE')
+    ax2.set_xlabel('Observation Window (weeks)', fontsize=LABEL_SIZE)
+    ax2.set_ylabel('Validation MAE', fontsize=LABEL_SIZE)
     ax2.set_title('(b) MAE vs Temporal Window', fontweight='bold', fontsize=TITLE_SIZE)
+    ax2.tick_params(axis='both', labelsize=TICK_SIZE)
     ax2.grid(True, alpha=0.2, linewidth=0.3)
 
     fig.tight_layout(w_pad=1.0)
@@ -934,8 +968,9 @@ def fig10_m5_normalization():
 
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=TICK_SIZE)
-    ax.set_ylabel('Validation $R^2$')
+    ax.set_ylabel('Validation $R^2$', fontsize=LABEL_SIZE)
     ax.set_title('M5: Different Normalization Experiments', fontweight='bold', fontsize=TITLE_SIZE)
+    ax.tick_params(axis='both', labelsize=TICK_SIZE)
     ax.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
     fig.tight_layout()
@@ -945,142 +980,144 @@ def fig10_m5_normalization():
 # ============================================================================
 # FIGURE 11: Comprehensive Model Comparison (M1–M5 summary)
 # ============================================================================
-def fig11_model_summary():
-    """Summary comparison across all 5 model experiments, per crop."""
-    print('Figure 11: Model summary M1–M5...')
+# def fig11_model_summary():
+#     """Summary comparison across all 5 model experiments, per crop."""
+#     print('Figure 11: Model summary M1–M5...')
 
-    import json
+#     import json
 
-    # ---- Collect per-crop results from each model ----
+#     # ---- Collect per-crop results from each model ----
 
-    # M3: per-crop from prediction CSVs — find best config per crop
-    pred_dir = 'M3/predictions'
-    m3_crop = {}  # {(modal, crop): (yt, yp)}
-    for csv_file in sorted(Path(pred_dir).glob('*.csv')):
-        modal = extract_modal_code(csv_file.stem)
-        crop = extract_crop(csv_file.stem)
-        df = pd.read_csv(csv_file)
-        m3_crop[(modal, crop)] = (df['YieldGT'].values, df['Prediction'].values)
+#     # M3: per-crop from prediction CSVs — find best config per crop
+#     pred_dir = 'M3/predictions'
+#     m3_crop = {}  # {(modal, crop): (yt, yp)}
+#     for csv_file in sorted(Path(pred_dir).glob('*.csv')):
+#         modal = extract_modal_code(csv_file.stem)
+#         crop = extract_crop(csv_file.stem)
+#         df = pd.read_csv(csv_file)
+#         m3_crop[(modal, crop)] = (df['YieldGT'].values, df['Prediction'].values)
 
-    # M1/M2: per-crop from predictions/
-    m1_crop, m2_crop = {}, {}
-    for csv_file in sorted(Path('predictions').glob('*.csv')):
-        modal = extract_modal_code(csv_file.stem)
-        crop = extract_crop(csv_file.stem)
-        df = pd.read_csv(csv_file)
-        yt, yp = df['YieldGT'].values, df['Prediction'].values
-        if modal == 'S12d':
-            m1_crop[crop] = (yt, yp)
-        if modal in ['S12cdws', 'S12cdw']:
-            m2_crop[crop] = (yt, yp)
+#     # M1/M2: per-crop from predictions/
+#     m1_crop, m2_crop = {}, {}
+#     for csv_file in sorted(Path('predictions').glob('*.csv')):
+#         modal = extract_modal_code(csv_file.stem)
+#         crop = extract_crop(csv_file.stem)
+#         df = pd.read_csv(csv_file)
+#         yt, yp = df['YieldGT'].values, df['Prediction'].values
+#         if modal == 'S12d':
+#             m1_crop[crop] = (yt, yp)
+#         if modal in ['S12cdws', 'S12cdw']:
+#             m2_crop[crop] = (yt, yp)
 
-    # M4: from wandb (best weekly temporal — combined validation, no per-crop)
-    temporal_data = []
-    import re
-    for run_dir in sorted(os.listdir('wandb')):
-        if not run_dir.startswith('run-'):
-            continue
-        parts = run_dir.split('-')
-        run_name = '-'.join(parts[2:]) if len(parts) >= 3 else ''
-        match = re.match(r'S12wd_(\d+)$', run_name)
-        if not match:
-            continue
-        summary_path = os.path.join('wandb', run_dir, 'files', 'wandb-summary.json')
-        if not os.path.exists(summary_path):
-            continue
-        with open(summary_path) as f:
-            s = json.load(f)
-        val_r2 = s.get('val/R2_Score')
-        val_mae = s.get('val/MAE')
-        if val_r2 is not None:
-            temporal_data.append({'week': int(match.group(1)), 'R2': val_r2, 'MAE': val_mae})
+#     # M4: from wandb (best weekly temporal — combined validation, no per-crop)
+#     temporal_data = []
+#     import re
+#     for run_dir in sorted(os.listdir('wandb')):
+#         if not run_dir.startswith('run-'):
+#             continue
+#         parts = run_dir.split('-')
+#         run_name = '-'.join(parts[2:]) if len(parts) >= 3 else ''
+#         match = re.match(r'S12wd_(\d+)$', run_name)
+#         if not match:
+#             continue
+#         summary_path = os.path.join('wandb', run_dir, 'files', 'wandb-summary.json')
+#         if not os.path.exists(summary_path):
+#             continue
+#         with open(summary_path) as f:
+#             s = json.load(f)
+#         val_r2 = s.get('val/R2_Score')
+#         val_mae = s.get('val/MAE')
+#         if val_r2 is not None:
+#             temporal_data.append({'week': int(match.group(1)), 'R2': val_r2, 'MAE': val_mae})
 
-    m4_r2 = max(t['R2'] for t in temporal_data) if temporal_data else 0
-    m4_mae = min(t['MAE'] for t in temporal_data) if temporal_data else 0
+#     m4_r2 = max(t['R2'] for t in temporal_data) if temporal_data else 0
+#     m4_mae = min(t['MAE'] for t in temporal_data) if temporal_data else 0
 
-    # M5: from wandb (combined validation, no per-crop)
-    m5_r2, m5_mae = 0, 0
-    for run_dir in sorted(os.listdir('M5/wandb')):
-        if not run_dir.startswith('run-'):
-            continue
-        summary_path = os.path.join('M5/wandb', run_dir, 'files', 'wandb-summary.json')
-        if not os.path.exists(summary_path):
-            continue
-        with open(summary_path) as f:
-            s = json.load(f)
-        val_r2 = s.get('val/R2_Score', 0)
-        if val_r2 and val_r2 > m5_r2:
-            m5_r2 = val_r2
-            m5_mae = s.get('val/MAE', 0)
+#     # M5: from wandb (combined validation, no per-crop)
+#     m5_r2, m5_mae = 0, 0
+#     for run_dir in sorted(os.listdir('M5/wandb')):
+#         if not run_dir.startswith('run-'):
+#             continue
+#         summary_path = os.path.join('M5/wandb', run_dir, 'files', 'wandb-summary.json')
+#         if not os.path.exists(summary_path):
+#             continue
+#         with open(summary_path) as f:
+#             s = json.load(f)
+#         val_r2 = s.get('val/R2_Score', 0)
+#         if val_r2 and val_r2 > m5_r2:
+#             m5_r2 = val_r2
+#             m5_mae = s.get('val/MAE', 0)
 
-    # Build per-crop summary rows
-    rows = []
-    for crop_name in ['Corn', 'Soybean']:
-        # M1
-        if crop_name in m1_crop:
-            yt, yp = m1_crop[crop_name]
-            rows.append({'Model': 'M1', 'Crop': crop_name, 'Config': 'S12d (frozen)',
-                         'R2': r2_score(yt, yp), 'MAE': mean_absolute_error(yt, yp)})
-        # M2
-        if crop_name in m2_crop:
-            yt, yp = m2_crop[crop_name]
-            rows.append({'Model': 'M2', 'Crop': crop_name, 'Config': 'S12cdw (unfrozen)',
-                         'R2': r2_score(yt, yp), 'MAE': mean_absolute_error(yt, yp)})
-        # M3 — best config for this crop
-        crop_m3 = {k: v for k, v in m3_crop.items() if k[1] == crop_name}
-        if crop_m3:
-            best_key = max(crop_m3, key=lambda k: r2_score(crop_m3[k][0], crop_m3[k][1]))
-            yt, yp = crop_m3[best_key]
-            rows.append({'Model': 'M3', 'Crop': crop_name, 'Config': f'{best_key[0]} (ablation)',
-                         'R2': r2_score(yt, yp), 'MAE': mean_absolute_error(yt, yp)})
+#     # Build per-crop summary rows
+#     rows = []
+#     for crop_name in ['Corn', 'Soybean']:
+#         # M1
+#         if crop_name in m1_crop:
+#             yt, yp = m1_crop[crop_name]
+#             rows.append({'Model': 'M1', 'Crop': crop_name, 'Config': 'S12d (frozen)',
+#                          'R2': r2_score(yt, yp), 'MAE': mean_absolute_error(yt, yp)})
+#         # M2
+#         if crop_name in m2_crop:
+#             yt, yp = m2_crop[crop_name]
+#             rows.append({'Model': 'M2', 'Crop': crop_name, 'Config': 'S12cdw (unfrozen)',
+#                          'R2': r2_score(yt, yp), 'MAE': mean_absolute_error(yt, yp)})
+#         # M3 — best config for this crop
+#         crop_m3 = {k: v for k, v in m3_crop.items() if k[1] == crop_name}
+#         if crop_m3:
+#             best_key = max(crop_m3, key=lambda k: r2_score(crop_m3[k][0], crop_m3[k][1]))
+#             yt, yp = crop_m3[best_key]
+#             rows.append({'Model': 'M3', 'Crop': crop_name, 'Config': f'{best_key[0]} (ablation)',
+#                          'R2': r2_score(yt, yp), 'MAE': mean_absolute_error(yt, yp)})
 
-    # M4/M5: combined validation only (no per-crop prediction CSVs)
-    rows.append({'Model': 'M4', 'Crop': 'Val', 'Config': 'S12wd (temporal)',
-                 'R2': m4_r2, 'MAE': m4_mae})
-    rows.append({'Model': 'M5', 'Crop': 'Val', 'Config': 'S12d (diff norm)',
-                 'R2': m5_r2, 'MAE': m5_mae})
+#     # M4/M5: combined validation only (no per-crop prediction CSVs)
+#     rows.append({'Model': 'M4', 'Crop': 'Val', 'Config': 'S12wd (temporal)',
+#                  'R2': m4_r2, 'MAE': m4_mae})
+#     rows.append({'Model': 'M5', 'Crop': 'Val', 'Config': 'S12d (diff norm)',
+#                  'R2': m5_r2, 'MAE': m5_mae})
 
-    summary = pd.DataFrame(rows)
+#     summary = pd.DataFrame(rows)
 
-    # ---- Figure: grouped horizontal bar ----
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, max(2.8, len(summary) * 0.4)),
-                                   sharey=True)
+#     # ---- Figure: grouped horizontal bar ----
+#     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, max(2.8, len(summary) * 0.4)),
+#                                    sharey=True)
 
-    y = np.arange(len(summary))
-    colors = []
-    for _, row in summary.iterrows():
-        if row['Crop'] == 'Corn':
-            colors.append(CORN_COLOR)
-        elif row['Crop'] == 'Soybean':
-            colors.append(SOYBEAN_COLOR)
-        else:
-            colors.append(MODEL_COLORS.get(row['Model'], '#999999'))
+#     y = np.arange(len(summary))
+#     colors = []
+#     for _, row in summary.iterrows():
+#         if row['Crop'] == 'Corn':
+#             colors.append(CORN_COLOR)
+#         elif row['Crop'] == 'Soybean':
+#             colors.append(SOYBEAN_COLOR)
+#         else:
+#             colors.append(MODEL_COLORS.get(row['Model'], '#999999'))
 
-    # R² bars
-    bars1 = ax1.barh(y, summary['R2'], color=colors, edgecolor='black',
-                     linewidth=0.4, height=0.6, alpha=0.9, zorder=3)
-    for i, val in enumerate(summary['R2']):
-        ax1.text(val + 0.01, i, f'{val:.3f}', va='center', fontsize=ANNOT_SIZE, fontweight='bold')
-    ax1.set_yticks(y)
-    labels = [f"{row['Model']} {row['Crop']}\n{row['Config']}" for _, row in summary.iterrows()]
-    ax1.set_yticklabels(labels, fontsize=TICK_SIZE)
-    ax1.set_xlabel('$R^2$ Score')
-    ax1.set_title('(a) $R^2$ Comparison', fontweight='bold', fontsize=TITLE_SIZE)
-    ax1.grid(axis='x', alpha=0.2, linewidth=0.3, zorder=0)
-    ax1.set_xlim(0, summary['R2'].max() * 1.2)
+#     # R² bars
+#     bars1 = ax1.barh(y, summary['R2'], color=colors, edgecolor='black',
+#                      linewidth=0.4, height=0.6, alpha=0.9, zorder=3)
+#     for i, val in enumerate(summary['R2']):
+#         ax1.text(val + 0.01, i, f'{val:.3f}', va='center', fontsize=ANNOT_SIZE, fontweight='bold')
+#     ax1.set_yticks(y)
+#     labels = [f"{row['Model']} {row['Crop']}\n{row['Config']}" for _, row in summary.iterrows()]
+#     ax1.set_yticklabels(labels, fontsize=TICK_SIZE)
+#     ax1.set_xlabel('$R^2$ Score', fontsize=LABEL_SIZE)
+#     ax1.set_title('(a) $R^2$ Comparison', fontweight='bold', fontsize=TITLE_SIZE)
+#     ax1.tick_params(axis='both', labelsize=TICK_SIZE)
+#     ax1.grid(axis='x', alpha=0.2, linewidth=0.3, zorder=0)
+#     ax1.set_xlim(0, summary['R2'].max() * 1.2)
 
-    # MAE bars
-    bars2 = ax2.barh(y, summary['MAE'], color=colors, edgecolor='black',
-                     linewidth=0.4, height=0.6, alpha=0.9, zorder=3)
-    for i, val in enumerate(summary['MAE']):
-        label = f'{val:.2f}' if val < 1 else f'{val:.1f}'
-        ax2.text(val + max(summary['MAE'])*0.02, i, label, va='center', fontsize=ANNOT_SIZE, fontweight='bold')
-    ax2.set_xlabel('MAE')
-    ax2.set_title('(b) MAE Comparison', fontweight='bold', fontsize=TITLE_SIZE)
-    ax2.grid(axis='x', alpha=0.2, linewidth=0.3, zorder=0)
+#     # MAE bars
+#     bars2 = ax2.barh(y, summary['MAE'], color=colors, edgecolor='black',
+#                      linewidth=0.4, height=0.6, alpha=0.9, zorder=3)
+#     for i, val in enumerate(summary['MAE']):
+#         label = f'{val:.2f}' if val < 1 else f'{val:.1f}'
+#         ax2.text(val + max(summary['MAE'])*0.02, i, label, va='center', fontsize=ANNOT_SIZE, fontweight='bold')
+#     ax2.set_xlabel('MAE', fontsize=LABEL_SIZE)
+#     ax2.set_title('(b) MAE Comparison', fontweight='bold', fontsize=TITLE_SIZE)
+#     ax2.tick_params(axis='both', labelsize=TICK_SIZE)
+#     ax2.grid(axis='x', alpha=0.2, linewidth=0.3, zorder=0)
 
-    fig.tight_layout(w_pad=1.5)
-    save_fig(fig, 'fig11_model_summary_m1_m5')
+#     fig.tight_layout(w_pad=1.5)
+#     save_fig(fig, 'fig11_model_summary_m1_m5')
 
 
 # ============================================================================
@@ -1225,7 +1262,6 @@ def fig13_ndvi_temporal():
 
     ax.set_xlabel('Week', fontsize=LABEL_SIZE)
     ax.set_ylabel('Mean NDVI', fontsize=LABEL_SIZE)
-    ax.set_title('NDVI Temporal Profile', fontweight='bold', fontsize=TITLE_SIZE)
     ax.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
     ax.tick_params(axis='both', labelsize=TICK_SIZE)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
@@ -1267,9 +1303,7 @@ def fig14_data_splits():
                 key = (split, crop, yr)
                 year_counts[key] = year_counts.get(key, 0) + 1
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.0))
-
-    # Panel (a): Split counts
+    # Panel (a): Split counts — separate figure
     split_summary = {}
     for (split, crop), names in splits.items():
         if split not in split_summary:
@@ -1282,6 +1316,7 @@ def fig14_data_splits():
     corn_counts = [split_summary.get(s, {}).get('Corn', 0) for s in splits_ordered]
     soy_counts = [split_summary.get(s, {}).get('Soybean', 0) for s in splits_ordered]
 
+    fig_a, ax1 = plt.subplots(figsize=(DOUBLE_COL / 2, 3.0))
     ax1.bar(x - w/2, corn_counts, w, color=CORN_COLOR, edgecolor='black',
             linewidth=0.4, label='Corn', alpha=0.85)
     ax1.bar(x + w/2, soy_counts, w, color=SOYBEAN_COLOR, edgecolor='black',
@@ -1292,13 +1327,16 @@ def fig14_data_splits():
         ax1.text(i + w/2, s + 1, str(s), ha='center', va='bottom', fontsize=ANNOT_SIZE, fontweight='bold')
 
     ax1.set_xticks(x)
-    ax1.set_xticklabels(splits_ordered)
-    ax1.set_ylabel('Number of Fields')
-    ax1.set_title('(a) Train/Val/Test Split', fontweight='bold', fontsize=TITLE_SIZE)
+    ax1.set_xticklabels(splits_ordered, fontsize=TICK_SIZE)
+    ax1.set_ylabel('Number of Fields', fontsize=LABEL_SIZE)
     ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
+    ax1.tick_params(axis='both', labelsize=TICK_SIZE)
     ax1.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
-    # Panel (b): Year distribution in training set — exclude years with no training data
+    fig_a.tight_layout()
+    save_fig(fig_a, 'fig14a_data_splits')
+
+    # Panel (b): Year distribution in training set — separate figure
     years_all = sorted(set(yr for (_, _, yr) in year_counts.keys()))
     corn_all = [year_counts.get(('Train', 'Corn', yr), 0) for yr in years_all]
     soy_all = [year_counts.get(('Train', 'Soybean', yr), 0) for yr in years_all]
@@ -1308,6 +1346,7 @@ def fig14_data_splits():
     soy_by_year = [s for c, s in zip(corn_all, soy_all) if c > 0 or s > 0]
 
     x2 = np.arange(len(years))
+    fig_b, ax2 = plt.subplots(figsize=(DOUBLE_COL / 2, 3.0))
     ax2.bar(x2 - w/2, corn_by_year, w, color=CORN_COLOR, edgecolor='black',
             linewidth=0.4, label='Corn', alpha=0.85)
     ax2.bar(x2 + w/2, soy_by_year, w, color=SOYBEAN_COLOR, edgecolor='black',
@@ -1315,12 +1354,12 @@ def fig14_data_splits():
     ax2.set_xticks(x2)
     ax2.set_xticklabels(years, fontsize=TICK_SIZE)
     ax2.set_xlim(-0.5, len(years) - 0.5)
-    ax2.set_ylabel('Number of Fields')
-    ax2.set_title('(b) Training Data by Year', fontweight='bold', fontsize=TITLE_SIZE)
+    ax2.set_ylabel('Number of Fields', fontsize=LABEL_SIZE)
+    ax2.tick_params(axis='both', labelsize=TICK_SIZE)
     ax2.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
-    fig.tight_layout(w_pad=1.0)
-    save_fig(fig, 'fig14_data_splits')
+    fig_b.tight_layout()
+    save_fig(fig_b, 'fig14b_data_splits_by_year')
 
 
 # ============================================================================
@@ -1373,6 +1412,7 @@ def fig15_m3_modality_heatmap():
     cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label('$R^2$ Score', fontsize=LABEL_SIZE)
     cbar.ax.tick_params(labelsize=TICK_SIZE)
+    ax.tick_params(axis='both', labelsize=TICK_SIZE)
 
     ax.set_title('M3: Modality Ablation $R^2$ Heatmap', fontweight='bold', fontsize=TITLE_SIZE, pad=8)
 
@@ -1433,9 +1473,10 @@ def fig16_yield_statistics():
     ax1.set_xticks(x)
     ax1.set_xticklabels(sdf['Year'].astype(str), fontsize=TICK_SIZE)
     ax1.set_xlim(-0.5, len(sdf) - 0.5)
-    ax1.set_ylabel('Mean Field Yield (bu/acre)')
+    ax1.set_ylabel('Mean Field Yield (bu/acre)', fontsize=LABEL_SIZE)
     ax1.set_title('(a) Mean Field Yield by Year and Crop', fontweight='bold', fontsize=TITLE_SIZE)
     ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
+    ax1.tick_params(axis='both', labelsize=TICK_SIZE)
     ax1.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
     # Panel (b): Number of fields
@@ -1446,8 +1487,9 @@ def fig16_yield_statistics():
     ax2.set_xticks(x)
     ax2.set_xticklabels(sdf['Year'].astype(str), fontsize=TICK_SIZE)
     ax2.set_xlim(-0.5, len(sdf) - 0.5)
-    ax2.set_ylabel('Number of Fields')
+    ax2.set_ylabel('Number of Fields', fontsize=LABEL_SIZE)
     ax2.set_title('(b) Number of Fields by Year', fontweight='bold', fontsize=TITLE_SIZE)
+    ax2.tick_params(axis='both', labelsize=TICK_SIZE)
     ax2.grid(axis='y', alpha=0.2, linewidth=0.3, zorder=0)
 
     fig.tight_layout(w_pad=1.0)
@@ -1497,6 +1539,7 @@ def fig17_residual_analysis():
     ax.set_ylabel('Residual (bu/acre)', fontsize=LABEL_SIZE)
     ax.set_title(f'(a) Residual vs Predicted', fontweight='bold', fontsize=TITLE_SIZE)
     ax.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
+    ax.tick_params(axis='both', labelsize=TICK_SIZE)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
 
     # (b) Residual histogram
@@ -1511,6 +1554,7 @@ def fig17_residual_analysis():
     ax.text(0.95, 0.95, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
             va='top', ha='right',
             bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.8, ec='gray', lw=0.3))
+    ax.tick_params(axis='both', labelsize=TICK_SIZE)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
 
     # (c) QQ-like: sorted residuals, crop-specific
@@ -1533,6 +1577,7 @@ def fig17_residual_analysis():
     ax.set_ylabel('Sample Quantiles', fontsize=LABEL_SIZE)
     ax.set_title('(c) Q-Q Plot (by crop)', fontweight='bold', fontsize=TITLE_SIZE)
     ax.legend(fontsize=LEGEND_SIZE, framealpha=0.9)
+    ax.tick_params(axis='both', labelsize=TICK_SIZE)
     ax.grid(True, alpha=0.2, linewidth=0.3, zorder=0)
 
 
@@ -1544,88 +1589,102 @@ def fig17_residual_analysis():
 # FIGURE 18: Yield map for one corn and one soybean field
 # ============================================================================
 def fig18_yield_maps():
-    """Spatial yield maps for one representative corn and one soybean field."""
+    """Spatial yield maps for one representative corn and one soybean field
+    rasterised from raw filtered-parquet point data (no pre-processed .npy).
+    Saves each crop as a separate grayscale figure with no axes or colorbar."""
     print('Figure 18: Yield maps (corn & soybean)...')
 
-    yield_dir = 'processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs'
+    from scipy.interpolate import griddata
+    from scipy.spatial import cKDTree
+    from pyproj import Transformer
+    import geopandas as gpd
 
-    # Pick fields with high valid-pixel coverage for visual clarity
-    def pick_best_field(crop_keyword, n_candidates=30):
-        files = sorted([f for f in os.listdir(yield_dir) if crop_keyword in f])
-        best_file, best_coverage = None, 0
-        for f in files[:n_candidates]:
-            arr = np.load(os.path.join(yield_dir, f))[0]
-            valid = np.sum((~np.isnan(arr)) & (arr > 0))
-            if valid > best_coverage:
-                best_coverage = valid
-                best_file = f
-        return best_file
+    res_m = 10.0
+    utm_epsg = 'EPSG:32615'
+    max_distance_m = 3 * res_m  # 30 m mask radius
 
-    corn_file = pick_best_field('Corn')
-    soy_file = pick_best_field('Soybean')
+    # --- helper: rasterise a single field from parquet points ---------------
+    def rasterise_field(group):
+        transformer = Transformer.from_crs('EPSG:4326', utm_epsg, always_xy=True)
+        lon = group['x'].to_numpy()
+        lat = group['y'].to_numpy()
+        x_utm, y_utm = transformer.transform(lon, lat)
+        points = np.column_stack([x_utm, y_utm])
+        values = group['Yield'].to_numpy()
 
-    fig, axes = plt.subplots(1, 2, figsize=(DOUBLE_COL, 3.5))
+        left   = np.floor(np.min(x_utm) / res_m) * res_m
+        right  = np.ceil(np.max(x_utm) / res_m) * res_m
+        bottom = np.floor(np.min(y_utm) / res_m) * res_m
+        top    = np.ceil(np.max(y_utm) / res_m) * res_m
 
-    # Crop-specific denormalization: normalized = (yield - data_min) / (data_max - data_min)
-    denorm = {
-        'Corn':    {'data_min': 50.0, 'data_max': 370.0},   # range 320
-        'Soybean': {'data_min': 30.0, 'data_max': 120.0},   # range 90
-    }
+        ncols = int(round((right - left) / res_m))
+        nrows = int(round((top - bottom) / res_m))
+        if ncols <= 0 or nrows <= 0:
+            return None
 
-    crop_data = []  # store (fname, crop, masked, valid_bu) for grayscale pass
+        x_centers = left + (np.arange(ncols) + 0.5) * res_m
+        y_centers = top  - (np.arange(nrows) + 0.5) * res_m
+        x_grid, y_grid = np.meshgrid(x_centers, y_centers)
 
-    for ax, fname, crop, cmap_color in [
-        (axes[0], corn_file, 'Corn', 'YlOrBr'),
-        (axes[1], soy_file, 'Soybean', 'cividis'),
-    ]:
-        arr = np.load(os.path.join(yield_dir, fname))[0]  # (224, 224)
+        interpolated = griddata(points, values, (x_grid, y_grid), method='linear')
 
-        # Convert normalized yield back to bu/acre
-        d = denorm[crop]
-        arr_bu = arr * (d['data_max'] - d['data_min']) + d['data_min']
+        tree = cKDTree(points)
+        distances, _ = tree.query(np.column_stack([x_grid.ravel(), y_grid.ravel()]))
+        distances = distances.reshape((nrows, ncols))
+        data = np.where(distances <= max_distance_m, interpolated, np.nan)
+        width_m  = ncols * res_m
+        height_m = nrows * res_m
+        return data, width_m, height_m
 
-        # Mask invalid pixels (originally <=0 in normalized space)
-        masked = np.ma.masked_where(np.isnan(arr) | (arr <= 0), arr_bu)
+    # --- pick one field per crop from 2020 data -----------------------------
+    parquet_file = 'Yield_2020_filtered.parquet'
+    full_data = gpd.read_parquet(parquet_file)
 
-        valid_bu = arr_bu[(~np.isnan(arr)) & (arr > 0)]
-        im = ax.imshow(masked, cmap=cmap_color, interpolation='nearest',
-                       vmin=np.nanpercentile(valid_bu, 2),
-                       vmax=np.nanpercentile(valid_bu, 98))
-        cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label('Yield (bu/acre)', fontsize=LABEL_SIZE)
-        cbar.ax.tick_params(labelsize=TICK_SIZE)
+    chosen = {}
+    for crop in ['Corn', 'Soybean']:
+        sub = full_data[full_data['Crop'] == crop]
+        counts = sub.groupby('Layer_ID').size().sort_values(ascending=False)
+        # largest corn field; second-largest soybean field
+        chosen[crop] = counts.index[0] if crop == 'Corn' else counts.index[1]
 
-        field_id = fname.replace('.npy', '')
-        ax.set_title(f'{crop} — {field_id}', fontweight='bold', fontsize=TITLE_SIZE, pad=4)
-        ax.set_xlabel('Pixel Column', fontsize=LABEL_SIZE)
-        ax.set_ylabel('Pixel Row', fontsize=LABEL_SIZE)
+    # --- rasterise both crops ------------------------------------------------
+    raster_results = {}
+    for crop in ['Corn', 'Soybean']:
+        layer_id = chosen[crop]
+        group = full_data[full_data['Layer_ID'] == layer_id]
+        result = rasterise_field(group)
+        if result is not None:
+            raster_results[crop] = result
 
-        # Stats inset (in bu/acre)
-        txt = f'$\mu$={valid_bu.mean():.1f} bu/ac\n$\sigma$={valid_bu.std():.1f} bu/ac\nn={len(valid_bu):,} px'
-        ax.text(0.03, 0.97, txt, transform=ax.transAxes, fontsize=INSET_SIZE,
-                va='top', ha='left',
-                bbox=dict(boxstyle='round,pad=0.2', fc='white', alpha=0.85,
-                          ec='gray', lw=0.4))
+    # --- compute shared spatial extent so both figures are identical size ----
+    max_w = max(r[1] for r in raster_results.values())
+    max_h = max(r[2] for r in raster_results.values())
 
-        crop_data.append((fname, crop, masked, valid_bu))
+    sq = SINGLE_COL  # square figure size in inches
+    for crop in ['Corn', 'Soybean']:
+        if crop not in raster_results:
+            continue
+        data, width_m, height_m = raster_results[crop]
+        masked = np.ma.masked_where(np.isnan(data), data)
+        valid_bu = data[~np.isnan(data)]
 
-    fig.tight_layout(w_pad=1.0)
-    save_fig(fig, 'fig18_yield_maps')
+        # Centre the field within the shared extent
+        x_off = (max_w - width_m) / 2.0
+        y_off = (max_h - height_m) / 2.0
 
-    # --- Grayscale versions without statistics annotations ---
-    # Sized so two panels fit side-by-side in a single journal column
-    _gw = SINGLE_COL / 2  # ~1.75 in each
-    _gh = _gw * 1.1       # slightly taller than wide for axis labels
-    for fname, crop, masked, valid_bu in crop_data:
-        fig_g, ax_g = plt.subplots(1, 1, figsize=(_gw, _gh))
-        im_g = ax_g.imshow(masked, cmap='gray', interpolation='nearest',
-                           vmin=np.nanpercentile(valid_bu, 2),
-                           vmax=np.nanpercentile(valid_bu, 98))
-        ax_g.set_xlabel('Pixel Column', fontsize=SMALL_LABEL_SIZE)
-        ax_g.set_ylabel('Pixel Row', fontsize=SMALL_LABEL_SIZE)
-        ax_g.tick_params(axis='both', labelsize=SMALL_TICK_SIZE)
-        fig_g.tight_layout()
-        save_fig(fig_g, f'fig18_yield_maps_gray_{crop.lower()}')
+        fig, ax = plt.subplots(1, 1, figsize=(sq, sq))
+        ax.imshow(masked, cmap='gray', interpolation='nearest',
+                  origin='upper', aspect='equal',
+                  extent=[x_off, x_off + width_m, y_off, y_off + height_m],
+                  vmin=np.nanpercentile(valid_bu, 2),
+                  vmax=np.nanpercentile(valid_bu, 98))
+        ax.set_xlim(0, max_w)
+        ax.set_ylim(0, max_h)
+        ax.set_xlabel('Distance (m)', fontsize=LABEL_SIZE)
+        ax.set_ylabel('Distance (m)', fontsize=LABEL_SIZE)
+        ax.tick_params(labelsize=TICK_SIZE)
+        fig.subplots_adjust(left=0.18, right=0.95, bottom=0.13, top=0.95)
+        save_fig(fig, f'fig18_yield_map_{crop.lower()}')
 
 
 # ============================================================================
@@ -1718,9 +1777,10 @@ def fig19_weekly_availability():
 
     # Ticks
     ax.set_xticks(range(24))
-    ax.set_xticklabels(week_labels, rotation=45, ha='right', fontsize=SMALL_TICK_SIZE)
+    ax.set_xticklabels(week_labels, rotation=45, ha='right', fontsize=TICK_SIZE)
     ax.set_yticks(range(len(modalities)))
     ax.set_yticklabels(modalities, fontsize=TICK_SIZE)
+    ax.tick_params(axis='both', labelsize=TICK_SIZE)
 
     # Annotate cells with percentage values
     for i in range(len(modalities)):
@@ -1732,8 +1792,8 @@ def fig19_weekly_availability():
 
     # Colorbar
     cbar = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.04, aspect=12)
-    cbar.set_label('Fields with\ndata (%)', fontsize=TICK_SIZE)
-    cbar.ax.tick_params(labelsize=SMALL_TICK_SIZE)
+    cbar.set_label('Fields with\ndata (%)', fontsize=LABEL_SIZE)
+    cbar.ax.tick_params(labelsize=TICK_SIZE)
 
     ax.set_xlabel('Week', fontsize=LABEL_SIZE)
 
@@ -1815,7 +1875,7 @@ def _build_geo_split_figure(merged, crop_label, fig_name):
     SPLIT_LABELS = {'train': 'Train', 'val': 'Val', 'test': 'Test'}
 
     proj = ccrs.PlateCarree()
-    fig, ax = plt.subplots(figsize=(SINGLE_COL + 1.0, 3.8),
+    fig, ax = plt.subplots(figsize=(DOUBLE_COL / 2, 3.8),
                            subplot_kw={'projection': proj})
 
     # Iowa extent with padding
@@ -1877,14 +1937,17 @@ def _build_geo_split_figure(merged, crop_label, fig_name):
             label=f"{SPLIT_LABELS[split_name]} (n={len(sp)})",
         )
 
-    # Legend
-    ax.legend(loc='lower left', frameon=True, framealpha=0.92,
-              edgecolor='#cccccc', markerscale=1.4, fontsize=FONT_SIZE)
+    # Legend — placed below the map so it doesn't overlap
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.02),
+              frameon=True, framealpha=0.92, edgecolor='#cccccc',
+              markerscale=1.0, fontsize=LEGEND_SIZE, ncol=3,
+              handletextpad=0.15, columnspacing=0.5, labelspacing=0.2)
 
     # Remove all axes — pure geographic map
     ax.axis('off')
 
     fig.tight_layout(pad=0.3)
+    fig.subplots_adjust(bottom=0.10)
     save_fig(fig, fig_name)
 
 
@@ -1922,7 +1985,6 @@ def main():
     fig8_classical_vs_terramind()
     fig9_m4_temporal_ablation()
     fig10_m5_normalization()
-    fig11_model_summary()
     fig12_weather_distributions()
     fig13_ndvi_temporal()
     fig14_data_splits()

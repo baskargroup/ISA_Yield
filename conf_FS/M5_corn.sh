@@ -26,6 +26,6 @@ echo "Job is starting on `hostname` for M5_Corn"
 
 # terratorch fit -c fs_yamls_corn_round6/config_fs_corn_week_16_20_1_12_18_19.yaml
 
-terratorch test -c fs_yamls_corn_round6/config_fs_corn_week_16_20_1_12_18_19.yaml --ckpt output/corn/M5/week_16_20_1_12_18_19/checkpoints/best-epoch=053.ckpt
+terratorch test -c fs_yamls_corn_round6/config_M5.yaml --ckpt output/corn/M5/week_16_20_1_12_18_19/checkpoints/best-epoch=053.ckpt
 
 echo "Job finished for M5_Corn"
