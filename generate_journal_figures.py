@@ -455,54 +455,26 @@ def fig3_m3_modality_ablation():
 
 
 # ============================================================================
-# FIGURE 4: M3 Scatter plots — Best configurations (2x2 grid)
+# FIGURE 4: M4 Scatter plots — Best configurations (separate per crop)
 # ============================================================================
-def fig4_m3_scatter_best():
-    """R² scatter plots for the best M3 modality configurations."""
-    print('Figure 4: M3 best config scatter plots...')
+def fig4_m4_scatter_best():
+    """R² scatter plots for the best M4 configurations, one figure per crop."""
+    print('Figure 4: M4 best config scatter plots...')
 
-    pred_dir = 'M3/predictions'
-    csv_files = sorted(Path(pred_dir).glob('*.csv'))
+    crop_csv = {
+        'Corn': 'conf_FS/conf_FS/predictions/corn/6round/S12cdw_Corn_week_16_20_1_12_18_19.csv',
+        'Soybean': 'conf_FS/conf_FS/predictions/soybean/round3/S12sd_Soybean_week_16_18_1.csv',
+    }
 
-    # Compute overall metrics and find best
-    modal_data = {}
-    for csv_file in csv_files:
-        modal = extract_modal_code(csv_file.stem)
-        crop = extract_crop(csv_file.stem)
-        df = pd.read_csv(csv_file)
-        key = (modal, crop)
-        modal_data[key] = df
-
-    # Find top-2 configs per crop by R²
-    from sklearn.metrics import r2_score
-    crop_scores = {}  # {crop: [(modal, r2), ...]}
-    for (modal, crop), df in modal_data.items():
-        y_true = df['YieldGT'].values
-        y_pred = df['Prediction'].values
-        ss_res = np.sum((y_true - y_pred) ** 2)
-        ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
-        r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 0
-        crop_scores.setdefault(crop, []).append((modal, r2))
-    for crop in crop_scores:
-        crop_scores[crop].sort(key=lambda x: -x[1])
-
-    # Best and 2nd-best per crop
-    configs_to_plot = []
-    for crop in ['Corn', 'Soybean']:
-        for modal, _ in crop_scores.get(crop, [])[:2]:
-            configs_to_plot.append((modal, crop))
-
-    fig, axes = plt.subplots(2, 2, figsize=(DOUBLE_COL, DOUBLE_COL))
-    axes = axes.flatten()
-
-    for idx, (modal, crop) in enumerate(configs_to_plot[:4]):
-        ax = axes[idx]
-        df = modal_data[(modal, crop)]
+    for crop, csv_path in crop_csv.items():
+        df = pd.read_csv(csv_path)
         y_true = df['YieldGT'].values
         y_pred = df['Prediction'].values
         metrics = calculate_metrics(y_true, y_pred)
 
         color = CORN_COLOR if crop == 'Corn' else SOYBEAN_COLOR
+
+        fig, ax = plt.subplots(1, 1, figsize=(SINGLE_COL, SINGLE_COL))
 
         ax.scatter(y_true, y_pred, alpha=0.6, s=30, edgecolors='black',
                    linewidths=0.4, color=color, zorder=3)
@@ -514,12 +486,12 @@ def fig4_m3_scatter_best():
         lims = [lims[0] - margin, lims[1] + margin]
         ax.plot(lims, lims, 'k--', linewidth=0.8, alpha=0.5, zorder=2, label='1:1')
 
-        # Regression line
+        # Regression line (no equation label)
         z = np.polyfit(y_true, y_pred, 1)
         p = np.poly1d(z)
         x_fit = np.linspace(lims[0], lims[1], 100)
         ax.plot(x_fit, p(x_fit), color=ACCENT_RED, linewidth=1.0, alpha=0.8,
-                zorder=2, label=f'y={z[0]:.2f}x+{z[1]:.1f}')
+                zorder=2, label='Fit')
 
         ax.set_xlim(lims)
         ax.set_ylim(lims)
@@ -535,16 +507,16 @@ def fig4_m3_scatter_best():
                 bbox=dict(boxstyle='round,pad=0.3', fc='white', alpha=0.9,
                           ec='gray', lw=0.4))
 
-        letter = chr(97 + idx)
-        ax.set_title(f'({letter}) {modal} — {crop}', fontweight='bold', fontsize=TITLE_SIZE, pad=3)
+        modal = extract_modal_code(Path(csv_path).stem)
+        ax.set_title(f'{modal} — {crop}', fontweight='bold', fontsize=TITLE_SIZE, pad=3)
         ax.set_xlabel('Observed Yield (bu/acre)', fontsize=LABEL_SIZE)
         ax.set_ylabel('Predicted Yield (bu/acre)', fontsize=LABEL_SIZE)
         ax.legend(loc='lower right', fontsize=LEGEND_SIZE, framealpha=0.9)
         ax.tick_params(axis='both', labelsize=TICK_SIZE)
         ax.grid(True, alpha=0.2, linewidth=0.3, zorder=1)
 
-    fig.tight_layout(h_pad=0.8, w_pad=0.8)
-    save_fig(fig, 'fig4_m3_scatter_best')
+        fig.tight_layout()
+        save_fig(fig, f'fig4_m4_scatter_best_{crop.lower()}')
 
 
 # ============================================================================
@@ -1978,7 +1950,7 @@ def main():
     fig1b_yield_distributions_soybean()
     fig2_modality_band_statistics()
     fig3_m3_modality_ablation()
-    fig4_m3_scatter_best()
+    fig4_m4_scatter_best()
     fig5_m3_scatter_all()
     fig6_yearwise_performance()
     fig7_classical_ml_temporal()
