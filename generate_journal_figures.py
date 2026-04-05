@@ -486,13 +486,6 @@ def fig4_m4_scatter_best():
         lims = [lims[0] - margin, lims[1] + margin]
         ax.plot(lims, lims, 'k--', linewidth=0.8, alpha=0.5, zorder=2, label='1:1')
 
-        # Regression line (no equation label)
-        z = np.polyfit(y_true, y_pred, 1)
-        p = np.poly1d(z)
-        x_fit = np.linspace(lims[0], lims[1], 100)
-        ax.plot(x_fit, p(x_fit), color=ACCENT_RED, linewidth=1.0, alpha=0.8,
-                zorder=2, label='Fit')
-
         ax.set_xlim(lims)
         ax.set_ylim(lims)
         ax.set_aspect('equal', adjustable='box')
