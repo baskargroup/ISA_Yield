@@ -1465,30 +1465,24 @@ def fig16_yield_statistics():
 # FIGURE 17: Residual analysis for best M3 model
 # ============================================================================
 def fig17_residual_analysis():
-    """Residual analysis for the best M3 configuration."""
+    """Residual analysis for best M4 configurations."""
     print('Figure 17: Residual analysis...')
 
-    pred_dir = 'M3/predictions'
-    csv_files = sorted(Path(pred_dir).glob('*.csv'))
+    crop_csv = {
+        'Corn': 'conf_FS/conf_FS/predictions/corn/6round/S12cdw_Corn_week_16_20_1_12_18_19.csv',
+        'Soybean': 'conf_FS/conf_FS/predictions/soybean/round3/S12sd_Soybean_week_16_18_1.csv',
+    }
 
-    # Get best overall config
-    modal_data = {}
-    for csv_file in csv_files:
-        modal = extract_modal_code(csv_file.stem)
-        df = pd.read_csv(csv_file)
-        if modal not in modal_data:
-            modal_data[modal] = {'true': [], 'pred': [], 'crop': []}
-        crop = extract_crop(csv_file.stem)
-        modal_data[modal]['true'].extend(df['YieldGT'].values)
-        modal_data[modal]['pred'].extend(df['Prediction'].values)
-        modal_data[modal]['crop'].extend([crop] * len(df))
+    all_true, all_pred, all_crops = [], [], []
+    for crop, csv_path in crop_csv.items():
+        df = pd.read_csv(csv_path)
+        all_true.extend(df['YieldGT'].values)
+        all_pred.extend(df['Prediction'].values)
+        all_crops.extend([crop] * len(df))
 
-    best_modal = max(modal_data.items(),
-                     key=lambda x: r2_score(np.array(x[1]['true']), np.array(x[1]['pred'])))
-    modal_name = best_modal[0]
-    y_true = np.array(best_modal[1]['true'])
-    y_pred = np.array(best_modal[1]['pred'])
-    crops = np.array(best_modal[1]['crop'])
+    y_true = np.array(all_true)
+    y_pred = np.array(all_pred)
+    crops = np.array(all_crops)
     residuals = y_pred - y_true
 
     fig, axes = plt.subplots(1, 3, figsize=(DOUBLE_COL, 2.5))
