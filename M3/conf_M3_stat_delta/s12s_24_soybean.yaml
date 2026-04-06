@@ -9,11 +9,11 @@ trainer:
   - class_path: WandbLogger
     init_args:
       project: M3_soybean
-      name: S12S_stat_delta
+      name: S12S_stat_differentnorm
   callbacks:
   - class_path: ModelCheckpoint
     init_args:
-      dirpath: output/soybean/M3/delta/S12S_stat/checkpoints
+      dirpath: output/soybean/M3/differentnorm/S12S_stat/checkpoints
       monitor: val/loss
       mode: min
       save_top_k: 1
@@ -22,7 +22,7 @@ trainer:
   - class_path: EarlyStopping
     init_args:
       monitor: val/loss
-      patience: 20
+      patience: 75
       min_delta: 0.0001
       mode: min
       verbose: true
@@ -49,17 +49,17 @@ data:
     - 2
     - 1
     train_data_root: &id001
-      S2L2A: ../../processed_data/weekly_24/processed_data_weekly_24/S2L2A
-      S1GRD: ../../processed_data/weekly_24/processed_data_weekly_24/S1GRD
-      SOIL: ../../processed_data/weekly_24/processed_data_weekly_24/SOIL
-    train_label_data_root: ../../processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
+      S2L2A: /scratch/bepk/bkim2/ISA_Yield/processed_data_weekly_24/S2L2A
+      S1GRD: /scratch/bepk/bkim2/ISA_Yield/processed_data_weekly_24/S1GRD
+      SOIL: /scratch/bepk/bkim2/ISA_Yield/processed_data_weekly_24/SOIL
+    train_label_data_root: /scratch/bepk/bkim2/ISA_Yield/processed_data_weekly_24/yield_geotiffs
     val_data_root: *id001
-    val_label_data_root: ../../processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
+    val_label_data_root: /scratch/bepk/bkim2/ISA_Yield/processed_data_weekly_24/yield_geotiffs
     test_data_root: *id001
-    test_label_data_root: ../../processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
-    train_split: ../../processed_data/weekly_24/processed_data_weekly_24/train_soybean.txt
-    val_split: ../../processed_data/weekly_24/processed_data_weekly_24/val_soybean.txt
-    test_split: ../../processed_data/weekly_24/processed_data_weekly_24/test_soybean.txt
+    test_label_data_root: /scratch/bepk/bkim2/ISA_Yield/processed_data_weekly_24/yield_geotiffs
+    train_split: /scratch/bepk/bkim2/ISA_Yield/processed_data_weekly_24/train_soybean.txt
+    val_split: /scratch/bepk/bkim2/ISA_Yield/processed_data_weekly_24/val_soybean.txt
+    test_split: /scratch/bepk/bkim2/ISA_Yield/processed_data_weekly_24/test_soybean.txt
     expand_temporal_dimension: false
     no_label_replace: 0.0
     no_data_replace: 0
@@ -69,7 +69,7 @@ data:
       - 622.422
       - 849.159
       - 889.618
-      - 1280.02
+      - 1280.020
       - 2572.048
       - 3249.194
       - 3357.392
@@ -94,7 +94,7 @@ data:
     stds:
       S2L2A:
       - 85.014
-      - 107.36
+      - 107.360
       - 133.666
       - 192.031
       - 230.486
@@ -102,7 +102,7 @@ data:
       - 369.633
       - 373.084
       - 384.849
-      - 378.25
+      - 378.250
       - 345.843
       - 295.994
       S1GRD:
@@ -129,6 +129,7 @@ model:
       backbone_modalities:
       - S2L2A
       - S1GRD
+      - SOIL: 10
       backbone_merge_method: mean
       necks:
       - name: SelectIndices
@@ -160,5 +161,5 @@ lr_scheduler:
   init_args:
     monitor: val/loss
     factor: 0.8
-    patience: 5
+    patience: 25
     min_lr: 1.0e-06

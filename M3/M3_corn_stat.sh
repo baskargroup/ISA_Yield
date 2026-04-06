@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=6:00:00   # walltime limit (HH:MM:SS)
+#SBATCH --time=192:00:00   # walltime limit (HH:MM:SS)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --ntasks-per-node=1   # 36 processor core(s) per node 
 #SBATCH --mem=369G   # maximum memory per node
@@ -22,20 +22,24 @@ source /work/mech-ai-scratch/bgekim/miniconda3/etc/profile.d/conda.sh
 conda activate isa_yield_env
 
 
-echo "Job is starting on `hostname` for M3_Corn_stat"
+for seed in 42 123 456 789; do
+    for yaml_file in conf_M3_stat/*_corn.yaml; do
+        # Extract base wandb name and checkpoint dir from yaml
+        wandb_name=$(grep -A 3 'WandbLogger' "$yaml_file" | grep 'name:' | sed 's/.*name: //')
+        ckpt_dir=$(grep 'dirpath:' "$yaml_file" | sed 's/.*dirpath: //')
 
-# for yaml_file in \
-#     conf_M3_stat/s12w_24_corn.yaml \
-#     conf_M3_stat/s12c_24_corn.yaml \
-#     conf_M3_stat/s12ws_24_corn.yaml \
-#     conf_M3_stat/s12dc_24_corn.yaml \
-#     conf_M3_stat/s12wds_24_corn.yaml \
-#     conf_M3_stat/s12wsc_24_corn.yaml; do
-for yaml_file in \
-    conf_M3_stat/s12wds_24_corn.yaml \
-    conf_M3_stat/s12wsc_24_corn.yaml; do
-    echo "Running $yaml_file"
-    terratorch fit -c "$yaml_file"
+        # Create temp yaml with seed-specific overrides
+        tmp_yaml=$(mktemp /tmp/terratorch_XXXXXX.yaml)
+        sed -e "s|seed_everything: .*|seed_everything: ${seed}|" \
+            -e "s|name: ${wandb_name}|name: ${wandb_name}_seed${seed}|" \
+            -e "s|dirpath: ${ckpt_dir}|dirpath: ${ckpt_dir}/seed_${seed}|" \
+            "$yaml_file" > "$tmp_yaml"
+
+        echo "Running $yaml_file with seed $seed (wandb: ${wandb_name}_seed${seed})"
+        terratorch fit -c "$tmp_yaml"
+        rm -f "$tmp_yaml"
+    done
+    echo "Job finished for M3_corn_stat seed $seed"
 done
 
-echo "Job finished for M3_Corn_stat"
+echo "All seeds completed for M3_corn_stat"
