@@ -384,74 +384,105 @@ def fig2_modality_band_statistics():
 # FIGURE 3: M3 Modality Ablation — R² and MAE comparison (bar chart)
 # ============================================================================
 def fig3_m3_modality_ablation():
-    """M3 ablation study: R² and MAE across modality combinations, per crop."""
-    print('Figure 3: M3 modality ablation bar charts...')
+    """M3 ablation study: mean R² and MAE (± std) across seeds, per crop."""
+    print('Figure 3: M3 modality ablation bar charts (mean ± std across seeds)...')
 
-    pred_dir = 'M3/predictions'
-    csv_files = sorted(Path(pred_dir).glob('*.csv'))
-
-    # Keep only the latest file per (modality, crop) based on timestamp in filename
     import re
-    latest_files = {}
-    for csv_file in csv_files:
-        modal = extract_modal_code(csv_file.stem)
-        crop = extract_crop(csv_file.stem)
-        ts_match = re.search(r'(\d{8}_\d{6})', csv_file.stem)
-        ts = ts_match.group(1) if ts_match else ''
-        key = (modal, crop)
-        if key not in latest_files or ts > latest_files[key][1]:
-            latest_files[key] = (csv_file, ts)
 
-    # Compute metrics per crop per modality
+    pred_base = Path('M3/predictions')
+    seed_dirs = sorted(pred_base.glob('seed_*'))
+    if not seed_dirs:
+        print('  WARNING: no seed_* directories found in M3/predictions/')
+        return
+
+    # Collect per-seed metrics for each (modality, crop)
+    # seed_metrics[(modal, crop)] = list of metric dicts (one per seed)
+    seed_metrics = {}
+    for seed_dir in seed_dirs:
+        csv_files = sorted(seed_dir.glob('*.csv'))
+        # Keep latest file per (modality, crop) within this seed
+        latest = {}
+        for csv_file in csv_files:
+            modal = extract_modal_code(csv_file.stem)
+            crop = extract_crop(csv_file.stem)
+            ts_match = re.search(r'(\d{8}_\d{6})', csv_file.stem)
+            ts = ts_match.group(1) if ts_match else ''
+            key = (modal, crop)
+            if key not in latest or ts > latest[key][1]:
+                latest[key] = (csv_file, ts)
+        for key, (csv_file, _) in latest.items():
+            df = pd.read_csv(csv_file)
+            y_true = df['YieldGT'].values
+            y_pred = df['Prediction'].values
+            metrics = calculate_metrics(y_true, y_pred)
+            seed_metrics.setdefault(key, []).append(metrics)
+
+    # Aggregate: mean and std across seeds
     results = []
-    for (modal, crop), (csv_file, _) in latest_files.items():
-        df = pd.read_csv(csv_file)
-        y_true = df['YieldGT'].values
-        y_pred = df['Prediction'].values
-        metrics = calculate_metrics(y_true, y_pred)
-        results.append({'Modal': modal, 'Crop': crop, **metrics})
+    for (modal, crop), metrics_list in seed_metrics.items():
+        row = {'Modal': modal, 'Crop': crop, 'n_seeds': len(metrics_list)}
+        for metric_name in ['R2', 'MAE', 'RMSE', 'MAPE']:
+            vals = [m[metric_name] for m in metrics_list]
+            row[metric_name] = np.mean(vals)
+            row[f'{metric_name}_std'] = np.std(vals)
+        results.append(row)
 
     rdf = pd.DataFrame(results)
 
-    half_w = DOUBLE_COL / 2
+    def _forest_panel(crop_df, crop_name, crop_color, panel_name):
+        """Forest-plot style dot chart: R² ± std with MAE color-coded."""
+        crop_df = crop_df.sort_values('R2', ascending=True).reset_index(drop=True)
+        n = len(crop_df)
+        fig, ax = plt.subplots(figsize=(SINGLE_COL + 0.8, 0.28 * n + 0.8))
+        y_pos = np.arange(n)
 
-    # ---- Panel (a): Corn R² ----
-    corn_df = rdf[rdf['Crop'] == 'Corn'].sort_values('R2', ascending=True)
-    fig_a, ax_a = plt.subplots(figsize=(half_w, 4.5))
-    y_pos = np.arange(len(corn_df))
-    ax_a.barh(y_pos, corn_df['R2'], color=CORN_COLOR, edgecolor='black',
-              linewidth=0.3, height=0.7, alpha=0.9)
-    for i, (_, row) in enumerate(corn_df.iterrows()):
-        ax_a.text(row['R2'] + 0.005, i,
-                  f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
-                  va='center', fontsize=ANNOT_SIZE, clip_on=False)
-    ax_a.set_yticks(y_pos)
-    ax_a.set_yticklabels(corn_df['Modal'], fontsize=TICK_SIZE)
-    ax_a.set_xlabel('$R^2$', fontsize=LABEL_SIZE)
-    ax_a.tick_params(axis='both', labelsize=TICK_SIZE)
-    ax_a.set_xlim(0, 1.0)
-    fig_a.tight_layout()
-    fig_a.subplots_adjust(right=0.62)
-    save_fig(fig_a, 'fig3a_m3_modality_ablation_corn')
+        # Colormap for MAE (lower = better = darker)
+        mae_vals = crop_df['MAE'].values
+        norm = mpl.colors.Normalize(vmin=mae_vals.min() - 0.2,
+                                    vmax=mae_vals.max() + 0.2)
+        cmap = mpl.cm.RdYlGn_r  # red = high MAE (bad), green = low MAE (good)
 
-    # ---- Panel (b): Soybean R² ----
-    soy_df = rdf[rdf['Crop'] == 'Soybean'].sort_values('R2', ascending=True)
-    fig_b, ax_b = plt.subplots(figsize=(half_w, 4.5))
-    y_pos = np.arange(len(soy_df))
-    ax_b.barh(y_pos, soy_df['R2'], color=SOYBEAN_COLOR, edgecolor='black',
-              linewidth=0.3, height=0.7, alpha=0.9)
-    for i, (_, row) in enumerate(soy_df.iterrows()):
-        ax_b.text(row['R2'] + 0.005, i,
-                  f"R\u00b2={row['R2']:.3f}  MAE={row['MAE']:.1f}",
-                  va='center', fontsize=ANNOT_SIZE, clip_on=False)
-    ax_b.set_yticks(y_pos)
-    ax_b.set_yticklabels(soy_df['Modal'], fontsize=TICK_SIZE)
-    ax_b.set_xlabel('$R^2$', fontsize=LABEL_SIZE)
-    ax_b.tick_params(axis='both', labelsize=TICK_SIZE)
-    ax_b.set_xlim(0, 1.0)
-    fig_b.tight_layout()
-    fig_b.subplots_adjust(right=0.62)
-    save_fig(fig_b, 'fig3b_m3_modality_ablation_soybean')
+        # Horizontal error bars + colored dots
+        for i, (_, row) in enumerate(crop_df.iterrows()):
+            color = cmap(norm(row['MAE']))
+            ax.errorbar(row['R2'], i, xerr=row['R2_std'],
+                        fmt='none', ecolor='#555555', elinewidth=0.6,
+                        capsize=2.5, capthick=0.6, zorder=2)
+            ax.scatter(row['R2'], i, c=[color], s=50, edgecolors='black',
+                       linewidths=0.4, zorder=3)
+
+        # Thin horizontal reference lines for readability
+        for y in y_pos:
+            ax.axhline(y, color='#e0e0e0', linewidth=0.3, zorder=0)
+
+        ax.set_yticks(y_pos)
+        ax.set_yticklabels(crop_df['Modal'], fontsize=TICK_SIZE)
+        ax.set_xlabel('$R^2$ (mean \u00b1 std)', fontsize=LABEL_SIZE)
+        ax.tick_params(axis='both', labelsize=TICK_SIZE)
+        ax.set_xlim(crop_df['R2'].min() - 0.08, crop_df['R2'].max() + 0.08)
+        ax.set_ylim(-0.6, n - 0.4)
+
+        # Colorbar for MAE
+        sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        cbar = fig.colorbar(sm, ax=ax, pad=0.03, aspect=30, shrink=0.85)
+        cbar.set_label('MAE (bu/ac)', fontsize=LABEL_SIZE)
+        cbar.ax.tick_params(labelsize=TICK_SIZE)
+
+        fig.tight_layout()
+        save_fig(fig, panel_name)
+
+    # ---- Panel (a): Corn ----
+    corn_df = rdf[rdf['Crop'] == 'Corn']
+    if not corn_df.empty:
+        _forest_panel(corn_df, 'Corn', CORN_COLOR,
+                      'fig3a_m3_modality_ablation_corn')
+
+    # ---- Panel (b): Soybean ----
+    soy_df = rdf[rdf['Crop'] == 'Soybean']
+    if not soy_df.empty:
+        _forest_panel(soy_df, 'Soybean', SOYBEAN_COLOR,
+                      'fig3b_m3_modality_ablation_soybean')
 
 
 # ============================================================================
