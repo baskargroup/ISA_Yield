@@ -1676,6 +1676,23 @@ def fig18_yield_maps():
         fig.subplots_adjust(left=0.18, right=0.95, bottom=0.13, top=0.95)
         save_fig(fig, f'fig18_yield_map_{crop.lower()}')
 
+    # --- Panel: raw coordinate scatter for each crop ------------------------
+    for crop in ['Corn', 'Soybean']:
+        layer_id = chosen[crop]
+        group = full_data[full_data['Layer_ID'] == layer_id]
+        color = CORN_COLOR if crop == 'Corn' else SOYBEAN_COLOR
+
+        fig, ax = plt.subplots(figsize=(SINGLE_COL, SINGLE_COL))
+        ax.scatter(group['x'].values, group['y'].values,
+                   s=0.3, c=color, alpha=0.7, edgecolors='none', rasterized=True)
+        ax.set_aspect('equal', adjustable='datalim')
+        ax.set_xlabel('Longitude', fontsize=LABEL_SIZE)
+        ax.set_ylabel('Latitude', fontsize=LABEL_SIZE)
+        ax.tick_params(labelsize=TICK_SIZE)
+        ax.ticklabel_format(useOffset=False)
+        fig.tight_layout()
+        save_fig(fig, f'fig18_field_coords_{crop.lower()}')
+
 
 # ============================================================================
 # FIGURE 19: Weekly data availability heatmap (S2L2A, S1GRD, WEATHER)
