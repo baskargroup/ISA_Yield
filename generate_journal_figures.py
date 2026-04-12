@@ -661,70 +661,89 @@ def fig6_yearwise_performance():
 # FIGURE 7: Classical ML Temporal (Weekly) — R² by week with M3 reference
 # ============================================================================
 def fig7_classical_ml_temporal():
-    """Classical ML weekly R² per crop with TerraMind M3 best as reference."""
-    print('Figure 7: Classical ML weekly temporal progression...')
+    """TerraMind temporal R² per crop from conf_Seq predictions (4 seeds, mean±std)."""
+    print('Figure 7: TerraMind temporal progression (conf_Seq, 4 seeds)...')
 
-    # --- M3 best test R² per crop ---
-    pred_dir = 'M3/predictions'
-    m3_crop = {}
-    for csv_file in sorted(Path(pred_dir).glob('*.csv')):
-        modal = extract_modal_code(csv_file.stem)
-        crop = extract_crop(csv_file.stem)
-        df = pd.read_csv(csv_file)
-        m3_crop[(modal, crop)] = r2_score(df['YieldGT'].values, df['Prediction'].values)
-
-    best_m3 = {}
-    for crop_name in ['Corn', 'Soybean']:
-        crop_results = {k: v for k, v in m3_crop.items() if k[1] == crop_name}
-        if crop_results:
-            best_key = max(crop_results, key=crop_results.get)
-            best_m3[crop_name] = {'modal': best_key[0], 'R2': crop_results[best_key]}
-
-    # --- Per-crop classical ML results ---
+    pred_base = Path('conf_Seq/predictions')
+    seeds = ['seed_42', 'seed_123', 'seed_456', 'seed_789']
     crop_configs = [
-        ('Corn', 'classical_ml_results_corn_s12cdw.csv', CORN_COLOR),
-        ('Soybean', 'classical_ml_results_soybean_s12ds.csv', SOYBEAN_COLOR),
+        ('Corn', 'corn', 's12dc', CORN_COLOR),
+        ('Soybean', 'soybean', 's12wsc', SOYBEAN_COLOR),
     ]
+    weeks = list(range(1, 25))
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(DOUBLE_COL, 2.8), sharey=False)
+    for crop_name, crop_tag, modality, crop_color in crop_configs:
+        # Collect R² and MAE per seed per week
+        r2_per_seed = {seed: [] for seed in seeds}
+        mae_per_seed = {seed: [] for seed in seeds}
+        for week in weeks:
+            for seed in seeds:
+                fname = f'{modality}_{week}_{crop_tag}_{seed.replace("_", "")}.csv'
+                fpath = pred_base / seed / fname
+                if fpath.exists():
+                    df = pd.read_csv(fpath)
+                    yt, yp = df['YieldGT'].values, df['Prediction'].values
+                    r2_per_seed[seed].append(r2_score(yt, yp))
+                    mae_per_seed[seed].append(mean_absolute_error(yt, yp))
+                else:
+                    r2_per_seed[seed].append(np.nan)
+                    mae_per_seed[seed].append(np.nan)
 
-    for ax, (crop_name, csv_path, crop_color) in zip([ax1, ax2], crop_configs):
-        letter = '(a)' if crop_name == 'Corn' else '(b)'
+        r2_matrix = np.array([r2_per_seed[s] for s in seeds])   # (4, 24)
+        mae_matrix = np.array([mae_per_seed[s] for s in seeds]) # (4, 24)
 
-        if not os.path.exists(csv_path):
-            ax.text(0.5, 0.5, f'{csv_path}\nnot found', ha='center', va='center',
-                    transform=ax.transAxes, fontsize=ANNOT_SIZE, color='gray')
-            ax.set_title(f'{letter} {crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
-            continue
+        mean_r2 = np.nanmean(r2_matrix, axis=0)
+        std_r2 = np.nanstd(r2_matrix, axis=0)
+        mean_mae = np.nanmean(mae_matrix, axis=0)
+        std_mae = np.nanstd(mae_matrix, axis=0)
 
-        df = pd.read_csv(csv_path)
-        df['week'] = df['week'].str.extract(r'weekly_(\d+)').astype(int)
-        df = df.sort_values('week')
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(SINGLE_COL, 3.6),
+                                        sharex=True)
 
-        # XGBoost and PLSR curves
-        for model, marker, ls in [('XGBoost', 'o', '-'), ('PLSR', 's', '--')]:
-            sub = df[df['model'] == model]
-            ax.plot(sub['week'], sub['test_r2'], color=crop_color, marker=marker,
-                    markersize=3, linewidth=0.8, linestyle=ls, label=model, zorder=3)
-            ax.fill_between(sub['week'], sub['test_r2'], alpha=0.08, color=crop_color)
+        # --- R² panel ---
+        ax1.plot(weeks, mean_r2, color=crop_color, marker='o',
+                 markersize=3, linewidth=0.8, linestyle='-',
+                 label=f'TerraMind ({modality.upper()})', zorder=3)
+        ax1.fill_between(weeks, mean_r2 - std_r2, mean_r2 + std_r2,
+                          alpha=0.15, color=crop_color, zorder=2)
 
-        # M3 best horizontal reference
-        if crop_name in best_m3:
-            m3 = best_m3[crop_name]
-            ax.axhline(y=m3['R2'], color=ACCENT_RED, linewidth=1.0,
-                       linestyle='-.', zorder=4,
-                       label=f"TerraMind {m3['modal']} ($R^2$={m3['R2']:.3f})")
+        best_idx = np.nanargmax(mean_r2)
+        ax1.annotate(f'$R^2$={mean_r2[best_idx]:.3f}',
+                     xy=(weeks[best_idx], mean_r2[best_idx]), xytext=(0, 8),
+                     textcoords='offset points', ha='center', fontsize=ANNOT_SIZE,
+                     fontweight='bold', color=crop_color, zorder=5)
 
-        ax.set_xlabel('Week', fontsize=LABEL_SIZE)
-        ax.set_ylabel('Test $R^2$', fontsize=LABEL_SIZE)
-        ax.set_title(f'{letter} {crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
-        ax.legend(fontsize=LEGEND_SIZE, framealpha=0.9, loc='lower right')
-        ax.tick_params(axis='both', labelsize=TICK_SIZE)
-        ax.grid(True, alpha=0.2, linewidth=0.3)
-        ax.axhline(y=0, color='gray', linewidth=0.4, linestyle='--', zorder=1)
+        r2_lo = max(0, np.nanmin(mean_r2 - std_r2) - 0.03)
+        r2_hi = np.nanmax(mean_r2 + std_r2) + 0.05
+        ax1.set_ylim(r2_lo, r2_hi)
+        ax1.set_ylabel('Test $R^2$', fontsize=LABEL_SIZE)
+        ax1.set_title(f'{crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
+        ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9, loc='lower right')
+        ax1.tick_params(axis='both', labelsize=TICK_SIZE)
+        ax1.grid(True, alpha=0.2, linewidth=0.3)
 
-    fig.tight_layout(w_pad=1.0)
-    save_fig(fig, 'fig7_classical_ml_temporal_weekly')
+        # --- MAE panel ---
+        ax2.plot(weeks, mean_mae, color=crop_color, marker='o',
+                 markersize=3, linewidth=0.8, linestyle='-', zorder=3)
+        ax2.fill_between(weeks, mean_mae - std_mae, mean_mae + std_mae,
+                          alpha=0.15, color=crop_color, zorder=2)
+
+        best_idx = np.nanargmin(mean_mae)
+        ax2.annotate(f'MAE={mean_mae[best_idx]:.2f}',
+                     xy=(weeks[best_idx], mean_mae[best_idx]), xytext=(0, -12),
+                     textcoords='offset points', ha='center', fontsize=ANNOT_SIZE,
+                     fontweight='bold', color=crop_color, zorder=5)
+
+        mae_lo = max(0, np.nanmin(mean_mae - std_mae) - 1.0)
+        mae_hi = np.nanmax(mean_mae + std_mae) + 1.0
+        ax2.set_ylim(mae_lo, mae_hi)
+        ax2.set_xlabel('Week', fontsize=LABEL_SIZE)
+        ax2.set_ylabel('Test MAE (bu/ac)', fontsize=LABEL_SIZE)
+        ax2.tick_params(axis='both', labelsize=TICK_SIZE)
+        ax2.grid(True, alpha=0.2, linewidth=0.3)
+
+        fig.tight_layout(h_pad=0.4)
+        save_fig(fig, f'fig7_temporal_{crop_tag}')
 
 
 # ============================================================================
