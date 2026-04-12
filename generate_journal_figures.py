@@ -127,8 +127,8 @@ _MOD_CB_CYCLE = [CB_BLUE, CB_ORANGE, CB_GREEN, CB_RED, CB_PURPLE,
                  '#CC79A7', '#56B4E9', '#F0E442', '#999999']
 MODALITY_COLORS = {
     k: _MOD_CB_CYCLE[i] for i, k in enumerate([
-        'S12', 'S12c', 'S12d', 'S12s', 'S12w', 'S12cd', 'S12cs', 'S12cw',
-        'S12ds', 'S12dw', 'S12ws', 'S12cdw', 'S12cds', 'S12cws', 'S12dws', 'S12cdws',
+        'S1S2', 'S1S2c', 'S1S2d', 'S1S2s', 'S1S2w', 'S1S2cd', 'S1S2cs', 'S1S2cw',
+        'S1S2ds', 'S1S2dw', 'S1S2ws', 'S1S2cdw', 'S1S2cds', 'S1S2cws', 'S1S2dws', 'S1S2cdws',
     ])
 }
 
@@ -162,7 +162,7 @@ def calculate_metrics(y_true, y_pred):
 
 def extract_modal_code(filename):
     """Extract short modality code from prediction filename."""
-    code = 'S12'
+    code = 'S1S2'
     if 'CDL' in filename:
         code += 'c'
     if 'DEM' in filename:
@@ -664,7 +664,7 @@ def fig7_classical_ml_temporal():
     """TerraMind temporal R² per crop from conf_Seq predictions (4 seeds, mean±std)."""
     print('Figure 7: TerraMind temporal progression (conf_Seq, 4 seeds)...')
 
-    pred_base = Path('conf_Seq/predictions')
+    pred_base = Path('conf_Seq/predictions_og')
     seeds = ['seed_42', 'seed_123', 'seed_456', 'seed_789']
     crop_configs = [
         ('Corn', 'corn', 's12dc', CORN_COLOR),
@@ -703,7 +703,7 @@ def fig7_classical_ml_temporal():
         # --- R² panel ---
         ax1.plot(weeks, mean_r2, color=crop_color, marker='o',
                  markersize=3, linewidth=0.8, linestyle='-',
-                 label=f'TerraMind ({modality.upper()})', zorder=3)
+                 label=f'TerraMind ({modality.upper().replace("S12", "S1S2")})', zorder=3)
         ax1.fill_between(weeks, mean_r2 - std_r2, mean_r2 + std_r2,
                           alpha=0.15, color=crop_color, zorder=2)
 
@@ -764,7 +764,7 @@ def fig8_classical_vs_terramind():
                 'classical_ml_param_opt_corn_s12cdw_plsr_vi.csv',
             ],
             CORN_COLOR,
-            0.748,  # TM-S12cdw R²
+            0.748,  # TM-S1S2cdw R²
         ),
         (
             'Soybean',
@@ -775,7 +775,7 @@ def fig8_classical_vs_terramind():
                 'classical_ml_param_opt_soybean_s12ds_plsr_vi.csv',
             ],
             SOYBEAN_COLOR,
-            0.641,  # TM-S12ds R²
+            0.641,  # TM-S1S2ds R²
         ),
     ]
 
@@ -805,7 +805,7 @@ def fig8_classical_vs_terramind():
                     continue
 
         # Add single TerraMind bar
-        modal_code = 'S12cdw' if crop_name == 'Corn' else 'S12ds'
+        modal_code = 'S1S2cdw' if crop_name == 'Corn' else 'S1S2ds'
         models.append(f'TM-{modal_code}')
         r2_vals.append(tm_r2)
         colors.append(crop_color)
