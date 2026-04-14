@@ -26,12 +26,12 @@ echo "=========================================="
 
 mkdir -p predictions plots
 
-for seed in 42 123 456 789; do
+for seed in 42 123 456 789 101 234 567 890 1024 2048; do
     seed_prediction_dir="predictions/seed_${seed}"
     seed_plot_dir="plots/seed_${seed}"
     mkdir -p "$seed_prediction_dir" "$seed_plot_dir"
 
-    for yaml_file in conf_M3_stat/*test.yaml; do
+    for yaml_file in conf_M3_stat/*soybean_test.yaml; do
         base_name=$(basename "$yaml_file" _test.yaml)
         modality=$(echo "$base_name" | sed 's/_24_corn//' | sed 's/_24_soybean//' | tr '[:lower:]' '[:upper:]')
 
