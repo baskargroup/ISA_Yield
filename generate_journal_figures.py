@@ -1340,11 +1340,18 @@ def fig13_ndvi_temporal():
     """Show NDVI temporal profiles from S2 data across the growing season."""
     print('Figure 13: NDVI temporal profiles...')
 
-    base = 'processed_data/weekly_24/processed_data_weekly_24/S2L2A'
-    all_files = sorted(os.listdir(base))
+    split_base = 'processed_data/weekly_24/processed_data_weekly_24'
+    base = os.path.join(split_base, 'S2L2A')
 
-    corn_files = [f for f in all_files if 'Corn' in f][:20]
-    soy_files = [f for f in all_files if 'Soybean' in f][:20]
+    # Read test split files to get field names
+    with open(os.path.join(split_base, 'test_corn.txt')) as f:
+        corn_files = [line.strip() + '.npy' for line in f if line.strip()]
+    with open(os.path.join(split_base, 'test_soybean.txt')) as f:
+        soy_files = [line.strip() + '.npy' for line in f if line.strip()]
+
+    # Filter to files that actually exist
+    corn_files = [f for f in corn_files if os.path.exists(os.path.join(base, f))]
+    soy_files = [f for f in soy_files if os.path.exists(os.path.join(base, f))]
 
     def compute_ndvi_profile(files):
         profiles = []
