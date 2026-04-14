@@ -429,60 +429,77 @@ def fig3_m3_modality_ablation():
 
     rdf = pd.DataFrame(results)
 
-    def _forest_panel(crop_df, crop_name, crop_color, panel_name):
-        """Forest-plot style dot chart: R² ± std with MAE color-coded."""
-        crop_df = crop_df.sort_values('R2', ascending=True).reset_index(drop=True)
+    def _lollipop_plot(crop_df, crop_name, crop_color, metric, metric_std,
+                       xlabel, best_fn, fmt_spec, panel_name):
+        """Single lollipop plot for one metric."""
+        crop_df = crop_df.sort_values(metric, ascending=(best_fn == np.argmax)
+                                      ).reset_index(drop=True)
         n = len(crop_df)
-        fig, ax = plt.subplots(figsize=(SINGLE_COL + 0.8, 0.28 * n + 0.8))
         y_pos = np.arange(n)
+        fig, ax = plt.subplots(figsize=(SINGLE_COL + 1.0, 0.32 * n + 0.8))
 
-        # Colormap for MAE (lower = better = darker)
-        mae_vals = crop_df['MAE'].values
-        norm = mpl.colors.Normalize(vmin=mae_vals.min() - 0.2,
-                                    vmax=mae_vals.max() + 0.2)
-        cmap = mpl.cm.RdYlGn_r  # red = high MAE (bad), green = low MAE (good)
+        vals = crop_df[metric].values
+        stds = crop_df[metric_std].values
+        best_i = best_fn(vals)
 
-        # Horizontal error bars + colored dots
-        for i, (_, row) in enumerate(crop_df.iterrows()):
-            color = cmap(norm(row['MAE']))
-            ax.errorbar(row['R2'], i, xerr=row['R2_std'],
-                        fmt='none', ecolor='#555555', elinewidth=0.6,
-                        capsize=2.5, capthick=0.6, zorder=2)
-            ax.scatter(row['R2'], i, c=[color], s=50, edgecolors='black',
-                       linewidths=0.4, zorder=3)
+        # Lollipop stems from a reference line
+        ref = vals.min() - 0.03 if metric == 'R2' else vals.max() + 0.5
+        for i in range(n):
+            ax.hlines(y=i, xmin=ref, xmax=vals[i],
+                      color='#cccccc', linewidth=0.8, zorder=1)
 
-        # Thin horizontal reference lines for readability
-        for y in y_pos:
-            ax.axhline(y, color='#e0e0e0', linewidth=0.3, zorder=0)
+        # Error bars + dots
+        for i in range(n):
+            is_best = (i == best_i)
+            ms = 7 if is_best else 5
+            ew = 0.8 if is_best else 0.4
+            fc = crop_color if is_best else mpl.colors.to_rgba(crop_color, 0.55)
+            ax.errorbar(vals[i], i, xerr=stds[i],
+                        fmt='none', ecolor='#888888',
+                        elinewidth=0.5, capsize=2, capthick=0.5, zorder=2)
+            ax.scatter(vals[i], i, s=ms**2, color=fc,
+                       edgecolors='black', linewidths=ew, zorder=4)
 
+        # Annotate best value with mean ± std
+        best_label = f'{vals[best_i]:{fmt_spec}} ± {stds[best_i]:{fmt_spec}}'
+        ax.annotate(best_label,
+                    xy=(vals[best_i], best_i), xytext=(0, 8),
+                    textcoords='offset points', ha='center', va='bottom',
+                    fontsize=ANNOT_SIZE, fontweight='bold', color=crop_color)
+
+        # Axis formatting
         ax.set_yticks(y_pos)
         ax.set_yticklabels(crop_df['Modal'], fontsize=TICK_SIZE)
-        ax.set_xlabel('$R^2$ (mean \u00b1 std)', fontsize=LABEL_SIZE)
+        ax.set_xlabel(xlabel, fontsize=LABEL_SIZE)
+        ax.set_title(crop_name, fontsize=TITLE_SIZE, fontweight='bold')
         ax.tick_params(axis='both', labelsize=TICK_SIZE)
-        ax.set_xlim(crop_df['R2'].min() - 0.08, crop_df['R2'].max() + 0.08)
         ax.set_ylim(-0.6, n - 0.4)
-
-        # Colorbar for MAE
-        sm = mpl.cm.ScalarMappable(cmap=cmap, norm=norm)
-        sm.set_array([])
-        cbar = fig.colorbar(sm, ax=ax, pad=0.03, aspect=30, shrink=0.85)
-        cbar.set_label('MAE (bu/ac)', fontsize=LABEL_SIZE)
-        cbar.ax.tick_params(labelsize=TICK_SIZE)
+        ax.grid(True, axis='x', alpha=0.15, linewidth=0.3)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
 
         fig.tight_layout()
         save_fig(fig, panel_name)
 
-    # ---- Panel (a): Corn ----
+    # ---- Corn ----
     corn_df = rdf[rdf['Crop'] == 'Corn']
     if not corn_df.empty:
-        _forest_panel(corn_df, 'Corn', CORN_COLOR,
-                      'fig3a_m3_modality_ablation_corn')
+        _lollipop_plot(corn_df, 'Corn', CORN_COLOR,
+                       'R2', 'R2_std', '$R^2$ (mean ± std)',
+                       np.argmax, '.3f', 'fig3a_m3_modality_r2_corn')
+        _lollipop_plot(corn_df, 'Corn', CORN_COLOR,
+                       'MAE', 'MAE_std', 'MAE (bu/ac, mean ± std)',
+                       np.argmin, '.2f', 'fig3b_m3_modality_mae_corn')
 
     # ---- Panel (b): Soybean ----
     soy_df = rdf[rdf['Crop'] == 'Soybean']
     if not soy_df.empty:
-        _forest_panel(soy_df, 'Soybean', SOYBEAN_COLOR,
-                      'fig3b_m3_modality_ablation_soybean')
+        _lollipop_plot(soy_df, 'Soybean', SOYBEAN_COLOR,
+                       'R2', 'R2_std', '$R^2$ (mean ± std)',
+                       np.argmax, '.3f', 'fig3c_m3_modality_r2_soybean')
+        _lollipop_plot(soy_df, 'Soybean', SOYBEAN_COLOR,
+                       'MAE', 'MAE_std', 'MAE (bu/ac, mean ± std)',
+                       np.argmin, '.2f', 'fig3d_m3_modality_mae_soybean')
 
 
 # ============================================================================
@@ -664,11 +681,15 @@ def fig7_classical_ml_temporal():
     """TerraMind temporal R² per crop from conf_Seq predictions (4 seeds, mean±std)."""
     print('Figure 7: TerraMind temporal progression (conf_Seq, 4 seeds)...')
 
-    pred_base = Path('conf_Seq/predictions_og')
+    pred_base = Path('conf_Seq/predictions')
     seeds = ['seed_42', 'seed_123', 'seed_456', 'seed_789']
+    # seeds = ['seed_42']
+    # crop_configs = [
+    #     ('Corn', 'corn', 's12dc', CORN_COLOR),
+    #     ('Soybean', 'soybean', 's12wsc', SOYBEAN_COLOR),
+    # ]
     crop_configs = [
-        ('Corn', 'corn', 's12dc', CORN_COLOR),
-        ('Soybean', 'soybean', 's12wsc', SOYBEAN_COLOR),
+        ('Corn', 'corn', 's12ws', CORN_COLOR),
     ]
     weeks = list(range(1, 25))
 
