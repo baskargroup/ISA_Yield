@@ -677,7 +677,92 @@ def fig6_yearwise_performance():
 # ============================================================================
 # FIGURE 7: Classical ML Temporal (Weekly) — R² by week with M3 reference
 # ============================================================================
-def fig7_classical_ml_temporal():
+# def fig7_classical_ml_temporal():
+#     """TerraMind temporal R² per crop from conf_Seq predictions (4 seeds, mean±std)."""
+#     print('Figure 7: TerraMind temporal progression (conf_Seq, 4 seeds)...')
+
+#     pred_base = Path('conf_Seq/predictions_og')
+#     seeds = ['seed_42', 'seed_123', 'seed_456', 'seed_789']
+#     crop_configs = [
+#         ('Corn', 'corn', 's12dc', CORN_COLOR),
+#         ('Soybean', 'soybean', 's12wsc', SOYBEAN_COLOR),
+#     ]
+#     weeks = list(range(1, 25))
+
+#     for crop_name, crop_tag, modality, crop_color in crop_configs:
+#         # Collect R² and MAE per seed per week
+#         r2_per_seed = {seed: [] for seed in seeds}
+#         mae_per_seed = {seed: [] for seed in seeds}
+#         for week in weeks:
+#             for seed in seeds:
+#                 fname = f'{modality}_{week}_{crop_tag}_{seed.replace("_", "")}.csv'
+#                 fpath = pred_base / seed / fname
+#                 if fpath.exists():
+#                     df = pd.read_csv(fpath)
+#                     yt, yp = df['YieldGT'].values, df['Prediction'].values
+#                     r2_per_seed[seed].append(r2_score(yt, yp))
+#                     mae_per_seed[seed].append(mean_absolute_error(yt, yp))
+#                 else:
+#                     r2_per_seed[seed].append(np.nan)
+#                     mae_per_seed[seed].append(np.nan)
+
+#         r2_matrix = np.array([r2_per_seed[s] for s in seeds])   # (4, 24)
+#         mae_matrix = np.array([mae_per_seed[s] for s in seeds]) # (4, 24)
+
+#         mean_r2 = np.nanmean(r2_matrix, axis=0)
+#         std_r2 = np.nanstd(r2_matrix, axis=0)
+#         mean_mae = np.nanmean(mae_matrix, axis=0)
+#         std_mae = np.nanstd(mae_matrix, axis=0)
+
+#         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(SINGLE_COL, 3.6),
+#                                         sharex=True)
+
+#         # --- R² panel ---
+#         ax1.plot(weeks, mean_r2, color=crop_color, marker='o',
+#                  markersize=3, linewidth=0.8, linestyle='-',
+#                  label=f'TerraMind ({modality.upper().replace("S12", "S1S2")})', zorder=3)
+#         ax1.fill_between(weeks, mean_r2 - std_r2, mean_r2 + std_r2,
+#                           alpha=0.15, color=crop_color, zorder=2)
+
+#         best_idx = np.nanargmax(mean_r2)
+#         ax1.annotate(f'$R^2$={mean_r2[best_idx]:.3f}',
+#                      xy=(weeks[best_idx], mean_r2[best_idx]), xytext=(0, 8),
+#                      textcoords='offset points', ha='center', fontsize=ANNOT_SIZE,
+#                      fontweight='bold', color=crop_color, zorder=5)
+
+#         r2_lo = max(0, np.nanmin(mean_r2 - std_r2) - 0.03)
+#         r2_hi = np.nanmax(mean_r2 + std_r2) + 0.05
+#         ax1.set_ylim(r2_lo, r2_hi)
+#         ax1.set_ylabel('Test $R^2$', fontsize=LABEL_SIZE)
+#         ax1.set_title(f'{crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
+#         ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9, loc='lower right')
+#         ax1.tick_params(axis='both', labelsize=TICK_SIZE)
+#         ax1.grid(True, alpha=0.2, linewidth=0.3)
+
+#         # --- MAE panel ---
+#         ax2.plot(weeks, mean_mae, color=crop_color, marker='o',
+#                  markersize=3, linewidth=0.8, linestyle='-', zorder=3)
+#         ax2.fill_between(weeks, mean_mae - std_mae, mean_mae + std_mae,
+#                           alpha=0.15, color=crop_color, zorder=2)
+
+#         best_idx = np.nanargmin(mean_mae)
+#         ax2.annotate(f'MAE={mean_mae[best_idx]:.2f}',
+#                      xy=(weeks[best_idx], mean_mae[best_idx]), xytext=(0, -12),
+#                      textcoords='offset points', ha='center', fontsize=ANNOT_SIZE,
+#                      fontweight='bold', color=crop_color, zorder=5)
+
+#         mae_lo = max(0, np.nanmin(mean_mae - std_mae) - 1.0)
+#         mae_hi = np.nanmax(mean_mae + std_mae) + 1.0
+#         ax2.set_ylim(mae_lo, mae_hi)
+#         ax2.set_xlabel('Week', fontsize=LABEL_SIZE)
+#         ax2.set_ylabel('Test MAE (bu/ac)', fontsize=LABEL_SIZE)
+#         ax2.tick_params(axis='both', labelsize=TICK_SIZE)
+#         ax2.grid(True, alpha=0.2, linewidth=0.3)
+
+#         fig.tight_layout(h_pad=0.4)
+#         save_fig(fig, f'fig7_temporal_{crop_tag}')
+
+def fig7_m4_seq_temporal_selection():
     """TerraMind temporal R² per crop from conf_Seq predictions (4 seeds, mean±std)."""
     print('Figure 7: TerraMind temporal progression (conf_Seq, 4 seeds)...')
 
@@ -692,9 +777,7 @@ def fig7_classical_ml_temporal():
         ('Corn', 'corn', 's12ws', CORN_COLOR),
     ]
     weeks = list(range(1, 25))
-
     for crop_name, crop_tag, modality, crop_color in crop_configs:
-        # Collect R² and MAE per seed per week
         r2_per_seed = {seed: [] for seed in seeds}
         mae_per_seed = {seed: [] for seed in seeds}
         for week in weeks:
@@ -709,31 +792,27 @@ def fig7_classical_ml_temporal():
                 else:
                     r2_per_seed[seed].append(np.nan)
                     mae_per_seed[seed].append(np.nan)
-
-        r2_matrix = np.array([r2_per_seed[s] for s in seeds])   # (4, 24)
-        mae_matrix = np.array([mae_per_seed[s] for s in seeds]) # (4, 24)
-
+        r2_matrix = np.array([r2_per_seed[s] for s in seeds])
+        mae_matrix = np.array([mae_per_seed[s] for s in seeds])
         mean_r2 = np.nanmean(r2_matrix, axis=0)
         std_r2 = np.nanstd(r2_matrix, axis=0)
         mean_mae = np.nanmean(mae_matrix, axis=0)
         std_mae = np.nanstd(mae_matrix, axis=0)
-
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(SINGLE_COL, 3.6),
                                         sharex=True)
-
         # --- R² panel ---
-        ax1.plot(weeks, mean_r2, color=crop_color, marker='o',
-                 markersize=3, linewidth=0.8, linestyle='-',
+        ax1.plot(weeks, mean_r2, color=crop_color, marker=None,
+                 linewidth=0.8, linestyle='--',
+                 alpha=0.5,
                  label=f'TerraMind ({modality.upper().replace("S12", "S1S2")})', zorder=3)
         ax1.fill_between(weeks, mean_r2 - std_r2, mean_r2 + std_r2,
-                          alpha=0.15, color=crop_color, zorder=2)
-
+                          alpha=0.5,
+                          color=crop_color, zorder=2)
         best_idx = np.nanargmax(mean_r2)
         ax1.annotate(f'$R^2$={mean_r2[best_idx]:.3f}',
                      xy=(weeks[best_idx], mean_r2[best_idx]), xytext=(0, 8),
                      textcoords='offset points', ha='center', fontsize=ANNOT_SIZE,
                      fontweight='bold', color=crop_color, zorder=5)
-
         r2_lo = max(0, np.nanmin(mean_r2 - std_r2) - 0.03)
         r2_hi = np.nanmax(mean_r2 + std_r2) + 0.05
         ax1.set_ylim(r2_lo, r2_hi)
@@ -742,19 +821,19 @@ def fig7_classical_ml_temporal():
         ax1.legend(fontsize=LEGEND_SIZE, framealpha=0.9, loc='lower right')
         ax1.tick_params(axis='both', labelsize=TICK_SIZE)
         ax1.grid(True, alpha=0.2, linewidth=0.3)
-
         # --- MAE panel ---
-        ax2.plot(weeks, mean_mae, color=crop_color, marker='o',
-                 markersize=3, linewidth=0.8, linestyle='-', zorder=3)
+        ax2.plot(weeks, mean_mae, color=crop_color, marker=None,
+                 linewidth=0.8, linestyle='--',
+                 alpha=0.5,
+                 zorder=3)
         ax2.fill_between(weeks, mean_mae - std_mae, mean_mae + std_mae,
-                          alpha=0.15, color=crop_color, zorder=2)
-
+                          alpha=0.5,
+                          color=crop_color, zorder=2)
         best_idx = np.nanargmin(mean_mae)
         ax2.annotate(f'MAE={mean_mae[best_idx]:.2f}',
                      xy=(weeks[best_idx], mean_mae[best_idx]), xytext=(0, -12),
                      textcoords='offset points', ha='center', fontsize=ANNOT_SIZE,
                      fontweight='bold', color=crop_color, zorder=5)
-
         mae_lo = max(0, np.nanmin(mean_mae - std_mae) - 1.0)
         mae_hi = np.nanmax(mean_mae + std_mae) + 1.0
         ax2.set_ylim(mae_lo, mae_hi)
@@ -762,10 +841,8 @@ def fig7_classical_ml_temporal():
         ax2.set_ylabel('Test MAE (bu/ac)', fontsize=LABEL_SIZE)
         ax2.tick_params(axis='both', labelsize=TICK_SIZE)
         ax2.grid(True, alpha=0.2, linewidth=0.3)
-
         fig.tight_layout(h_pad=0.4)
         save_fig(fig, f'fig7_temporal_{crop_tag}')
-
 
 # ============================================================================
 # FIGURE 8: Classical ML vs TerraMind Comparison
