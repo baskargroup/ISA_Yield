@@ -502,6 +502,194 @@ def fig3_m3_modality_ablation():
                        np.argmin, '.2f', 'fig3d_m3_modality_mae_soybean')
 
 
+def fig7_m4_seq_temporal_lollipop():
+    """Cumulative temporal selection lollipop plot (10 seeds, mean±std) per crop."""
+    print('Figure 7b: Cumulative temporal lollipop (conf_Seq, 10 seeds)...')
+
+    pred_base = Path('conf_Seq/predictions')
+    seeds = [42, 123, 456, 789, 101, 234, 567, 890, 1024, 2048]
+    crop_configs = [
+        ('Corn',    'corn',    's12cdw', CORN_COLOR),
+        ('Soybean', 'soybean', 's12w',   SOYBEAN_COLOR),
+    ]
+    weeks = list(range(1, 25))
+
+    def _lollipop(vals, stds, labels, crop_name, crop_color, xlabel, best_fn, fmt_spec, panel_name):
+        n = len(vals)
+        order = np.argsort(vals)
+        if best_fn == np.argmax:
+            pass  # ascending → best at top
+        else:
+            order = order[::-1]  # descending → best at top for MAE
+
+        s_vals   = [vals[i]   for i in order]
+        s_stds   = [stds[i]   for i in order]
+        s_labels = [labels[i] for i in order]
+        best_i   = best_fn(s_vals)
+
+        fig, ax = plt.subplots(figsize=(SINGLE_COL + 1.0, 0.32 * n + 0.8))
+
+        ref = min(s_vals) - 0.03 if 'R' in xlabel else max(s_vals) + 0.5
+        for i in range(n):
+            ax.hlines(y=i, xmin=ref, xmax=s_vals[i],
+                      color='#cccccc', linewidth=0.8, zorder=1)
+
+        for i in range(n):
+            is_best = (i == best_i)
+            ms = 7 if is_best else 5
+            ew = 0.8 if is_best else 0.4
+            fc = crop_color if is_best else mpl.colors.to_rgba(crop_color, 0.55)
+            ax.errorbar(s_vals[i], i, xerr=s_stds[i],
+                        fmt='none', ecolor='#888888',
+                        elinewidth=0.5, capsize=2, capthick=0.5, zorder=2)
+            ax.scatter(s_vals[i], i, s=ms**2, color=fc,
+                       edgecolors='black', linewidths=ew, zorder=4)
+
+        best_label = f'{s_vals[best_i]:{fmt_spec}} ± {s_stds[best_i]:{fmt_spec}}'
+        ax.annotate(best_label,
+                    xy=(s_vals[best_i], best_i), xytext=(0, 8),
+                    textcoords='offset points', ha='center', va='bottom',
+                    fontsize=ANNOT_SIZE, fontweight='bold', color=crop_color)
+
+        ax.set_yticks(range(n))
+        ax.set_yticklabels(s_labels, fontsize=TICK_SIZE)
+        ax.set_xlabel(xlabel, fontsize=LABEL_SIZE)
+        ax.set_title(crop_name, fontsize=TITLE_SIZE, fontweight='bold')
+        ax.tick_params(axis='both', labelsize=TICK_SIZE)
+        ax.set_ylim(-0.6, n - 0.4)
+        ax.grid(True, axis='x', alpha=0.15, linewidth=0.3)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+
+        fig.tight_layout()
+        save_fig(fig, panel_name)
+
+    for crop_name, crop_tag, modality, crop_color in crop_configs:
+        r2_per_week  = {w: [] for w in weeks}
+        mae_per_week = {w: [] for w in weeks}
+
+        for seed in seeds:
+            seed_dir = pred_base / f'seed_{seed}'
+            for week in weeks:
+                fpath = seed_dir / f'{modality}_{week}_{crop_tag}_seed{seed}.csv'
+                if fpath.exists():
+                    df = pd.read_csv(fpath)
+                    yt, yp = df['YieldGT'].values, df['Prediction'].values
+                    r2_per_week[week].append(r2_score(yt, yp))
+                    mae_per_week[week].append(mean_absolute_error(yt, yp))
+
+        valid_weeks, mean_r2, std_r2, mean_mae, std_mae = [], [], [], [], []
+        for w in weeks:
+            if r2_per_week[w]:
+                valid_weeks.append(w)
+                mean_r2.append(np.mean(r2_per_week[w]))
+                std_r2.append(np.std(r2_per_week[w]))
+                mean_mae.append(np.mean(mae_per_week[w]))
+                std_mae.append(np.std(mae_per_week[w]))
+
+        labels = [f'Round {w} (W1~W{w})' for w in valid_weeks]
+
+        _lollipop(mean_r2, std_r2, labels, crop_name, crop_color,
+                  '$R^2$ (mean ± std)', np.argmax, '.3f',
+                  f'fig7b_seq_temporal_r2_{crop_tag}')
+
+        _lollipop(mean_mae, std_mae, labels, crop_name, crop_color,
+                  'MAE (bu/ac, mean ± std)', np.argmin, '.2f',
+                  f'fig7b_seq_temporal_mae_{crop_tag}')
+
+
+def fig7_m4_seq_temporal_selection_diffseed():
+    """TerraMind cumulative temporal R² per crop (10 seeds, mean±std)."""
+    print('Figure 7: TerraMind cumulative temporal progression (conf_Seq, 10 seeds)...')
+
+    pred_base = Path('conf_Seq/predictions')
+    seeds = [42, 123, 456, 789, 101, 234, 567, 890, 1024, 2048]
+    crop_configs = [
+        ('Corn',    'corn',    's12cdw', CORN_COLOR),
+        ('Soybean', 'soybean', 's12w',   SOYBEAN_COLOR),
+    ]
+    weeks = list(range(1, 25))
+
+    for crop_name, crop_tag, modality, crop_color in crop_configs:
+        r2_per_week  = {w: [] for w in weeks}
+        mae_per_week = {w: [] for w in weeks}
+
+        for seed in seeds:
+            seed_dir = pred_base / f'seed_{seed}'
+            for week in weeks:
+                fpath = seed_dir / f'{modality}_{week}_{crop_tag}_seed{seed}.csv'
+                if fpath.exists():
+                    df = pd.read_csv(fpath)
+                    yt, yp = df['YieldGT'].values, df['Prediction'].values
+                    r2_per_week[week].append(r2_score(yt, yp))
+                    mae_per_week[week].append(mean_absolute_error(yt, yp))
+
+        valid_weeks, mean_r2, std_r2, mean_mae, std_mae = [], [], [], [], []
+        for w in weeks:
+            if r2_per_week[w]:
+                valid_weeks.append(w)
+                mean_r2.append(np.mean(r2_per_week[w]))
+                std_r2.append(np.std(r2_per_week[w]))
+                mean_mae.append(np.mean(mae_per_week[w]))
+                std_mae.append(np.std(mae_per_week[w]))
+
+        mean_r2  = np.array(mean_r2)
+        std_r2   = np.array(std_r2)
+        mean_mae = np.array(mean_mae)
+        std_mae  = np.array(std_mae)
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(SINGLE_COL, 4.2), sharex=True)
+
+        # --- R² panel ---
+        ax1.plot(valid_weeks, mean_r2, color=crop_color, marker='o',
+                 markersize=3, linewidth=0.8, linestyle='-', zorder=3)
+        ax1.fill_between(valid_weeks, mean_r2 - std_r2, mean_r2 + std_r2,
+                         alpha=0.3, color=crop_color, zorder=2)
+        best_idx = np.nanargmax(mean_r2)
+        ha = 'right' if valid_weeks[best_idx] > 12 else 'left'
+        xoffset = -10 if valid_weeks[best_idx] > 12 else 10
+        ax1.annotate(f'$R^2$={mean_r2[best_idx]:.3f}',
+                     xy=(valid_weeks[best_idx], mean_r2[best_idx]),
+                     xytext=(xoffset, 10), textcoords='offset points',
+                     ha=ha, fontsize=ANNOT_SIZE,
+                     fontweight='bold', color=crop_color,
+                     arrowprops=dict(arrowstyle='-', color=crop_color,
+                                     linestyle='dashed', lw=0.8))
+        r2_hi = np.nanmax(mean_r2 + std_r2) + 0.15
+        ax1.set_ylim(None, r2_hi)
+        ax1.set_ylabel('Test $R^2$', fontsize=LABEL_SIZE)
+        ax1.set_title(f'{crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
+        ax1.tick_params(axis='both', labelsize=TICK_SIZE)
+        ax1.grid(True, alpha=0.2, linewidth=0.3)
+        ax1.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter('%.1f'))
+
+        # --- MAE panel ---
+        ax2.plot(valid_weeks, mean_mae, color=crop_color, marker='o',
+                 markersize=3, linewidth=0.8, linestyle='-', zorder=3)
+        ax2.fill_between(valid_weeks, mean_mae - std_mae, mean_mae + std_mae,
+                         alpha=0.3, color=crop_color, zorder=2)
+        best_idx = np.nanargmin(mean_mae)
+        ha_mae = 'right' if valid_weeks[best_idx] > 12 else 'left'
+        xoffset_mae = -10 if valid_weeks[best_idx] > 12 else 10
+        ax2.annotate(f'MAE={mean_mae[best_idx]:.2f}',
+                     xy=(valid_weeks[best_idx], mean_mae[best_idx]),
+                     xytext=(xoffset_mae, -14), textcoords='offset points',
+                     ha=ha_mae, fontsize=ANNOT_SIZE,
+                     fontweight='bold', color=crop_color,
+                     arrowprops=dict(arrowstyle='-', color=crop_color,
+                                     linestyle='dashed', lw=0.8))
+        mae_lo = max(0, np.nanmin(mean_mae - std_mae) - 1.5)
+        ax2.set_ylim(mae_lo, None)
+        ax2.set_xlabel('Round (Cumulative Weeks)', fontsize=LABEL_SIZE)
+        ax2.set_ylabel('Test MAE (bu/ac)', fontsize=LABEL_SIZE)
+        ax2.tick_params(axis='both', labelsize=TICK_SIZE)
+        ax2.grid(True, alpha=0.2, linewidth=0.3)
+        ax2.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter('%.1f'))
+
+        fig.tight_layout(h_pad=0.4)
+        save_fig(fig, f'fig7b_temporal_diffseed_{crop_tag}')
+
+
 # ============================================================================
 # FIGURE 4: M4 Scatter plots — Best configurations (separate per crop)
 # ============================================================================

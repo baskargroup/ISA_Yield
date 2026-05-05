@@ -1286,8 +1286,22 @@ class GenericMultimodalDataset(NonGeoDataset, ABC):
 
         else:
             image_files = {}
+
+            # original code
             for m, m_paths in data_root.items():
                 image_files[m] = sorted(glob.glob(os.path.join(m_paths, image_grep[m])))
+            
+            # # --- modification suggestion code --- -- ** Chloe for backward selection **
+            # for m, m_paths in data_root.items():
+            #     if isinstance(m_paths, (str, Path)):
+            #         m_paths = [m_paths]
+                
+            #     all_files_for_modality = []
+            #     for path in m_paths:
+            #         found_files = glob.glob(os.path.join(path, image_grep[m]))
+            #         all_files_for_modality.extend(found_files)
+
+            #     image_files[m] = sorted(all_files_for_modality)
 
             def get_file_id(file_name, mod):
                 glob_as_regex = '^' + ''.join('(.*?)' if ch == '*' else re.escape(ch)
@@ -1335,11 +1349,21 @@ class GenericMultimodalDataset(NonGeoDataset, ABC):
                 if isinstance(m_path, pd.DataFrame):
                     # Add tabular data to sample
                     sample[m] = m_path.loc[file].values
-                elif allow_substring_file_names:
+                elif allow_substring_file_names: # original
                     # Substring match with image_grep
                     m_files = glob.glob(os.path.join(m_path, file + image_grep[m]))
                     if m_files:
                         sample[m] = m_files[0]
+                # elif allow_substring_file_names: # modification suggestion -- ** Chloe for backward selection **
+                #     if isinstance(m_path, list):
+                #         m_files = []
+                #         for p in m_path:
+                #             m_files.extend(glob.glob(os.path.join(p, file + image_grep[m])))
+                #     else:
+                #         m_files = glob.glob(os.path.join(m_path, file + image_grep[m]))
+                #     if m_files:
+                #         sample[m] = m_files
+
                 else:
                     # Exact match
                     file_path = os.path.join(m_path, file)
@@ -1490,8 +1514,19 @@ class GenericMultimodalDataset(NonGeoDataset, ABC):
             data = xr.open_zarr(path, mask_and_scale=True)
             data_var = modality if modality in data.data_vars else list(data.data_vars)[0]
             data = data[data_var].to_numpy()
-        elif path.endswith(".npy"):
+        elif path.endswith(".npy"): # original
             data = np.load(path)
+        
+        # # --- modification suggestion code --- -- ** Chloe for backward selection **
+        # elif isinstance(path, list):
+        #     arrays = []
+        #     for p in path:
+        #         arr = np.load(p)
+        #         arrays.append(arr)
+        #     data = np.concatenate(arrays, axis=0)
+        # elif path.endswith(".npy"):
+        #     data = np.load(path)
+
         else:
             data = rioxarray.open_rasterio(path, masked=True).to_numpy()
 

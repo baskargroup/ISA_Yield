@@ -1,0 +1,165 @@
+data:
+  class_path: terratorch.datamodules.GenericMultiModalDataModule
+  init_args:
+    batch_size: 4
+    expand_temporal_dimension: false
+    means:
+      S1GRD:
+      - -11.224
+      - -18.978
+      S2L2A:
+      - 529.509
+      - 622.422
+      - 849.159
+      - 889.618
+      - 1280.02
+      - 2572.048
+      - 3249.194
+      - 3357.392
+      - 3518.104
+      - 3533.077
+      - 2808.764
+      - 1955.034
+      WEATHER:
+      - 23.818
+      - 24.606
+      - 12.064
+      - 373.494
+      - 1482.514
+      - 0.547
+      - 49955.316
+    modalities:
+    - S2L2A
+    - S1GRD
+    - WEATHER
+    no_data_replace: 0
+    no_label_replace: 0.0
+    num_workers: 8
+    rgb_indices:
+    - 3
+    - 2
+    - 1
+    rgb_modality: S2L2A
+    stds:
+      S1GRD:
+      - 0.897
+      - 1.098
+      S2L2A:
+      - 85.014
+      - 107.36
+      - 133.666
+      - 192.031
+      - 230.486
+      - 314.053
+      - 369.633
+      - 373.084
+      - 384.849
+      - 378.25
+      - 345.843
+      - 295.994
+      WEATHER:
+      - 7.991
+      - 1.232
+      - 1.241
+      - 11.317
+      - 120.417
+      - 1.337
+      - 504.205
+    task: regression
+    test_data_root:
+      S1GRD: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/S1GRD
+      S2L2A: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/S2L2A
+      WEATHER: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/WEATHER
+    test_label_data_root: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/yield_geotiffs
+    test_split: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/test_soybean.txt
+    train_data_root:
+      S1GRD: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/S1GRD
+      S2L2A: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/S2L2A
+      WEATHER: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/WEATHER
+    train_label_data_root: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/yield_geotiffs
+    train_split: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/train_soybean.txt
+    val_data_root:
+      S1GRD: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/S1GRD
+      S2L2A: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/S2L2A
+      WEATHER: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/WEATHER
+    val_label_data_root: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/yield_geotiffs
+    val_split: processed_data_bs20_rm_17_14_5_7_10_15_2_13_3/val_soybean.txt
+lr_scheduler:
+  class_path: ReduceLROnPlateau
+  init_args:
+    factor: 0.8
+    min_lr: 1.0e-06
+    monitor: val/loss
+    patience: 25
+model:
+  class_path: terratorch.tasks.PixelwiseRegressionTask
+  init_args:
+    freeze_backbone: false
+    freeze_decoder: false
+    ignore_index: -1
+    loss: mse
+    model_args:
+      backbone: terramind_v1_base
+      backbone_merge_method: mean
+      backbone_modalities:
+      - S2L2A
+      - S1GRD
+      - WEATHER: 7
+      backbone_pretrained: true
+      decoder: UNetDecoder
+      decoder_channels:
+      - 512
+      - 256
+      - 128
+      - 64
+      head_dropout: 0.1
+      necks:
+      - indices:
+        - 2
+        - 5
+        - 8
+        - 11
+        name: SelectIndices
+      - name: ReshapeTokensToImage
+        remove_cls_token: false
+      - name: LearnedInterpolateToPyramidal
+    model_factory: EncoderDecoderFactory
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 1e-4
+seed_everything: 42
+trainer:
+  accelerator: auto
+  accumulate_grad_batches: 8
+  callbacks:
+  - class_path: ModelCheckpoint
+    init_args:
+      dirpath: output/soybean/BS_S12W/bs20/round9/rm_17_14_5_7_10_15_2_13_3/checkpoints
+      filename: best-{epoch:03d}
+      mode: min
+      monitor: val/loss
+      save_last: true
+      save_top_k: 1
+  - class_path: EarlyStopping
+    init_args:
+      min_delta: 0.0001
+      mode: min
+      monitor: val/loss
+      patience: 75
+      verbose: true
+  - class_path: LearningRateMonitor
+    init_args:
+      logging_interval: epoch
+  - class_path: RichProgressBar
+  devices: auto
+  log_every_n_steps: 1
+  logger:
+  - class_path: WandbLogger
+    init_args:
+      name: BS_Soybean_S12W_bs20_round9_rm_17_14_5_7_10_15_2_13_3
+      project: M4_Soybean_S12W_BS
+  max_epochs: 1000
+  num_nodes: 1
+  precision: 16-mixed
+  strategy: auto

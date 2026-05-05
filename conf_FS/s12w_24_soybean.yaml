@@ -1,0 +1,159 @@
+seed_everything: 42
+trainer:
+  accelerator: auto
+  strategy: auto
+  devices: auto
+  num_nodes: 1
+  precision: 16-mixed
+  logger:
+  - class_path: WandbLogger
+    init_args:
+      project: M3_soybean
+      name: S12W_stat_differentnorm
+  callbacks:
+  - class_path: ModelCheckpoint
+    init_args:
+      dirpath: output/soybean/M3/differentnorm/S12W_stat/checkpoints
+      monitor: val/loss
+      mode: min
+      save_top_k: 1
+      save_last: true
+      filename: best-{epoch:03d}
+  - class_path: EarlyStopping
+    init_args:
+      monitor: val/loss
+      patience: 75
+      min_delta: 0.0001
+      mode: min
+      verbose: true
+  - class_path: LearningRateMonitor
+    init_args:
+      logging_interval: epoch
+  - class_path: RichProgressBar
+  max_epochs: 1000
+  log_every_n_steps: 1
+  accumulate_grad_batches: 8
+data:
+  class_path: terratorch.datamodules.GenericMultiModalDataModule
+  init_args:
+    task: regression
+    batch_size: 4
+    num_workers: 8
+    modalities:
+    - S2L2A
+    - S1GRD
+    - WEATHER
+    rgb_modality: S2L2A
+    rgb_indices:
+    - 3
+    - 2
+    - 1
+    train_data_root: &id001
+      S2L2A: ../processed_data/weekly_24/processed_data_weekly_24/S2L2A
+      S1GRD: ../processed_data/weekly_24/processed_data_weekly_24/S1GRD
+      WEATHER: ../processed_data/weekly_24/processed_data_weekly_24/WEATHER
+    train_label_data_root: ../processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
+    val_data_root: *id001
+    val_label_data_root: ../processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
+    test_data_root: *id001
+    test_label_data_root: ../processed_data/weekly_24/processed_data_weekly_24/yield_geotiffs
+    train_split: ../processed_data/weekly_24/processed_data_weekly_24/train_soybean.txt
+    val_split: ../processed_data/weekly_24/processed_data_weekly_24/val_soybean.txt
+    test_split: ../processed_data/weekly_24/processed_data_weekly_24/test_soybean.txt
+    expand_temporal_dimension: false
+    no_label_replace: 0.0
+    no_data_replace: 0
+    means:
+      S2L2A:
+      - 529.509
+      - 622.422
+      - 849.159
+      - 889.618
+      - 1280.020
+      - 2572.048
+      - 3249.194
+      - 3357.392
+      - 3518.104
+      - 3533.077
+      - 2808.764
+      - 1955.034
+      S1GRD:
+      - -11.224
+      - -18.978
+      WEATHER:
+      - 23.818
+      - 24.606
+      - 12.064
+      - 373.494
+      - 1482.514
+      - 0.547
+      - 49955.316
+    stds:
+      S2L2A:
+      - 85.014
+      - 107.360
+      - 133.666
+      - 192.031
+      - 230.486
+      - 314.053
+      - 369.633
+      - 373.084
+      - 384.849
+      - 378.250
+      - 345.843
+      - 295.994
+      S1GRD:
+      - 0.897
+      - 1.098
+      WEATHER:
+      - 7.991
+      - 1.232
+      - 1.241
+      - 11.317
+      - 120.417
+      - 1.337
+      - 504.205
+model:
+  class_path: terratorch.tasks.PixelwiseRegressionTask
+  init_args:
+    model_factory: EncoderDecoderFactory
+    model_args:
+      backbone: terramind_v1_base
+      backbone_pretrained: true
+      backbone_modalities:
+      - S2L2A
+      - S1GRD
+      - WEATHER: 7
+      backbone_merge_method: mean
+      necks:
+      - name: SelectIndices
+        indices:
+        - 2
+        - 5
+        - 8
+        - 11
+      - name: ReshapeTokensToImage
+        remove_cls_token: false
+      - name: LearnedInterpolateToPyramidal
+      decoder: UNetDecoder
+      decoder_channels:
+      - 512
+      - 256
+      - 128
+      - 64
+      head_dropout: 0.1
+    loss: mse
+    ignore_index: -1
+    freeze_backbone: false
+    freeze_decoder: false
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 1e-4
+lr_scheduler:
+  class_path: ReduceLROnPlateau
+  init_args:
+    monitor: val/loss
+    factor: 0.8
+    patience: 25
+    min_lr: 1.0e-06

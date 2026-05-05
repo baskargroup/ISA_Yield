@@ -3,14 +3,14 @@ import copy
 import os
 
 # ✅ modify only here per each round!
-SELECTED_WEEKS = [16, 18, 1, 3, 24, 15, 23, 6, 7]  # shoould be empty for round1
-MODALITIES = ['S2L2A', 'S1GRD', 'SOIL', 'DEM']
+SELECTED_WEEKS = [18, 5, 12, 8, 7, 11, 17]  # should be empty for round1
+MODALITIES = ['S2L2A', 'S1GRD', 'WEATHER']
 
 selected_str = "_".join(map(str, SELECTED_WEEKS))
 round_num = len(SELECTED_WEEKS) + 1
 remaining_weeks = [w for w in range(1, 25) if w not in SELECTED_WEEKS]
 
-with open('s12sd_24_soybean.yaml', 'r') as f:
+with open('s12w_24_soybean.yaml', 'r') as f:
     template = yaml.safe_load(f)
 
 output_dir = f'fs_yamls_soybean_round{round_num}'
@@ -26,12 +26,12 @@ for week in remaining_weeks:
     data_root = f"processed_data_fs_{combo}"
 
     # WandB
-    config['trainer']['logger'][0]['init_args']['project'] = 'M4_Soybean'
-    config['trainer']['logger'][0]['init_args']['name'] = f"FS_Soybean_S12SD_week_{combo}"
+    config['trainer']['logger'][0]['init_args']['project'] = 'M4_Soybean_S12W_NEW'
+    config['trainer']['logger'][0]['init_args']['name'] = f"FS_Soybean_S12W_week_{combo}"
 
     # Checkpoint
     config['trainer']['callbacks'][0]['init_args']['dirpath'] = \
-        f"output/soybean/FS_S12SD/week_{combo}/checkpoints"
+        f"output/soybean/FS_S12W/week_{combo}/checkpoints"
 
     # Data paths
     for split in ['train', 'val', 'test']:
