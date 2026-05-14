@@ -471,7 +471,6 @@ def fig3_m3_modality_ablation():
         ax.set_yticks(y_pos)
         ax.set_yticklabels(crop_df['Modal'], fontsize=TICK_SIZE)
         ax.set_xlabel(xlabel, fontsize=LABEL_SIZE)
-        ax.set_title(crop_name, fontsize=TITLE_SIZE, fontweight='bold')
         ax.tick_params(axis='both', labelsize=TICK_SIZE)
         ax.set_ylim(-0.6, n - 0.4)
         ax.grid(True, axis='x', alpha=0.15, linewidth=0.3)
@@ -598,9 +597,12 @@ def fig7_m4_seq_temporal_lollipop():
                   f'fig7b_seq_temporal_mae_{crop_tag}')
 
 
+
 def fig7_m4_seq_temporal_selection_diffseed():
     """TerraMind cumulative temporal R² per crop (10 seeds, mean±std)."""
     print('Figure 7: TerraMind cumulative temporal progression (conf_Seq, 10 seeds)...')
+
+    from numpy.polynomial import polynomial as P
 
     pred_base = Path('conf_Seq/predictions')
     seeds = [42, 123, 456, 789, 101, 234, 567, 890, 1024, 2048]
@@ -638,36 +640,55 @@ def fig7_m4_seq_temporal_selection_diffseed():
         mean_mae = np.array(mean_mae)
         std_mae  = np.array(std_mae)
 
+        # ✅ Polynomial fit for smooth std band
+        x = np.arange(len(valid_weeks))
+
+        coef_r2  = P.polyfit(x, std_r2,  deg=3)
+        coef_mae = P.polyfit(x, std_mae, deg=3)
+        std_r2_smooth  = np.maximum(P.polyval(x, coef_r2),  0)
+        std_mae_smooth = np.maximum(P.polyval(x, coef_mae), 0)
+
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(SINGLE_COL, 4.2), sharex=True)
 
         # --- R² panel ---
+        # ✅ std band 먼저 (더 진하게)
+        ax1.fill_between(valid_weeks,
+                         mean_r2 - std_r2_smooth,
+                         mean_r2 + std_r2_smooth,
+                         alpha=0.5, color=crop_color, zorder=2)
+        # ✅ mean line 얇고 투명하게
         ax1.plot(valid_weeks, mean_r2, color=crop_color, marker='o',
-                 markersize=3, linewidth=0.8, linestyle='-', zorder=3)
-        ax1.fill_between(valid_weeks, mean_r2 - std_r2, mean_r2 + std_r2,
-                         alpha=0.3, color=crop_color, zorder=2)
+                 markersize=2, linewidth=0.5, linestyle='--',
+                 alpha=0.5, zorder=3)
+
         best_idx = np.nanargmax(mean_r2)
         ha = 'right' if valid_weeks[best_idx] > 12 else 'left'
-        xoffset = -10 if valid_weeks[best_idx] > 12 else 10
+        xoffset = 10 if valid_weeks[best_idx] > 12 else 10
         ax1.annotate(f'$R^2$={mean_r2[best_idx]:.3f}',
                      xy=(valid_weeks[best_idx], mean_r2[best_idx]),
-                     xytext=(xoffset, 10), textcoords='offset points',
+                     xytext=(xoffset, 12), textcoords='offset points',
                      ha=ha, fontsize=ANNOT_SIZE,
                      fontweight='bold', color=crop_color,
                      arrowprops=dict(arrowstyle='-', color=crop_color,
                                      linestyle='dashed', lw=0.8))
-        r2_hi = np.nanmax(mean_r2 + std_r2) + 0.15
+        r2_hi = np.nanmax(mean_r2 + std_r2_smooth) + 0.15
         ax1.set_ylim(None, r2_hi)
         ax1.set_ylabel('Test $R^2$', fontsize=LABEL_SIZE)
-        ax1.set_title(f'{crop_name}', fontweight='bold', fontsize=TITLE_SIZE)
         ax1.tick_params(axis='both', labelsize=TICK_SIZE)
         ax1.grid(True, alpha=0.2, linewidth=0.3)
         ax1.yaxis.set_major_formatter(mpl.ticker.FormatStrFormatter('%.1f'))
 
         # --- MAE panel ---
+        # ✅ std band 먼저 (더 진하게)
+        ax2.fill_between(valid_weeks,
+                         mean_mae - std_mae_smooth,
+                         mean_mae + std_mae_smooth,
+                         alpha=0.5, color=crop_color, zorder=2)
+        # ✅ mean line 얇고 투명하게
         ax2.plot(valid_weeks, mean_mae, color=crop_color, marker='o',
-                 markersize=3, linewidth=0.8, linestyle='-', zorder=3)
-        ax2.fill_between(valid_weeks, mean_mae - std_mae, mean_mae + std_mae,
-                         alpha=0.3, color=crop_color, zorder=2)
+                 markersize=2, linewidth=0.5, linestyle='--',
+                 alpha=0.5, zorder=3)
+
         best_idx = np.nanargmin(mean_mae)
         ha_mae = 'right' if valid_weeks[best_idx] > 12 else 'left'
         xoffset_mae = -10 if valid_weeks[best_idx] > 12 else 10
@@ -678,7 +699,7 @@ def fig7_m4_seq_temporal_selection_diffseed():
                      fontweight='bold', color=crop_color,
                      arrowprops=dict(arrowstyle='-', color=crop_color,
                                      linestyle='dashed', lw=0.8))
-        mae_lo = max(0, np.nanmin(mean_mae - std_mae) - 1.5)
+        mae_lo = max(0, np.nanmin(mean_mae - std_mae_smooth) - 1.5)
         ax2.set_ylim(mae_lo, None)
         ax2.set_xlabel('Round (Cumulative Weeks)', fontsize=LABEL_SIZE)
         ax2.set_ylabel('Test MAE (bu/ac)', fontsize=LABEL_SIZE)
@@ -698,8 +719,8 @@ def fig4_m4_scatter_best():
     print('Figure 4: M4 best config scatter plots...')
 
     crop_csv = {
-        'Corn': 'conf_FS/conf_FS/predictions/corn/6round/S12cdw_Corn_week_16_20_1_12_18_19.csv',
-        'Soybean': 'conf_FS/conf_FS/predictions/soybean/round3/S12sd_Soybean_week_16_18_1.csv',
+        'Corn': 'conf_BS/predictions/bs_corn/w20/round9/S12wdc_Corn_bs20_round9_rm_8_19_7_17_12_9_10_2_1.csv',
+        'Soybean': 'conf_BS/predictions/bs_soybean/w20/round3/S12w_Soybean_bs20_round3_rm_17_14_5.csv',
     }
 
     for crop, csv_path in crop_csv.items():
@@ -720,7 +741,7 @@ def fig4_m4_scatter_best():
                 max(y_true.max(), y_pred.max())]
         margin = (lims[1] - lims[0]) * 0.05
         lims = [lims[0] - margin, lims[1] + margin]
-        ax.plot(lims, lims, 'k--', linewidth=0.8, alpha=0.5, zorder=2, label='1:1')
+        ax.plot(lims, lims, 'k--', linewidth=0.8, alpha=0.5, zorder=2, label='1:1 line')
 
         ax.set_xlim(lims)
         ax.set_ylim(lims)
@@ -737,7 +758,7 @@ def fig4_m4_scatter_best():
                           ec='gray', lw=0.4))
 
         modal = extract_modal_code(Path(csv_path).stem)
-        ax.set_title(f'{modal} — {crop}', fontweight='bold', fontsize=TITLE_SIZE, pad=3)
+        # ax.set_title(f'{modal} — {crop}', fontweight='bold', fontsize=TITLE_SIZE, pad=3)
         ax.set_xlabel('Observed Yield (bu/acre)', fontsize=LABEL_SIZE)
         ax.set_ylabel('Predicted Yield (bu/acre)', fontsize=LABEL_SIZE)
         ax.legend(loc='lower right', fontsize=LEGEND_SIZE, framealpha=0.9)
@@ -1050,7 +1071,7 @@ def fig8_classical_vs_terramind():
                 'classical_ml_param_opt_corn_s12cdw_plsr_vi.csv',
             ],
             CORN_COLOR,
-            0.748,  # TM-S1S2cdw R²
+            0.687,  # TM-S1S2cdw R²
         ),
         (
             'Soybean',
@@ -1061,7 +1082,7 @@ def fig8_classical_vs_terramind():
                 'classical_ml_param_opt_soybean_s12ds_plsr_vi.csv',
             ],
             SOYBEAN_COLOR,
-            0.641,  # TM-S1S2ds R²
+            0.674,  # TM-S1S2ds R²
         ),
     ]
 
@@ -1812,8 +1833,8 @@ def fig17_residual_analysis():
     print('Figure 17: Residual analysis...')
 
     crop_csv = {
-        'Corn': 'conf_FS/conf_FS/predictions/corn/6round/S12cdw_Corn_week_16_20_1_12_18_19.csv',
-        'Soybean': 'conf_FS/conf_FS/predictions/soybean/round3/S12sd_Soybean_week_16_18_1.csv',
+        'Corn': 'conf_BS/predictions/bs_corn/w20/round9/S12wdc_Corn_bs20_round9_rm_8_19_7_17_12_9_10_2_1.csv',
+        'Soybean': 'conf_BS/predictions/bs_soybean/w20/round3/S12w_Soybean_bs20_round3_rm_17_14_5.csv',
     }
 
     all_true, all_pred, all_crops = [], [], []

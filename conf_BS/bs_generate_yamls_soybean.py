@@ -5,7 +5,7 @@ import os
 # ✅ modify only here per each round!
 START_WEEKS = list(range(1, 17))  # Start from Week 16: [1,2,...,16]
 
-REMOVED_WEEKS = [9, 11, 5, 4, 14, 16, 6, 3, 13, 10, 16]  # Round 1: [], Round 2: [removed week], ...
+REMOVED_WEEKS = [9, 11, 5, 4, 14, 16, 6, 3, 13, 10, 12]  # Round 1: [], Round 2: [removed week], ...
 
 MODALITIES = ['S2L2A', 'S1GRD', 'WEATHER']  # soybean
 

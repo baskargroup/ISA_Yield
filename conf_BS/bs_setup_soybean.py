@@ -127,7 +127,7 @@ from multiprocessing import Pool
 
 START_WEEKS = list(range(1, 17))
 # ✅ modify only here!
-REMOVED_WEEKS = [9, 11, 5, 4, 14, 16, 6, 3, 13, 10, 16]  # Round 1: [], Round 2: [removed week], ...
+REMOVED_WEEKS = [9, 11, 5, 4, 14, 16, 6, 3, 13, 10, 12]  # Round 1: [], Round 2: [removed week], ...
 MODALITIES = ['S2L2A', 'S1GRD', 'CDL', 'DEM', 'WEATHER']  # corn + soybean 공용
 FS_BASE = "/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_FS"
 WEEKLY_BASE = f"{FS_BASE}/processed_data_fs"

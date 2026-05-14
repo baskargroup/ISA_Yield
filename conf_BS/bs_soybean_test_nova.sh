@@ -4,9 +4,9 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=100G
 #SBATCH --cpus-per-task=16
-#SBATCH --gres=gpu:1
-#SBATCH --partition=scavenger
-#SBATCH --reservation=mech-ai-1
+#SBATCH --gres=gpu:a100:1
+#SBATCH --partition=nova
+#SBATCH --account=mech-ai
 #SBATCH --job-name="BS_Test_Soybean_S12W"
 #SBATCH --mail-user=bgekim@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
@@ -15,7 +15,7 @@
 
 # ✅ only modify here per each round!
 START_WEEKS=16        # starting point 
-REMOVED_WEEKS=(9 11 5 4 14 16 6 3 13 10 16)      # Round 1: (), Round 2: (best_removed_week), ...
+REMOVED_WEEKS=(9 11 5 4 14 16 6 3 13 10 12)      # Round 1: (), Round 2: (best_removed_week), ...
 
 # ========== automatic calculate ==========
 start_str="${START_WEEKS}"

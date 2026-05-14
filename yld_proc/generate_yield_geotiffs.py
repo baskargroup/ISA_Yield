@@ -108,7 +108,7 @@ def create_geotiff_from_group(df, res_m=10.0, utm_epsg="EPSG:32615"):
 
 
 # Process all available years
-parquet_files = sorted(glob.glob("Yield_*_filtered.parquet"))
+parquet_files = sorted(glob.glob("Yield_2025_filtered.parquet"))
 
 if not parquet_files:
     print("No filtered yield parquet files found.")

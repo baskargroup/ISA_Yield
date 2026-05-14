@@ -7,6 +7,7 @@ import concurrent.futures
 import glob
 import re
 import pdb
+
 def read_geoparquet(file):
     try:
         return gpd.read_parquet(file)
@@ -40,7 +41,7 @@ def filter_data(year):
     if unnamed_cols:
         full_data = full_data.drop(columns=unnamed_cols)
     full_data = full_data.drop_duplicates(subset='geometry', keep='first')
-    crop_class = pd.read_csv(f'./raw_yield/Crop_Classification_{year}.csv')
+    crop_class = pd.read_csv(f'./raw_yield/2025/Crop_Classification_{year}.csv')
     crop_class = crop_class.rename(columns={'X_cent': 'x', 'Y_cent': 'y'})
     crop_mapping = dict(zip(crop_class['Layer_ID'], crop_class['Crop']))
     full_data['Crop'] = full_data['Layer_ID'].map(crop_mapping)
@@ -53,18 +54,18 @@ def filter_data(year):
     print(f'Saved the processed data as Yield_{year}_filtered.parquet')
 
 def process_year(year):
-    input_folder = f"./raw_yield/ISA_{year}_raw_yields_chunks"
+    input_folder = f"./raw_yield/2025/ISA_{year}_raw_yields_chunks"
     output_file = f"./Yield_{year}.parquet"
     combine_geoparquets(input_folder, output_file)
     filter_data(year)
 
 if __name__ == "__main__":
     # Find all chunk folders matching the pattern
-    chunk_dirs = glob.glob("./raw_yield/ISA_*_raw_yields_chunks")
+    chunk_dirs = glob.glob("./raw_yield/2025/ISA_*_raw_yields_chunks")
     years = []
     
     for d in chunk_dirs:
-        m = re.match(r"\./raw_yield/ISA_(\d{4})_raw_yields_chunks", d)
+        m = re.match(r"\./raw_yield/2025/ISA_(\d{4})_raw_yields_chunks", d)
         if m:
             years.append(m.group(1))
     print(f"Found years: {years}")

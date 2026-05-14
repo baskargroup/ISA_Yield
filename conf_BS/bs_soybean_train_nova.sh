@@ -5,10 +5,11 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=100G
 #SBATCH --cpus-per-task=16
-#SBATCH --gres=gpu:1
-#SBATCH --partition=scavenger
-#SBATCH --reservation=mech-ai-1
-#SBATCH --array=1-16
+#SBATCH --exclude=nova21-gpu-1,nova21-gpu-2
+#SBATCH --gres=gpu:a100:1
+#SBATCH --partition=nova
+#SBATCH --account=mech-ai
+#SBATCH --array=1-16%2
 #SBATCH --job-name="BS_Soy_Multi"
 #SBATCH --mail-user=bgekim@iastate.edu
 #SBATCH --mail-type=BEGIN,END,FAIL
@@ -18,7 +19,7 @@
 # ✅ Please edit only this section for each round!
 # ========================================================
 round=12
-REMOVED_WEEKS=(9 11 5 4 14 16 6 3 13 10 16)  # previously removed weeks
+REMOVED_WEEKS=(9 11 5 4 14 16 6 3 13 10 12)  # previously removed weeks
 # ========================================================
 # Check if the current array ID is in the list of removed weeks
 for p_rm in "${REMOVED_WEEKS[@]}"; do

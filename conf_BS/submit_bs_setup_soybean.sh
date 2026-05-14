@@ -13,7 +13,7 @@
 mkdir -p logs/generate_dataset/bs16
 
 # ✅ modify only here!
-REMOVED="9 11 5 4 14 16 6 3 13 10 16"  # soybean round8
+REMOVED="9 11 5 4 14 16 6 3 13 10 12"  # soybean round8
 
 for w in $REMOVED; do
     if [ "$SLURM_ARRAY_TASK_ID" -eq $w ]; then

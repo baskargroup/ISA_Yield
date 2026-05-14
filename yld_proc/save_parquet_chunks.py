@@ -10,7 +10,7 @@ import csv
 import glob
 
 # Directory containing all ISA_YYYY_raw_yields.csv files
-input_dir = 'raw_yield'
+input_dir = 'raw_yield/2025'
 csv_files = glob.glob(os.path.join(input_dir, 'ISA_*_raw_yields.csv'))
 chunk_size = 1000
 

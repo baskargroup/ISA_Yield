@@ -1,0 +1,239 @@
+# lightning.pytorch==2.6.0
+seed_everything: 42
+trainer:
+  accelerator: auto
+  strategy: auto
+  devices: auto
+  num_nodes: 1
+  precision: 16-mixed
+  logger:
+  - class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      name: FS_Soybean_S12W_week_18_5_12_8_7_11_17_16_9_24
+      save_dir: .
+      offline: false
+      project: M4_Soybean_S12W_NEW
+      log_model: false
+      prefix: ''
+      add_file_policy: mutable
+  callbacks:
+  - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+    init_args:
+      dirpath: output/soybean/FS_S12W/week_18_5_12_8_7_11_17_16_9_24/checkpoints
+      filename: best-{epoch:03d}
+      monitor: val/loss
+      verbose: false
+      save_last: true
+      save_top_k: 1
+      save_on_exception: false
+      save_weights_only: false
+      mode: min
+      auto_insert_metric_name: true
+      enable_version_counter: true
+  - class_path: lightning.pytorch.callbacks.EarlyStopping
+    init_args:
+      monitor: val/loss
+      min_delta: 0.0001
+      patience: 75
+      verbose: true
+      mode: min
+      strict: true
+      check_finite: true
+      log_rank_zero_only: false
+  - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+    init_args:
+      logging_interval: epoch
+      log_momentum: false
+      log_weight_decay: false
+  - class_path: lightning.pytorch.callbacks.RichProgressBar
+    init_args:
+      refresh_rate: 1
+      leave: false
+      theme:
+        description: ''
+        progress_bar: '#6206E0'
+        progress_bar_finished: '#6206E0'
+        progress_bar_pulse: '#6206E0'
+        batch_progress: ''
+        time: dim
+        processing_speed: dim underline
+        metrics: italic
+        metrics_text_delimiter: ' '
+        metrics_format: .3f
+  fast_dev_run: false
+  max_epochs: 1000
+  max_steps: -1
+  overfit_batches: 0.0
+  check_val_every_n_epoch: 1
+  log_every_n_steps: 1
+  accumulate_grad_batches: 8
+  inference_mode: true
+  use_distributed_sampler: true
+  detect_anomaly: false
+  barebones: false
+  sync_batchnorm: false
+  reload_dataloaders_every_n_epochs: 0
+  enable_autolog_hparams: true
+model:
+  class_path: terratorch.tasks.PixelwiseRegressionTask
+  init_args:
+    model_args:
+      backbone: terramind_v1_base
+      backbone_merge_method: mean
+      backbone_modalities:
+      - S2L2A
+      - S1GRD
+      - WEATHER: 7
+      backbone_pretrained: true
+      decoder: UNetDecoder
+      decoder_channels:
+      - 512
+      - 256
+      - 128
+      - 64
+      head_dropout: 0.1
+      necks:
+      - indices:
+        - 2
+        - 5
+        - 8
+        - 11
+        name: SelectIndices
+      - name: ReshapeTokensToImage
+        remove_cls_token: false
+      - name: LearnedInterpolateToPyramidal
+    model_factory: EncoderDecoderFactory
+    loss: mse
+    ignore_index: -1
+    lr: 0.001
+    freeze_backbone: false
+    freeze_decoder: false
+    freeze_head: false
+    plot_on_val: 10
+data:
+  class_path: terratorch.datamodules.GenericMultiModalDataModule
+  init_args:
+    batch_size: 4
+    modalities:
+    - S2L2A
+    - S1GRD
+    - WEATHER
+    means:
+      S1GRD:
+      - -11.224
+      - -18.978
+      S2L2A:
+      - 529.509
+      - 622.422
+      - 849.159
+      - 889.618
+      - 1280.02
+      - 2572.048
+      - 3249.194
+      - 3357.392
+      - 3518.104
+      - 3533.077
+      - 2808.764
+      - 1955.034
+      WEATHER:
+      - 23.818
+      - 24.606
+      - 12.064
+      - 373.494
+      - 1482.514
+      - 0.547
+      - 49955.316
+    stds:
+      S1GRD:
+      - 0.897
+      - 1.098
+      S2L2A:
+      - 85.014
+      - 107.36
+      - 133.666
+      - 192.031
+      - 230.486
+      - 314.053
+      - 369.633
+      - 373.084
+      - 384.849
+      - 378.25
+      - 345.843
+      - 295.994
+      WEATHER:
+      - 7.991
+      - 1.232
+      - 1.241
+      - 11.317
+      - 120.417
+      - 1.337
+      - 504.205
+    task: regression
+    train_data_root:
+      S1GRD: processed_data_fs_18_5_12_8_7_11_17_16_9_24/S1GRD
+      S2L2A: processed_data_fs_18_5_12_8_7_11_17_16_9_24/S2L2A
+      WEATHER: processed_data_fs_18_5_12_8_7_11_17_16_9_24/WEATHER
+    val_data_root:
+      S1GRD: processed_data_fs_18_5_12_8_7_11_17_16_9_24/S1GRD
+      S2L2A: processed_data_fs_18_5_12_8_7_11_17_16_9_24/S2L2A
+      WEATHER: processed_data_fs_18_5_12_8_7_11_17_16_9_24/WEATHER
+    test_data_root:
+      S1GRD: processed_data_fs_18_5_12_8_7_11_17_16_9_24/S1GRD
+      S2L2A: processed_data_fs_18_5_12_8_7_11_17_16_9_24/S2L2A
+      WEATHER: processed_data_fs_18_5_12_8_7_11_17_16_9_24/WEATHER
+    train_label_data_root: processed_data_fs_18_5_12_8_7_11_17_16_9_24/yield_geotiffs
+    val_label_data_root: processed_data_fs_18_5_12_8_7_11_17_16_9_24/yield_geotiffs
+    test_label_data_root: processed_data_fs_18_5_12_8_7_11_17_16_9_24/yield_geotiffs
+    train_split: processed_data_fs_18_5_12_8_7_11_17_16_9_24/train_soybean.txt
+    val_split: processed_data_fs_18_5_12_8_7_11_17_16_9_24/val_soybean.txt
+    test_split: processed_data_fs_18_5_12_8_7_11_17_16_9_24/test_soybean.txt
+    rgb_modality: S2L2A
+    rgb_indices:
+    - 3
+    - 2
+    - 1
+    allow_substring_file_names: true
+    skip_file_checks: false
+    shared_transforms: true
+    expand_temporal_dimension: false
+    no_data_replace: 0.0
+    no_label_replace: 0.0
+    reduce_zero_label: false
+    drop_last: true
+    num_workers: 8
+    pin_memory: false
+    data_with_sample_dim: false
+    allow_missing_modalities: false
+    sample_replace: false
+    channel_position: -3
+    concat_bands: false
+    check_stackability: true
+out_dtype: int16
+deploy_config_file: true
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 0.0001
+    betas:
+    - 0.9
+    - 0.999
+    eps: 1.0e-08
+    weight_decay: 0.01
+    amsgrad: false
+    maximize: false
+    capturable: false
+    differentiable: false
+lr_scheduler:
+  class_path: lightning.pytorch.cli.ReduceLROnPlateau
+  init_args:
+    monitor: val/loss
+    mode: min
+    factor: 0.8
+    patience: 25
+    threshold: 0.0001
+    threshold_mode: rel
+    cooldown: 0
+    min_lr: 1.0e-06
+    eps: 1.0e-08
+ckpt_path: output/soybean/FS_S12W/week_18_5_12_8_7_11_17_16_9_24/checkpoints/best-epoch=075.ckpt
+verbose: true

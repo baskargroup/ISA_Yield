@@ -8,7 +8,7 @@ from functools import partial
 from tqdm import tqdm
 
 # Find all Yield_YYYY_filtered.parquet files
-parquet_files = sorted(glob.glob('Yield_*_filtered.parquet'))
+parquet_files = sorted(glob.glob('Yield_2025_filtered.parquet'))
 print(f"Found {len(parquet_files)} parquet files: {parquet_files}")
 
 
