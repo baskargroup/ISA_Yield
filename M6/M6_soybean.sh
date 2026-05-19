@@ -4,9 +4,9 @@
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --ntasks-per-node=1   # 36 processor core(s) per node 
 #SBATCH --mem=100G   # maximum memory per node
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:a100:1
 #SBATCH --cpus-per-task=16
-#SBATCH --partition=scavenger    # gpu node(s)
+#SBATCH --partition=nova    # gpu node(s)
 #SBATCH --account=mech-ai
 #SBATCH --job-name="M6_soybean"
 #SBATCH --mail-user=aapowadi@iastate.edu   # email address
