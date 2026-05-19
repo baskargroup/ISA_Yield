@@ -1076,13 +1076,13 @@ def fig8_classical_vs_terramind():
         (
             'Soybean',
             [
-                'classical_ml_param_opt_soybean_s12ds_xgb.csv',
-                'classical_ml_param_opt_soybean_s12ds_plsr.csv',
-                'classical_ml_param_opt_soybean_s12ds_xgb_vi.csv',
-                'classical_ml_param_opt_soybean_s12ds_plsr_vi.csv',
+                'classical_ml_param_opt_soybean_s12w_xgb.csv',
+                'classical_ml_param_opt_soybean_s12w_plsr.csv',
+                'classical_ml_param_opt_soybean_s12w_xgb_vi.csv',
+                'classical_ml_param_opt_soybean_s12w_plsr_vi.csv',
             ],
             SOYBEAN_COLOR,
-            0.674,  # TM-S1S2ds R²
+            0.568,  # TM-S1S2w R²
         ),
     ]
 
@@ -1112,7 +1112,7 @@ def fig8_classical_vs_terramind():
                     continue
 
         # Add single TerraMind bar
-        modal_code = 'S1S2cdw' if crop_name == 'Corn' else 'S1S2ds'
+        modal_code = 'S1S2cdw' if crop_name == 'Corn' else 'S1S2w'
         models.append(f'TM-{modal_code}')
         r2_vals.append(tm_r2)
         colors.append(crop_color)

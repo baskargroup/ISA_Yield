@@ -9,8 +9,8 @@ from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
 # Configuration
-DATA_ROOT = 'conf_FS/conf_FS'
-WEEK_NAME = 'processed_data_fs_16_18_1'
+DATA_ROOT = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean'
+WEEK_NAME = 'processed_data_bs20_rm_17_14_5'
 biweek_folder = os.path.join(DATA_ROOT, WEEK_NAME)
 modalities = ["S2L2A", "S1GRD", "DEM", "SOIL"]
 STATIC_MODALITIES = {"DEM", "SOIL"}
