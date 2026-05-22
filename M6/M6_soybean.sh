@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --time=48:00:00   # walltime limit (HH:MM:SS)
+#SBATCH --time=4:00:00   # walltime limit (HH:MM:SS)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --ntasks-per-node=1   # 36 processor core(s) per node 
 #SBATCH --mem=100G   # maximum memory per node
@@ -21,5 +21,6 @@
 source /work/mech-ai-scratch/bgekim/miniconda3/etc/profile.d/conda.sh
 conda activate isa_yield_env
 
-terratorch fit -c config_bs_soybean_rm_17_14_5.yaml
+# terratorch fit -c config_bs_soybean_rm_17_14_5.yaml
+terratorch test -c config_bs_soybean_rm_17_14_5.yaml --ckpt output/soybean/BS_S12W/bs20/round3/rm_17_14_5/checkpoints/best-epoch=167.ckpt
 echo "Job finished for M3_corn_stat seed $seed"

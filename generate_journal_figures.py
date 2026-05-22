@@ -1082,7 +1082,7 @@ def fig8_classical_vs_terramind():
                 'classical_ml_param_opt_soybean_s12w_plsr_vi.csv',
             ],
             SOYBEAN_COLOR,
-            0.568,  # TM-S1S2w R²
+            0.674,  # TM-S1S2w R²
         ),
     ]
 

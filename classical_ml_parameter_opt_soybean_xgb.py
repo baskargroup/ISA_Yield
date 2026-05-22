@@ -12,10 +12,10 @@ import pandas as pd
 DATA_ROOT = '/work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean'
 WEEK_NAME = 'processed_data_bs20_rm_17_14_5'
 biweek_folder = os.path.join(DATA_ROOT, WEEK_NAME)
-modalities = ["S2L2A", "S1GRD", "DEM", "SOIL"]
+modalities = ["S2L2A", "S1GRD", "WEATHER"]
 STATIC_MODALITIES = {"DEM", "SOIL"}
 label_folder = "yield_geotiffs"
-_code = "s12ds"
+_code = "s12w"
 CROP = "soybean"
 
 # Split files

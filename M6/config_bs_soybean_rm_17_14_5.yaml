@@ -20,14 +20,8 @@ data:
       - 3533.077
       - 2808.764
       - 1955.034
-      WEATHER:
-      - 23.818
-      - 24.606
-      - 12.064
-      - 373.494
-      - 1482.514
-      - 0.547
-      - 49955.316
+      DEM:
+      - 338.315
     modalities:
     - S2L2A
     - S1GRD
@@ -57,31 +51,28 @@ data:
       - 378.25
       - 345.843
       - 295.994
-      WEATHER:
-      - 7.991
-      - 1.232
-      - 1.241
-      - 11.317
-      - 120.417
-      - 1.337
-      - 504.205
+      DEM:
+      - 57.13
     task: regression
     test_data_root:
       S1GRD: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/S1GRD
       S2L2A: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/S2L2A
       WEATHER: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/WEATHER
+      DEM: /work/mech-ai-scratch/aapowadi/ISA_Yield/processed_data/weekly_24/processed_data_weekly_17/DEM
     test_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/yield_geotiffs
     test_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/test_soybean.txt
     train_data_root:
       S1GRD: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/S1GRD
       S2L2A: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/S2L2A
       WEATHER: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/WEATHER
+      DEM: /work/mech-ai-scratch/aapowadi/ISA_Yield/processed_data/weekly_24/processed_data_weekly_17/DEM
     train_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/yield_geotiffs
     train_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/train_soybean.txt
     val_data_root:
       S1GRD: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/S1GRD
       S2L2A: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/S2L2A
       WEATHER: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/WEATHER
+      DEM: /work/mech-ai-scratch/aapowadi/ISA_Yield/processed_data/weekly_24/processed_data_weekly_17/DEM
     val_label_data_root: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/yield_geotiffs
     val_split: /work/mech-ai-scratch/bgekim/project/ISA_Yield_Anirudha/ISA_Yield/conf_BS/w20_dataset/soybean/processed_data_bs20_rm_17_14_5/val_soybean.txt
 lr_scheduler:
