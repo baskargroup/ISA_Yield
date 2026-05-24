@@ -1,3 +1,6 @@
+geospatial_data_download
+.claude
+.DS_Store
 terratorch*.yaml
 *.csv
 *.parquet
