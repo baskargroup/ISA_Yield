@@ -1,3 +1,7 @@
+![TerraMind multimodal yield prediction pipeline](journal_figures/Prj_TeraMind_Chloe.png)
+
+*Project overview: multimodal inputs (Sentinel-1 SAR, Sentinel-2 optical, soil, synthetic weather, CDL, DEM) across time are encoded by TerraMind, temporally aggregated via Co-Pool, and passed to a downstream decoder to produce field-level yield map predictions. ([PDF](journal_figures/Prj_TeraMind_Chloe.pdf))*
+
 # Data Preprocessing
 
 ## 1. Yield Data Processing
