@@ -1,7 +1,14 @@
 data:
   class_path: terratorch.datamodules.GenericMultiModalDataModule
   init_args:
+    allow_missing_modalities: false
+    allow_substring_file_names: true
     batch_size: 4
+    channel_position: -3
+    check_stackability: true
+    concat_bands: false
+    data_with_sample_dim: false
+    drop_last: true
     expand_temporal_dimension: false
     means:
       CDL:
@@ -38,14 +45,19 @@ data:
     - CDL
     - DEM
     - WEATHER
-    no_data_replace: 0
+    no_data_replace: 0.0
     no_label_replace: 0.0
     num_workers: 8
+    pin_memory: false
+    reduce_zero_label: false
     rgb_indices:
     - 3
     - 2
     - 1
     rgb_modality: S2L2A
+    sample_replace: false
+    shared_transforms: true
+    skip_file_checks: false
     stds:
       CDL:
       - 1
@@ -77,43 +89,39 @@ data:
       - 504.205
     task: regression
     test_data_root:
-      CDL: processed_data_bs20_rm_7/CDL
-      DEM: processed_data_bs20_rm_7/DEM
-      S1GRD: processed_data_bs20_rm_7/S1GRD
-      S2L2A: processed_data_bs20_rm_7/S2L2A
-      WEATHER: processed_data_bs20_rm_7/WEATHER
-    test_label_data_root: processed_data_bs20_rm_7/yield_geotiffs
-    test_split: processed_data_bs20_rm_7/val_corn.txt
+      CDL: processed_data_bs20_rm_20/CDL
+      DEM: processed_data_bs20_rm_20/DEM
+      S1GRD: processed_data_bs20_rm_20/S1GRD
+      S2L2A: processed_data_bs20_rm_20/S2L2A
+      WEATHER: processed_data_bs20_rm_20/WEATHER
+    test_label_data_root: processed_data_bs20_rm_20/yield_geotiffs
+    test_split: processed_data_bs20_rm_20/val_corn.txt
     train_data_root:
-      CDL: processed_data_bs20_rm_7/CDL
-      DEM: processed_data_bs20_rm_7/DEM
-      S1GRD: processed_data_bs20_rm_7/S1GRD
-      S2L2A: processed_data_bs20_rm_7/S2L2A
-      WEATHER: processed_data_bs20_rm_7/WEATHER
-    train_label_data_root: processed_data_bs20_rm_7/yield_geotiffs
-    train_split: processed_data_bs20_rm_7/train_corn.txt
+      CDL: processed_data_bs20_rm_20/CDL
+      DEM: processed_data_bs20_rm_20/DEM
+      S1GRD: processed_data_bs20_rm_20/S1GRD
+      S2L2A: processed_data_bs20_rm_20/S2L2A
+      WEATHER: processed_data_bs20_rm_20/WEATHER
+    train_label_data_root: processed_data_bs20_rm_20/yield_geotiffs
+    train_split: processed_data_bs20_rm_20/train_corn.txt
     val_data_root:
-      CDL: processed_data_bs20_rm_7/CDL
-      DEM: processed_data_bs20_rm_7/DEM
-      S1GRD: processed_data_bs20_rm_7/S1GRD
-      S2L2A: processed_data_bs20_rm_7/S2L2A
-      WEATHER: processed_data_bs20_rm_7/WEATHER
-    val_label_data_root: processed_data_bs20_rm_7/yield_geotiffs
-    val_split: processed_data_bs20_rm_7/val_corn.txt
-lr_scheduler:
-  class_path: ReduceLROnPlateau
-  init_args:
-    factor: 0.8
-    min_lr: 1.0e-06
-    monitor: val/loss
-    patience: 25
+      CDL: processed_data_bs20_rm_20/CDL
+      DEM: processed_data_bs20_rm_20/DEM
+      S1GRD: processed_data_bs20_rm_20/S1GRD
+      S2L2A: processed_data_bs20_rm_20/S2L2A
+      WEATHER: processed_data_bs20_rm_20/WEATHER
+    val_label_data_root: processed_data_bs20_rm_20/yield_geotiffs
+    val_split: processed_data_bs20_rm_20/val_corn.txt
+deploy_config_file: true
 model:
   class_path: terratorch.tasks.PixelwiseRegressionTask
   init_args:
     freeze_backbone: false
     freeze_decoder: false
+    freeze_head: false
     ignore_index: -1
     loss: mse
+    lr: 0.001
     model_args:
       backbone: terramind_v1_base
       backbone_merge_method: mean
@@ -123,7 +131,7 @@ model:
       - CDL: 1
       - DEM
       - WEATHER: 7
-      backbone_pretrained: true
+      backbone_pretrained: false
       decoder: UNetDecoder
       decoder_channels:
       - 512
@@ -142,42 +150,27 @@ model:
         remove_cls_token: false
       - name: LearnedInterpolateToPyramidal
     model_factory: EncoderDecoderFactory
-optimizer:
-  class_path: torch.optim.AdamW
-  init_args:
-    lr: 1e-4
+    plot_on_val: 10
+out_dtype: int16
 seed_everything: 42
 trainer:
   accelerator: auto
   accumulate_grad_batches: 8
-  callbacks:
-  - class_path: ModelCheckpoint
-    init_args:
-      dirpath: output/corn/BS_S12WDC/bs20/round1/rm_7/checkpoints
-      filename: best-{epoch:03d}
-      mode: min
-      monitor: val/loss
-      save_last: true
-      save_top_k: 1
-  - class_path: EarlyStopping
-    init_args:
-      min_delta: 0.0001
-      mode: min
-      monitor: val/loss
-      patience: 75
-      verbose: true
-  - class_path: LearningRateMonitor
-    init_args:
-      logging_interval: epoch
-  - class_path: RichProgressBar
+  barebones: false
+  check_val_every_n_epoch: 1
+  detect_anomaly: false
   devices: auto
+  enable_autolog_hparams: true
+  fast_dev_run: false
+  inference_mode: true
   log_every_n_steps: 1
-  logger:
-  - class_path: WandbLogger
-    init_args:
-      name: BS_Corn_S12WDC_bs20_round1_rm_7
-      project: M4_Corn_S12WDC_BS
+  logger: false
   max_epochs: 1000
+  max_steps: -1
   num_nodes: 1
+  overfit_batches: 0.0
   precision: 16-mixed
+  reload_dataloaders_every_n_epochs: 0
   strategy: auto
+  sync_batchnorm: false
+  use_distributed_sampler: true

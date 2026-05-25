@@ -12,6 +12,7 @@ terratorch*.yaml
 *.out
 *.npy
 *.png
+*.pyc
 chloe_dataset/
 yld_proc/raw_yield/
 wandb/
@@ -23,3 +24,8 @@ logs/
 plots/
 predictions/
 manuscript
+conf_BS/processed_data_bs20_rm_*/
+conf_BS/w20_dataset/
+conf_BS/w16_dataset/
+inference/
+__pycache__/
