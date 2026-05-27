@@ -5,24 +5,23 @@ import glob
 
 def select_best_weeks_across_years(csv_dir, min_weeks=12, max_weeks=18, output_path=None):
     """
-    모든 년도의 평균 quality를 기반으로 best weeks 선택
-    Growing stage도 고려하여 critical period 보장
+    Select best weeks based on average quality across all years
+    Also considers growing stages to ensure critical periods are covered
     
     Args:
-        csv_dir: availability CSV 파일들이 있는 디렉토리
-        min_weeks: 최소 선택할 주 수
-        max_weeks: 최대 선택할 주 수
-        output_path: 결과 저장 경로 (optional)
+        csv_dir: Directory containing availability CSV files
+        min_weeks: Minimum number of weeks to select
+        max_weeks: Maximum number of weeks to select
+        output_path: Path to save results (optional)
     
     Returns:
-        selected_weeks: 선택된 week indices 리스트 (모든 년도 공통)
+        selected_weeks: List of selected week indices (common across all years)
     """
     
-    # 모든 CSV 파일 로드
+    # Load all CSV files
     csv_files = glob.glob(os.path.join(csv_dir, 'week_availability_*.csv'))
     
     if not csv_files:
-        # 단일 파일인 경우
         csv_files = [csv_dir]
     
     all_data = []
@@ -32,10 +31,10 @@ def select_best_weeks_across_years(csv_dir, min_weeks=12, max_weeks=18, output_p
     
     df_all = pd.concat(all_data, ignore_index=True)
     
-    # Present만 필터링
+    # Filter present data
     df_present = df_all[df_all['Status'] == 'present'].copy()
     
-    # Week별, Year별 quality 계산
+    # Calculate quality score for each week-year combination
     week_year_quality = []
     
     years = df_present['Year'].unique()
@@ -51,7 +50,7 @@ def select_best_weeks_across_years(csv_dir, min_weeks=12, max_weeks=18, output_p
             s1_pct = s1_pct.values[0] if len(s1_pct) > 0 else 0
             s2_pct = s2_pct.values[0] if len(s2_pct) > 0 else 0
             
-            # Quality score: S2 더 중요 (optical이 yield prediction에 더 중요)
+            # Quality score: S2 is more important (optical is more important for yield prediction)
             quality = (s1_pct * 0.4) + (s2_pct * 0.6)
             
             week_label = df_year[df_year['Week'] == week]['WeekLabel'].values
@@ -69,7 +68,7 @@ def select_best_weeks_across_years(csv_dir, min_weeks=12, max_weeks=18, output_p
     df_quality = pd.DataFrame(week_year_quality)
     
     # ========================================
-    # 전체 년도 평균 quality 계산
+    # Calculate average quality across all years
     # ========================================
     avg_quality = df_quality.groupby('week').agg({
         's1_pct': 'mean',
@@ -78,7 +77,7 @@ def select_best_weeks_across_years(csv_dir, min_weeks=12, max_weeks=18, output_p
         'week_label': 'first'
     }).reset_index()
     
-    # Growing stage 정보 추가
+    # Add growing stage info
     def get_growing_stage(week):
         if week <= 3:      # Apr W1-W4
             return 'Planting'
@@ -106,47 +105,47 @@ def select_best_weeks_across_years(csv_dir, min_weeks=12, max_weeks=18, output_p
         print(f"{row['week_label']:<12} {row['stage']:<15} {row['s1_pct']:>8.1f} {row['s2_pct']:>8.1f} {row['quality']:>10.1f} {critical_marker:>10}")
     
     # ========================================
-    # Week 선택 로직
+    # Week selection logic
     # ========================================
     selected = []
     
-    # 1. Critical period (Jul-Aug, Reproductive & Grain Fill)에서 상위 6개 선택
+    # 1. Select top 6 weeks from critical period (Jul-Aug, Reproductive & Grain Fill)
     critical_weeks = avg_quality[avg_quality['is_critical']].nlargest(6, 'quality')
     selected.extend(critical_weeks['week'].tolist())
-    print(f"\n[Step 1] Critical period에서 {len(critical_weeks)}개 선택: {sorted(critical_weeks['week'].tolist())}")
+    print(f"\n[Step 1] Selected {len(critical_weeks)} weeks from critical period: {sorted(critical_weeks['week'].tolist())}")
     
-    # 2. 각 non-critical stage에서 최소 1-2개씩 선택
+    # 2. Select at least 1-2 weeks from each non-critical stage
     for stage in ['Planting', 'Emergence', 'Vegetative', 'Maturity']:
         stage_weeks = avg_quality[(avg_quality['stage'] == stage) & (~avg_quality['week'].isin(selected))]
         if len(stage_weeks) > 0:
-            # 각 stage에서 quality 상위 2개 선택
+            # Select top 2 weeks by quality from each stage
             top_weeks = stage_weeks.nlargest(2, 'quality')
             selected.extend(top_weeks['week'].tolist())
     
-    print(f"[Step 2] 각 stage에서 추가 선택 후: {len(selected)}개")
+    print(f"[Step 2] After adding weeks from each stage: {len(selected)} weeks")
     
-    # 3. 최소 개수 못 채우면 quality 높은 순으로 추가
+    # 3. If minimum count not reached, add more weeks by quality score
     if len(selected) < min_weeks:
         remaining = avg_quality[~avg_quality['week'].isin(selected)]
         remaining = remaining.nlargest(min_weeks - len(selected), 'quality')
         selected.extend(remaining['week'].tolist())
-        print(f"[Step 3] 최소 개수 채우기 후: {len(selected)}개")
+        print(f"[Step 3] After filling minimum count: {len(selected)} weeks")
     
-    # 4. 최대 개수 초과하면 quality 낮은 것 제거
+    # 4. If maximum count exceeded, remove lowest quality weeks
     if len(selected) > max_weeks:
         selected_df = avg_quality[avg_quality['week'].isin(selected)]
         selected_df = selected_df.nlargest(max_weeks, 'quality')
         selected = selected_df['week'].tolist()
-        print(f"[Step 4] 최대 개수로 제한: {len(selected)}개")
+        print(f"[Step 4] After capping at maximum count: {len(selected)} weeks")
     
-    # 정렬
+    # Sort
     selected = sorted(set(selected))
     
     # ========================================
-    # 결과 출력
+    # Print results
     # ========================================
     print("\n" + "="*70)
-    print(f"FINAL SELECTED WEEKS: {len(selected)}개")
+    print(f"FINAL SELECTED WEEKS: {len(selected)}")
     print("="*70)
     print(f"Week indices: {selected}")
     print("\nDetails:")
@@ -158,7 +157,7 @@ def select_best_weeks_across_years(csv_dir, min_weeks=12, max_weeks=18, output_p
         print(f"{row['week_label']:<12} {row['stage']:<15} {row['s1_pct']:>8.1f} {row['s2_pct']:>8.1f} {row['quality']:>10.1f}")
     
     # ========================================
-    # 년도별 검증: 선택된 weeks의 quality 확인
+    # Year-by-year validation: check quality of selected weeks
     # ========================================
     print("\n" + "="*70)
     print("YEAR-BY-YEAR QUALITY FOR SELECTED WEEKS")
@@ -173,7 +172,7 @@ def select_best_weeks_across_years(csv_dir, min_weeks=12, max_weeks=18, output_p
         print(f"Year {year}: Avg={avg_q:.1f}, Min={min_q:.1f}, Max={max_q:.1f}")
     
     # ========================================
-    # 결과 저장
+    # Save results
     # ========================================
     if output_path:
         result_df = avg_quality[avg_quality['week'].isin(selected)].copy()
@@ -185,7 +184,7 @@ def select_best_weeks_across_years(csv_dir, min_weeks=12, max_weeks=18, output_p
 
 
 def print_week_labels(selected_weeks):
-    """선택된 weeks의 label 출력"""
+    """Print labels for selected weeks"""
     week_labels = [
         'Apr W1', 'Apr W2', 'Apr W3', 'Apr W4',
         'May W1', 'May W2', 'May W3', 'May W4',
@@ -217,8 +216,8 @@ if __name__ == "__main__":
     print(f"Total: {len(selected_weeks)} weeks")
     print_week_labels(selected_weeks)
     
-    # 선택 안 된 weeks도 출력
+    # Print excluded weeks as well
     all_weeks = set(range(24))
     excluded = sorted(all_weeks - set(selected_weeks))
     print(f"\nExcluded weeks: {excluded}")
-    print_week_labels(excluded)
+    print_week_labels(excluded)s

@@ -13,7 +13,7 @@ trainer:
         name: S12d_24_differentnorm              
 
   callbacks:
-    - class_path: ModelCheckpoint # add Chloe
+    - class_path: ModelCheckpoint
       init_args:
         dirpath: output/corn/M1/differentnorm/lr_e5 # need to be changed per experiment
         monitor: val/loss

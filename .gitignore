@@ -29,3 +29,8 @@ conf_BS/w20_dataset/
 conf_BS/w16_dataset/
 inference/
 __pycache__/
+chloe_figures/
+generate_journal_figures.py 
+journal_figures/
+!asset/Prj_TeraMind.png
+!asset/Prj_TeraMind.pdf

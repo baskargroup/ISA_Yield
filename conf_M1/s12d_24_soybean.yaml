@@ -13,7 +13,7 @@ trainer:
         name: M1_lr_e5_differentnorm         
 
   callbacks:
-    - class_path: ModelCheckpoint # add Chloe
+    - class_path: ModelCheckpoint 
       init_args:
         dirpath: output/soybean/M1/differentnorm/lr_e5/checkpoints # need to be changed per experiment
         monitor: val/loss
