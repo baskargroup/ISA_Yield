@@ -93,13 +93,3 @@ Evaluate the model with the specified config and checkpoint. Replace with other 
 ## 3. Logging
 Experiment statistics are automatically logged to **wandb**.
 
-
-## Citation
-```bibtex
-@article{jakubik2025terramind,
-  title={TerraMind: Large-Scale Generative Multimodality for Earth Observation},
-  author={Jakubik, Johannes and others},
-  journal={IEEE/CVF International Conference on Computer Vision (ICCV)},
-  year={2025}
-}
-```
